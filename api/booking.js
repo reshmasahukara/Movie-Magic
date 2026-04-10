@@ -64,7 +64,7 @@ export default async function handler(req, res) {
       await query(
         `INSERT INTO shows (screen_id, movie_id, theater_id, timmings, show_date, screen_no, screen_dimensions) 
          VALUES ($1, $2, $3, '10:15:00', CURRENT_DATE, 1, '2D') 
-         ON CONFLICT (screen_id) DO NOTHING`,
+         ON CONFLICT (screen_id) DO UPDATE SET movie_id = EXCLUDED.movie_id`,
         [screenid, targetMovie, fallbackTheater]
       );
 
