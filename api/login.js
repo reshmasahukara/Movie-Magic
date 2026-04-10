@@ -1,22 +1,11 @@
 import bcrypt from 'bcryptjs';
 import db from './db.js';
-import { renderView } from './render.js';
 
 export default async function handler(req, res) {
   try {
     const { method } = req;
 
-    if (method === 'GET') {
-      return await renderView(res, 'userlogin');
-    }
-
     if (method === 'POST') {
-      // Logic for logout redirect
-      if (req.url.includes('logout')) {
-        res.setHeader('Location', '/userlogin');
-        return res.status(302).end();
-      }
-
       const { email, password } = req.body;
       if (!email || !password) {
         return res.status(400).json({ error: "Email and password are required" });
@@ -27,7 +16,9 @@ export default async function handler(req, res) {
         const user = result.rows[0];
         const match = await bcrypt.compare(password, user.password);
         if (match) {
-          return res.status(200).json({ details: [user] });
+          // Sensitive: remove password before sending
+          const { password: _, ...userData } = user;
+          return res.status(200).json({ success: true, user: userData });
         }
         return res.status(401).json({ error: "Invalid password" });
       }

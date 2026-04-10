@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Movie Magic</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav>
+    <a href="/" class="logo">MOVIE MAGIC</a>
+    <div class="links">
+      <a href="/">Home</a>
+      <a href="#" onclick="API.logout()">Logout</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div style="display: flex; align-items: center; gap: 2rem; margin-bottom: 3rem; background: var(--card-bg); padding: 2rem; border-radius: 12px;">
+      <div style="width: 80px; height: 80px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800;" id="user-initials">
+        U
+      </div>
+      <div>
+        <h2 id="user-name">Loading...</h2>
+        <p style="color: var(--text-muted)" id="user-email">email@example.com</p>
+      </div>
+    </div>
+
+    <section>
+      <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Manage Your Experience</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+        <div class="movie-card" style="padding: 2rem; text-align: center;">
+          <h4 style="margin-bottom: 1rem;">Profile Settings</h4>
+          <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Update your city and contact details.</p>
+          <button class="btn-primary" disabled>Edit Profile</button>
+        </div>
+        <div class="movie-card" style="padding: 2rem; text-align: center;">
+          <h4 style="margin-bottom: 1rem;">Booking History</h4>
+          <p style="color: var(--text-muted); margin-bottom: 1.5rem;">View and manage your upcoming tickets.</p>
+          <button class="btn-primary" disabled>View History</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/utils.js"></script>
+  <script>
+    const user = API.getSession();
+    if (!user) {
+      window.location.href = '/login.html';
+    } else {
+      document.getElementById('user-name').textContent = user.name;
+      document.getElementById('user-email').textContent = user.email;
+      document.getElementById('user-initials').textContent = user.name.charAt(0).toUpperCase();
+    }
+  </script>
+</body>
+</html>

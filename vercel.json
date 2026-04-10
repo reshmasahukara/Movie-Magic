@@ -6,13 +6,19 @@
     }
   },
   "rewrites": [
-    { "source": "/", "destination": "/api/movies" },
-    { "source": "/index", "destination": "/api/movies" },
-    { "source": "/userlogin", "destination": "/api/login" },
-    { "source": "/usersignup", "destination": "/api/signup" },
-    { "source": "/moviesdash", "destination": "/api/movies?action=moviesdash" },
-    { "source": "/admindash", "destination": "/api/admin?action=dash" },
-    { "source": "/api/success", "destination": "/api/booking?action=success" }
+    { "source": "/", "destination": "/public/index.html" },
+    { "source": "/index", "destination": "/public/index.html" },
+    { "source": "/login", "destination": "/public/login.html" },
+    { "source": "/signup", "destination": "/public/signup.html" },
+    { "source": "/dashboard", "destination": "/public/dashboard.html" },
+    { "source": "/booking", "destination": "/public/booking.html" },
+    { "source": "/admin", "destination": "/public/admin.html" },
+    
+    { "source": "/css/(.*)", "destination": "/public/css/$1" },
+    { "source": "/js/(.*)", "destination": "/public/js/$1" },
+    { "source": "/images/(.*)", "destination": "/public/images/$1" },
+    
+    { "source": "/api/(.*)", "destination": "/api/$1" }
   ],
   "env": {
     "BCRYPT_ROUNDS": "10"

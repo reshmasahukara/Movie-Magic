@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Magic | Discover & Book Tickets</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav>
+    <a href="/" class="logo">MOVIE MAGIC</a>
+    <div class="links" id="nav-links">
+      <a href="/">Home</a>
+      <a href="/login.html">Login</a>
+      <a href="/signup.html">Signup</a>
+    </div>
+  </nav>
+
+  <header class="container" style="text-align: center; padding: 5rem 5% 2rem;">
+    <h1 style="font-size: 3.5rem; margin-bottom: 1rem;">Experience the <span style="color:var(--primary)">Magic</span> of Cinema</h1>
+    <p style="color:var(--text-muted); font-size: 1.2rem;">Book tickets for the latest blockbusters in seconds.</p>
+  </header>
+
+  <main class="container">
+    <div class="movie-grid" id="movie-catalog">
+      <!-- Movies will be injected here -->
+      <div class="loading">Loading movies...</div>
+    </div>
+  </main>
+
+  <script src="js/utils.js"></script>
+  <script>
+    async function loadMovies() {
+      try {
+        const { movies } = await API.fetch('/api/movies');
+        const catalog = document.getElementById('movie-catalog');
+        
+        catalog.innerHTML = movies.map(movie => `
+          <div class="movie-card">
+            <img src="/images/${movie.movie_id}.jpg" alt="${movie.movie_name}" onerror="this.src='https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=800&q=80'">
+            <div class="movie-info">
+              <h3>${movie.movie_name}</h3>
+              <div class="meta">⭐ ${movie.movie_rating} • ${movie.language} • ${movie.genre}</div>
+              <button class="btn-primary" onclick="goToBooking('${movie.movie_id}')">Book Now</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        UI.showMessage(err.message);
+      }
+    }
+
+    function goToBooking(id) {
+      if (!API.getSession()) {
+        UI.showMessage('Please login to book tickets', 'error');
+        setTimeout(() => window.location.href = '/login.html', 1500);
+        return;
+      }
+      window.location.href = `/booking.html?movieId=${id}`;
+    }
+
+    // Auth check
+    const user = API.getSession();
+    if (user) {
+      document.getElementById('nav-links').innerHTML = `
+        <a href="/">Home</a>
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="#" onclick="API.logout()">Logout</a>
+      `;
+    }
+
+    loadMovies();
+  </script>
+</body>
+</html>

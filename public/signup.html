@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join | Movie Magic</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body style="background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=1920&q=80'); background-size: cover;">
+  <nav>
+    <a href="/" class="logo">MOVIE MAGIC</a>
+    <div class="links">
+      <a href="/">Home</a>
+      <a href="/login.html">Login</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="auth-container" style="max-width: 500px;">
+      <h2 style="font-size: 2rem; margin-bottom: 2rem; text-align: center;">Create Account</h2>
+      <form id="signup-form">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="username" required placeholder="John Doe">
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="email" required placeholder="name@example.com">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="password" required placeholder="Min. 8 characters">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label>City</label>
+            <input type="text" id="city" required placeholder="City">
+          </div>
+          <div class="form-group">
+            <label>Contact No</label>
+            <input type="tel" id="contactno" required placeholder="Phone">
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Register</button>
+      </form>
+      <p style="text-align: center; margin-top: 1.5rem; color: var(--text-muted);">
+        Already have an account? <a href="/login.html" style="color: var(--primary); text-decoration: none;">Sign in</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="js/utils.js"></script>
+  <script>
+    document.getElementById('signup-form').onsubmit = async (e) => {
+      e.preventDefault();
+      const data = {
+        username: document.getElementById('username').value,
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+        city: document.getElementById('city').value,
+        contactno: document.getElementById('contactno').value
+      };
+
+      try {
+        await API.fetch('/api/signup', {
+          method: 'POST',
+          body: JSON.stringify(data)
+        });
+        UI.showMessage('Registration successful! Please login.', 'success');
+        setTimeout(() => window.location.href = '/login.html', 1500);
+      } catch (err) {
+        UI.showMessage(err.message);
+      }
+    };
+  </script>
+</body>
+</html>
