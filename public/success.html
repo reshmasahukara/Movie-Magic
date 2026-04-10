@@ -11,17 +11,19 @@
   <style>
     .success-container { text-align: center; padding: 4rem 1rem; max-width: 900px; margin: 0 auto; }
     
-    .ticket-card {
-      background: #121212;
-      color: white;
-      width: 100%;
-      max-width: 400px;
+    /* TICKET DESIGN */
+    .ticket-container { 
+      background: #1a1a1a; 
+      border-radius: 20px; 
+      padding: 0; 
+      border: 1px solid rgba(255,255,255,0.05); 
+      position: relative; 
+      overflow: hidden; 
+      box-shadow: 0 30px 60px rgba(0,0,0,0.5); 
+      width: 100%; 
+      max-width: 450px; 
       margin: 2rem auto;
-      border-radius: 24px;
-      overflow: hidden;
-      box-shadow: 0 40px 80px rgba(0,0,0,0.7);
-      border: 1px solid rgba(255,255,255,0.05);
-      position: relative;
+      text-align: left;
     }
 
     .ticket-header { 
@@ -29,24 +31,15 @@
       padding: 1.5rem; 
       text-align: center;
       position: relative;
-      z-index: 2;
-    }
-    
-    .brand-title {
-      letter-spacing: 6px; 
-      font-weight: 900; 
-      font-size: 1.1rem; 
-      margin: 0; 
-      color: white; 
-      text-transform: uppercase;
     }
 
-    .brand-tagline { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.8; margin-top: 5px; }
+    .brand-title { letter-spacing: 6px; font-weight: 900; font-size: 1.1rem; margin: 0; color: white; text-transform: uppercase; }
+    .brand-tagline { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.8; margin-top: 5px; color: white; }
 
-    .ticket-body { padding: 2.5rem; position: relative; z-index: 1; }
+    .ticket-body { padding: 2.5rem; position: relative; }
     
     .movie-title { 
-      font-size: 2.2rem; 
+      font-size: 2rem; 
       font-weight: 900; 
       line-height: 1.1; 
       margin-bottom: 2rem; 
@@ -54,17 +47,14 @@
       text-transform: uppercase;
     }
 
-    .ticket-info { display: flex; justify-content: space-between; margin-bottom: 1.5rem; text-align: left; }
+    .ticket-info { display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
     .info-label { color: #555; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
-    .info-val { font-weight: 600; font-size: 0.95rem; }
+    .info-val { font-weight: 600; font-size: 0.95rem; color: #eee; }
 
-    /* Perforated Line effect with stable positioning */
     .perforated {
       border-top: 2px dashed #222;
-      margin: 2.5rem 0;
+      margin: 2rem 0;
       position: relative;
-      width: calc(100% + 5rem);
-      margin-left: -2.5rem;
     }
     .perforated::before, .perforated::after {
       content: '';
@@ -75,13 +65,13 @@
       background: var(--bg-dark);
       border-radius: 50%;
     }
-    .perforated::before { left: 10px; }
-    .perforated::after { right: 10px; }
+    .perforated::before { left: -36px; }
+    .perforated::after { right: -36px; }
 
     .qr-container {
       background: white;
-      width: 140px;
-      height: 140px;
+      width: 130px;
+      height: 130px;
       margin: 0 auto;
       padding: 10px;
       border-radius: 12px;
@@ -90,6 +80,16 @@
       justify-content: center;
     }
     #qrcode-canvas { width: 100% !important; height: 100% !important; }
+
+    /* Print Logic */
+    @media print {
+      nav, footer, .btn-group, .no-print { display: none !important; }
+      body { background: white !important; }
+      .ticket-container { box-shadow: none; border: 1px solid #ddd; margin: 0 auto; background: white !important; }
+      .ticket-body, .info-val, .movie-title { color: black !important; }
+      .info-label { color: #888 !important; }
+      .qr-container { border: 1px solid #eee; }
+    }
   </style>
 </head>
 <body>
@@ -108,9 +108,8 @@
       const pData = localStorage.getItem('paymentData');
       let data = pData ? JSON.parse(pData) : null;
 
-      // 1. Fail-safe: If paymentData is gone, try to fetch from History API
+      // 1. Recovery Logic
       if (!data && lastBookingId) {
-        console.warn("paymentData missing, attempting recovery via History API...");
         try {
           const user = API.getSession();
           if (user) {
@@ -120,7 +119,7 @@
                data = {
                  booking_id: latest.id,
                  movie_name: latest.movie_name,
-                 theater_name: "Movie Magic Cinemas", // Fallback text
+                 theater_name: latest.theater_name || "Movie Magic Cinemas",
                  timmings: latest.timmings,
                  show_date: latest.show_date,
                  seats: typeof latest.selected_seats === 'string' ? JSON.parse(latest.selected_seats) : latest.selected_seats,
@@ -133,70 +132,63 @@
 
       if (!data) {
         UI.safeRender('content-anchor', `
-          <div style="padding: 4rem 2rem;">
-            <div style="color: #ff4444; margin-bottom: 2rem;">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-            </div>
-            <h2 style="color: white; font-size: 2rem;">No Active Booking Found</h2>
-            <p style="margin: 1.5rem 0; color: var(--text-muted); max-width: 400px; margin-left: auto; margin-right: auto;">We couldn't retrieve your ticket automatically. Please check your dashboard or history for the confirmed digital pass.</p>
-            <div style="display: flex; gap: 1rem; justify-content: center;">
-              <button onclick="window.location.href='/history.html'" class="btn-primary">View History</button>
-              <button onclick="window.location.href='/'" class="btn-primary" style="background: transparent; border: 1px solid var(--glass);">Back Home</button>
-            </div>
+          <div style="padding: 4rem 1rem;">
+            <h2 style="color: white;">No Active Booking Found</h2>
+            <p style="color: var(--text-muted); margin: 1rem 0;">Check your history for previous bookings.</p>
+            <button onclick="window.location.href='/history.html'" class="btn-primary">Go to History</button>
           </div>
         `);
         return;
       }
 
-      // 2. Clear and Render Template
+      // 2. Render Premium Ticket
       const template = `
         <div style="background: rgba(40, 167, 69, 0.1); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; border: 1px solid #28a745;">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </div>
-        
-        <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem; font-weight: 800;">Congratulations!</h1>
-        <p style="color: var(--text-muted); font-size: 0.95rem;">Payment Verified. Your digital pass is ready below.</p>
+        <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;">Congratulations!</h1>
+        <p style="color: var(--text-muted);">Payment successful. Your digital pass is below.</p>
 
-        <div id="ticket-element" class="ticket-card">
+        <div id="ticket-element" class="ticket-container">
           <div class="ticket-header">
-            <p class="brand-title">🎬 MOVIE MAGIC</p>
-            <p class="brand-tagline">Your Ultimate Movie Experience</p>
+            <p class="brand-title">MOVIE MAGIC</p>
+            <p class="brand-tagline">Premium Cinema Experience</p>
           </div>
           <div class="ticket-body">
-            <h2 class="movie-title">${data.movie_name || "Movie Magic"}</h2>
+            <h2 class="movie-title">${data.movie_name}</h2>
             
             <div class="ticket-info">
               <div>
-                <p class="info-label">Cinema Hall</p>
-                <p class="info-val">${data.theater_name || "Movie Magic Cinemas"}</p>
+                <p class="info-label">Cinema</p>
+                <p class="info-val">${data.theater_name}</p>
               </div>
               <div style="text-align: right;">
-                <p class="info-label">Show Time</p>
-                <p class="info-val">${data.timmings || "Schedule Pending"}</p>
+                <p class="info-label">Time</p>
+                <p class="info-val">${data.timmings}</p>
               </div>
             </div>
 
             <div class="ticket-info">
               <div>
-                <p class="info-label">Admission Date</p>
-                <p class="info-val">${data.show_date ? new Date(data.show_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase() : "DATE PENDING"}</p>
+                <p class="info-label">Date</p>
+                <p class="info-val">${new Date(data.show_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'})}</p>
               </div>
               <div style="text-align: right;">
                 <p class="info-label">Seats</p>
-                <p class="info-val">${(data.seats && data.seats.length > 0) ? data.seats.join(', ') : "Standby"}</p>
+                <p class="info-val">${data.seats.join(', ')}</p>
               </div>
             </div>
 
             <div class="perforated"></div>
 
-            <div class="ticket-info" style="margin-bottom: 1.5rem;">
+            <div class="ticket-info">
               <div>
-                <p class="info-label">Booking Reference</p>
-                <p class="info-val" style="color: var(--primary)">#${data.booking_id || "00000"}</p>
+                <p class="info-label">Booking ID</p>
+                <p class="info-val" style="color: var(--primary)">#${data.booking_id}</p>
               </div>
               <div style="text-align: right;">
                 <p class="info-label">Status</p>
-                <p class="info-val" style="color: #28a745; font-weight: 800;">CONFIRMED</p>
+                <p class="info-val" style="color: #28a745;">PAID</p>
               </div>
             </div>
 
@@ -206,36 +198,26 @@
           </div>
         </div>
 
-        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
-          <button onclick="downloadTicket()" class="btn-primary" style="background: transparent; border: 1px solid var(--primary);">Download Pass (PDF)</button>
-          <button onclick="window.location.href='/history.html'" class="btn-primary">View History</button>
+        <div class="btn-group no-print" style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+          <button onclick="window.print()" class="btn-primary" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">Download Ticket</button>
+          <a href="/history.html" class="btn-primary" style="text-decoration: none;">View History</a>
         </div>
       `;
 
       UI.safeRender('content-anchor', template);
 
-      // 3. QR Generation
-      const canvas = document.getElementById('qrcode-canvas');
-      if(canvas) {
-        QRCode.toCanvas(canvas, JSON.stringify({id: data.booking_id, seats: data.seats}), { width: 140, margin: 0 });
-      }
-      
-      // 4. Cleanup
+      // 3. QR Gen
+      setTimeout(() => {
+        const canvas = document.getElementById('qrcode-canvas');
+        if(canvas) {
+          QRCode.toCanvas(canvas, `BOOKING-${data.booking_id}`, { width: 130, margin: 0 });
+        }
+      }, 100);
+
+      // 4. Final Cleanup
       localStorage.removeItem('paymentData');
     }
 
-    function downloadTicket() {
-      const element = document.getElementById('ticket-element');
-      const opt = {
-        margin: 10,
-        filename: 'CinemaTicket.pdf',
-        html2canvas: { scale: 2, backgroundColor: '#0F0F0F' },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-      html2pdf().set(opt).from(element).save();
-    }
-
-    // Defensive Trigger
     window.addEventListener('load', initSuccess);
   </script>
 </body>
