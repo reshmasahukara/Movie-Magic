@@ -84,16 +84,16 @@
 
     <!-- Filters -->
     <div class="filters-bar" id="filters-container">
-      <div class="filter-chip active" data-filter="all">All Shows</div>
-      <div class="filter-chip" data-filter="price-low">₹0 - ₹200</div>
-      <div class="filter-chip" data-filter="price-high">₹201+</div>
-      <div class="filter-chip" data-filter="3d">3D Only</div>
-      <div class="filter-chip" data-filter="2d">2D Only</div>
+      <button class="filter-chip active" data-filter="all">All Shows</button>
+      <button class="filter-chip" data-filter="price-low">₹0 - ₹200</button>
+      <button class="filter-chip" data-filter="price-high">₹201+</button>
+      <button class="filter-chip" data-filter="3d">3D Only</button>
+      <button class="filter-chip" data-filter="2d">2D Only</button>
     </div>
 
     <!-- Theater List -->
     <div id="theater-list" style="margin-top: 2rem;">
-      <p style="text-align: center; color: var(--text-muted); padding: 4rem;">Finding the best seats for you...</p>
+      <!-- Content injected by JS -->
     </div>
   </main>
 
@@ -103,15 +103,75 @@
     const movieId = urlParams.get('movieId');
     let selectedDate = new Date().toISOString().split('T')[0];
     let activeFilter = 'all';
-    let allShows = [];
-    let allTheaters = [];
+
+    // 1. Professional Static Data Format (Fallback & Default)
+    const theatresData = [
+      {
+        id: 1,
+        name: "Cinepolis: Nexus",
+        location: "Hyderabad",
+        shows: [
+          { id: 101, time: "10:15 AM", price: 150, format: "2D" },
+          { id: 102, time: "06:05 PM", price: 250, format: "3D" }
+        ]
+      },
+      {
+        id: 2,
+        name: "INOX: DN Regalia Mall",
+        location: "Hyderabad",
+        shows: [
+          { id: 201, time: "10:45 AM", price: 200, format: "2D" },
+          { id: 202, time: "07:40 PM", price: 300, format: "3D" }
+        ]
+      },
+      {
+        id: 3,
+        name: "INOX: Symphony Mall",
+        location: "Hyderabad",
+        shows: [
+          { id: 301, time: "04:00 PM", price: 180, format: "2D" }
+        ]
+      },
+      {
+        id: 4,
+        name: "PVR: Utkal Kanika Galleria",
+        location: "Hyderabad",
+        shows: [
+          { id: 401, time: "01:15 PM", price: 220, format: "2D" }
+        ]
+      },
+      {
+        id: 5,
+        name: "PJ Movies (Veena Theatre)",
+        location: "Hyderabad",
+        shows: [
+          { id: 501, time: "06:00 PM", price: 120, format: "2D" }
+        ]
+      }
+    ];
 
     async function init() {
-      if (!movieId) return window.location.href = '/';
-      
+      // Basic Auth Check
+      if (!API.getSession()) {
+        window.location.href = "/login.html";
+        return;
+      }
+
       renderDates();
       setupFilters();
-      await fetchData();
+      
+      // Update Movie Header (Try to get from API if available)
+      try {
+        const { movies } = await API.fetch('/api/movies');
+        const movie = movies.find(m => m.movie_id === movieId);
+        if(movie) {
+          document.getElementById('movie-title').textContent = movie.movie_name;
+          document.getElementById('movie-meta').textContent = `${movie.movie_rating} • ${movie.genre} • ${movie.language} • 2h 30m`;
+        }
+      } catch (e) {
+        console.warn("API meta fetch failed, using fallbacks.");
+      }
+
       renderContent();
     }
 
@@ -121,6 +181,7 @@
           document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
           chip.classList.add('active');
           activeFilter = chip.dataset.filter;
+          console.log("Active Filter Changed:", activeFilter);
           renderContent();
         };
       });
@@ -150,67 +211,56 @@
 
     function changeDate(date) {
       selectedDate = date;
+      console.log("Selected Date:", selectedDate);
       renderDates();
       renderContent();
     }
 
-    async function fetchData() {
-      try {
-        const res = await API.fetch('/api/movies', { 
-          method: 'POST', 
-          body: JSON.stringify({ movieId }) 
-        });
-        allShows = res.shows;
-        allTheaters = res.theaters;
-        
-        const movieRes = await API.fetch('/api/movies');
-        const movie = movieRes.movies.find(m => m.movie_id === movieId);
-        if(movie) {
-          document.getElementById('movie-title').textContent = movie.movie_name;
-          document.getElementById('movie-meta').textContent = `${movie.movie_rating} • ${movie.genre} • ${movie.language}`;
-        }
-      } catch (err) {
-        UI.showMessage(err.message);
-      }
-    }
-
     function renderContent() {
       const container = document.getElementById('theater-list');
-      let filteredShows = allShows.filter(s => s.show_date.startsWith(selectedDate));
-      
-      // Apply Active Filter
-      if (activeFilter === '3d') filteredShows = filteredShows.filter(s => s.screen_dimensions?.includes('3D'));
-      if (activeFilter === '2d') filteredShows = filteredShows.filter(s => !s.screen_dimensions?.includes('3D'));
-      if (activeFilter === 'price-low') filteredShows = filteredShows.filter(s => s.screen_dimensions !== 'IMAX 3D' && s.screen_dimensions !== '4DX');
-      if (activeFilter === 'price-high') filteredShows = filteredShows.filter(s => s.screen_dimensions === 'IMAX 3D' || s.screen_dimensions === '4DX');
-      
-      if(filteredShows.length === 0) {
-        container.innerHTML = `<div style="text-align: center; padding: 4rem; color: #555;">No shows available for the selected criteria.</div>`;
+      console.log("Rendering Theatres for Filter:", activeFilter);
+
+      // 2. Fix Filter Logic: Filter SHOWS, not entire theatres
+      const processedTheatres = theatresData.map(theater => {
+        const filteredShows = theater.shows.filter(show => {
+          if (activeFilter === 'all') return true;
+          if (activeFilter === 'price-low') return show.price <= 200;
+          if (activeFilter === 'price-high') return show.price > 200;
+          if (activeFilter === '3d') return show.format === '3D';
+          if (activeFilter === '2d') return show.format === '2D';
+          return true;
+        });
+        return { ...theater, filteredShows };
+      }).filter(t => t.filteredShows.length > 0);
+
+      console.log("Theatres with Matching Shows:", processedTheatres);
+
+      if (processedTheatres.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 4rem; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed #333;">
+            <p style="color: #666; font-size: 1.1rem;">No shows available for the selected criteria. 🍿</p>
+            <button onclick="resetFilters()" class="btn-primary" style="margin-top: 1.5rem; background: transparent; border: 1px solid #444;">Clear Filters</button>
+          </div>
+        `;
         return;
       }
 
-      const theaterMap = {};
-      filteredShows.forEach(s => {
-        if(!theaterMap[s.theater_id]) theaterMap[s.theater_id] = [];
-        theaterMap[s.theater_id].push(s);
-      });
-
       let html = '';
-      Object.keys(theaterMap).forEach(tId => {
-        const theater = allTheaters.find(t => t.theater_id == tId);
-        const shows = theaterMap[tId];
-        
+      processedTheatres.forEach(t => {
         html += `
           <div class="theater-card">
-            <div style="display: flex; align-items: center; margin-bottom: 1.2rem;">
-              <h3 style="font-size: 1rem; color: #fff;">${theater.theater_name}</h3>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+              <div>
+                <h3 style="font-size: 1.1rem; color: white;">${t.name}</h3>
+                <p style="color: #555; font-size: 0.8rem; margin-top: 4px;">📍 ${t.location || "Hyderabad"}</p>
+              </div>
               <span class="label-tag">Non-cancellable</span>
             </div>
-            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-              ${shows.map(s => `
-                <button class="timing-btn" onclick="goToSeats('${s.screen_id}')">
-                  ${s.timmings.substring(0,5)}
-                   <span style="display: block; font-size: 0.6rem; opacity: 0.7;">${s.screen_dimensions || '2D'}</span>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+              ${t.filteredShows.map(s => `
+                <button class="timing-btn" onclick="goToSeats('${s.id}', '${t.name}', '${s.time}')">
+                  ${s.time}
+                  <span style="display: block; font-size: 0.6rem; opacity: 0.6; margin-top: 3px;">${s.format} • ₹${s.price}</span>
                 </button>
               `).join('')}
             </div>
@@ -220,10 +270,26 @@
       container.innerHTML = html;
     }
 
-    function goToSeats(showId) {
-      window.location.href = `/seats.html?showId=${showId}&movieId=${movieId}`;
+    function resetFilters() {
+      activeFilter = 'all';
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      document.querySelector('[data-filter="all"]').classList.add('active');
+      renderContent();
     }
 
+    function goToSeats(showId, theatreName, time) {
+      // 9. Data Handling: Save to localStorage before redirect
+      localStorage.setItem('booking_context', JSON.stringify({
+        showId,
+        theatreName,
+        time,
+        date: selectedDate,
+        movieId
+      }));
+      window.location.href = `/seats.html?showId=${showId}&movieId=${movieId}&time=${time}`;
+    }
+
+    // Initial Execution
     init();
   </script>
 </body>
