@@ -40,7 +40,20 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Missing booking details" });
       }
 
-      // Update show data to mark seats as occupied
+      // 1. Fetch current booked seats to prevent double-booking
+      const { rows: showRows } = await query('SELECT selected_seats FROM shows WHERE screen_id = $1', [screenid]);
+      const currentlyBooked = showRows[0]?.selected_seats || [];
+      
+      // 2. Check for intersection
+      const conflict = seats.filter(seat => currentlyBooked.includes(seat));
+      if (conflict.length > 0) {
+        return res.status(400).json({ 
+          error: `Seats [${conflict.join(', ')}] have just been booked by another user. Please select different seats.`,
+          conflict: true
+        });
+      }
+
+      // 3. If no conflict, update show data to mark seats as occupied
       await query(
         'UPDATE shows SET selected_seats = COALESCE(selected_seats, \'[]\'::jsonb) || $1::jsonb WHERE screen_id = $2',
         [JSON.stringify(seats), screenid]

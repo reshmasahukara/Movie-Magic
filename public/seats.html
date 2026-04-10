@@ -3,8 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Book Tickets | Movie Magic</title>
+  <title>Select Seats | Movie Magic</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .screen-header { margin: 3rem 0; width: 100%; display: flex; flex-direction: column; align-items: center; }
+    .screen-line { width: 80%; height: 4px; background: #333; border-radius: 50%; box-shadow: 0 10px 30px rgba(229, 9, 20, 0.4); margin-bottom: 10px; }
+    .screen-text { color: #555; font-size: 0.75rem; letter-spacing: 5px; text-transform: uppercase; }
+    
+    .seats-grid-wrapper { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 2rem 0; overflow-x: auto; padding: 1rem; }
+    .seat-row { display: flex; align-items: center; gap: 8px; }
+    .row-label { width: 30px; text-align: right; margin-right: 15px; color: #555; font-weight: 700; font-size: 0.85rem; }
+    
+    .seat-num { font-size: 0.65rem; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+    .seat:hover .seat-num { opacity: 1; }
+
+    .category-divider { width: 100%; margin: 1.5rem 0 0.5rem; color: #333; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; text-align: left; padding-left: 45px; border-bottom: 1px solid #1a1a1a; padding-bottom: 8px; }
+  </style>
 </head>
 <body>
   <nav>
@@ -16,50 +30,41 @@
   </nav>
 
   <main class="container">
-    <div id="booking-flow">
-      <!-- Step 1: Selection (Legacy/Fallback) -->
-      <section id="selection-step" style="display: none;">
-        <h2 style="margin-bottom: 2rem;">Select Theater & Show</h2>
-        <div id="theater-list">
-          <p>Loading theaters...</p>
-        </div>
-      </section>
+    <button onclick="window.history.back()" class="btn-primary" style="margin: 2rem 0; background: #1a1a1a; border: 1px solid #333;">← Back to Shows</button>
 
-      <!-- Step 2: Seats -->
-      <section id="seats-step">
-        <button onclick="window.history.back()" class="btn-primary" style="margin-bottom: 2rem; background: #333;">← Back</button>
-        
-        <div class="screen-container">
-          <div class="screen-visual"></div>
-          <div class="screen-label">SCREEN</div>
-        </div>
+    <div class="screen-header">
+      <div class="screen-line"></div>
+      <div class="screen-text">Screen this way</div>
+    </div>
 
-        <div class="legend" style="display: flex; gap: 20px; justify-content: center; margin-bottom: 2rem;">
-          <div class="legend-item"><div class="seat vip"></div> VIP (₹300)</div>
-          <div class="legend-item"><div class="seat premium"></div> Premium (₹200)</div>
-          <div class="legend-item"><div class="seat regular"></div> Regular (₹100)</div>
-          <div class="legend-item"><div class="seat occupied"></div> Booked</div>
-        </div>
+    <div class="legend" style="margin-bottom: 3rem;">
+      <div class="legend-item"><div class="seat"></div> Available</div>
+      <div class="legend-item"><div class="seat selected"></div> Your Selection</div>
+      <div class="legend-item"><div class="seat occupied"></div> Sold Out</div>
+      <div style="flex-basis: 100%; height: 1px;"></div>
+      <div class="legend-item"><div class="seat vip"></div> VIP (₹300)</div>
+      <div class="legend-item"><div class="seat premium"></div> Premium (₹200)</div>
+      <div class="legend-item"><div class="seat regular"></div> Regular (₹100)</div>
+    </div>
 
-        <h2 id="selected-show-title" style="text-align: center; margin-bottom: 2rem; color: var(--text-muted)">Select Your Seats</h2>
-        
-        <div class="seats-container" id="seats-grid"></div>
+    <h2 id="selected-show-title" style="text-align: center; margin-bottom: 1rem; font-weight: 800;">Select Seats</h2>
+    
+    <div class="seats-grid-wrapper" id="seats-grid">
+      <!-- Injected by JS -->
+    </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-top: 3rem; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--glass);">
-          <div style="flex: 1;">
-            <h4 style="margin-bottom: 1rem; color: var(--primary);">BOOKING SUMMARY</h4>
-            <div id="seat-breakdown" style="font-size: 0.9rem; margin-bottom: 1rem;">
-              <p style="color: var(--text-muted)">Select seats to see pricing...</p>
-            </div>
-            <p style="color: var(--text-muted)">Selected Seats: <span id="selected-list" style="color: white; font-weight: bold;">None</span></p>
-          </div>
-          <div style="text-align: right;">
-            <p style="font-size: 0.9rem; color: var(--text-muted)">Subtotal</p>
-            <p style="font-size: 2rem; font-weight: 800; color: white;">₹<span id="total-price">0</span></p>
-            <button class="btn-primary" style="margin-top: 1rem; width: 200px;" onclick="confirmBooking()">Confirm Booking</button>
-          </div>
+    <div class="booking-dock" style="background: #111; border-top: 1px solid #222; padding: 2rem 0; position: sticky; bottom: 0;">
+      <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <p id="selected-list" style="color: #666; font-size: 0.85rem; margin-bottom: 5px;">Seats: <span style="color: white; font-weight: 700;">None selected</span></p>
+          <div id="seat-breakdown" style="font-size: 0.75rem; color: #444;"></div>
         </div>
-      </section>
+        <div style="text-align: right;">
+          <p style="font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 1px;">Total Payable</p>
+          <p style="font-size: 1.8rem; font-weight: 900; color: var(--primary);">₹<span id="total-price">0</span></p>
+          <button class="btn-primary" id="book-btn" onclick="confirmBooking()" style="margin-top: 10px; min-width: 200px;">Pay Now</button>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -73,21 +78,13 @@
 
     const CATEGORIES = {
       VIP: { price: 300, rows: ['A', 'B'], css: 'vip' },
-      PREMIUM: { price: 200, rows: ['C', 'D', 'E', 'F'], css: 'premium' },
-      REGULAR: { price: 100, rows: ['G', 'H', 'I', 'J'], css: 'regular' }
+      PREMIUM: { price: 200, rows: ['C', 'D', 'E'], css: 'premium' },
+      REGULAR: { price: 100, rows: ['F', 'G', 'H'], css: 'regular' }
     };
 
     async function init() {
-      if (!movieId) return window.location.href = '/';
-      
-      if (showId) {
-        await loadSpecificShow(showId);
-      } else {
-        // Fallback for direct index access without showId
-        document.getElementById('selection-step').style.display = 'block';
-        document.getElementById('seats-step').style.display = 'none';
-        await loadTheaterInfo();
-      }
+      if (!movieId || !showId) return window.location.href = '/';
+      await loadSpecificShow(showId);
     }
 
     async function loadSpecificShow(id) {
@@ -101,46 +98,14 @@
         const theater = theaters.find(t => t.theater_id == show.theater_id);
         
         if (show && theater) {
-          selectShow(show, theater.theater_name);
-        } else {
-          throw new Error("Show details not found.");
+          currentShow = show;
+          document.getElementById('selected-show-title').textContent = `${theater.theater_name} | ${show.timmings}`;
+          loadSeatsGrid();
         }
-      } catch (err) {
-        UI.showMessage(err.message);
-      }
-    }
-
-    async function loadTheaterInfo() {
-      try {
-        const { theaters, shows } = await API.fetch('/api/movies', {
-          method: 'POST',
-          body: JSON.stringify({ movieId })
-        });
-        
-        const list = document.getElementById('theater-list');
-        list.innerHTML = theaters.map(t => {
-          const tShows = shows.filter(s => s.theater_id === t.theater_id);
-          return `
-            <div class="movie-card" style="padding: 2rem; margin-bottom: 1.5rem;">
-              <h3>${t.theater_name}</h3>
-              <div style="display: flex; gap: 10px; margin-top: 1rem;">
-                ${tShows.map(s => `<button class="btn-primary" onclick='selectShow(${JSON.stringify(s)}, "${t.theater_name}")'>${s.timmings}</button>`).join('')}
-              </div>
-            </div>
-          `;
-        }).join('');
       } catch (err) { UI.showMessage(err.message); }
     }
 
-    function selectShow(show, theaterName) {
-      currentShow = show;
-      document.getElementById('selected-show-title').textContent = `${theaterName} | ${show.timmings}`;
-      document.getElementById('selection-step').style.display = 'none';
-      document.getElementById('seats-step').style.display = 'block';
-      loadSeats();
-    }
-
-    function loadSeats() {
+    function loadSeatsGrid() {
       const grid = document.getElementById('seats-grid');
       const occupied = currentShow.selected_seats || [];
       grid.innerHTML = '';
@@ -148,15 +113,21 @@
       updateSummary();
 
       const seatsPerRow = 10;
-      const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
-
-      grid.style.gridTemplateColumns = `repeat(${seatsPerRow + 1}, 1fr)`;
+      const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 
       rows.forEach((row) => {
+        // Add Category Divider
+        if (row === 'A') grid.innerHTML += '<div class="category-divider">VIP Seating (Rows A-B)</div>';
+        if (row === 'C') grid.innerHTML += '<div class="category-divider">Premium Seating (Rows C-E)</div>';
+        if (row === 'F') grid.innerHTML += '<div class="category-divider">Regular Seating (Rows F-H)</div>';
+
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'seat-row';
+        
         const rowLabel = document.createElement('div');
-        rowLabel.style.color = '#555';
+        rowLabel.className = 'row-label';
         rowLabel.textContent = row;
-        grid.appendChild(rowLabel);
+        rowDiv.appendChild(rowLabel);
 
         for (let i = 1; i <= seatsPerRow; i++) {
           const seatId = `${row}${i}`;
@@ -166,18 +137,22 @@
           else if (CATEGORIES.PREMIUM.rows.includes(row)) category = 'PREMIUM';
 
           seat.className = `seat ${CATEGORIES[category].css} ${occupied.includes(seatId) ? 'occupied' : ''}`;
+          seat.innerHTML = `<span class="seat-num">${i}</span>`;
           seat.onclick = () => toggleSeat(seat, seatId, category);
-          grid.appendChild(seat);
+          rowDiv.appendChild(seat);
         }
+        grid.appendChild(rowDiv);
       });
     }
 
     function toggleSeat(el, id, categoryName) {
       if (el.classList.contains('occupied')) return;
-      const category = CATEGORIES[categoryName];
       const isSelected = el.classList.toggle('selected');
-      if (isSelected) selectedSeats.push({ id, type: categoryName, price: category.price });
-      else selectedSeats = selectedSeats.filter(s => s.id !== id);
+      if (isSelected) {
+        selectedSeats.push({ id, type: categoryName, price: CATEGORIES[categoryName].price });
+      } else {
+        selectedSeats = selectedSeats.filter(s => s.id !== id);
+      }
       updateSummary();
     }
 
@@ -187,30 +162,39 @@
       const totalEl = document.getElementById('total-price');
 
       if (selectedSeats.length === 0) {
-        listEl.textContent = 'None';
-        breakdownEl.innerHTML = '<p style="color: var(--text-muted)">Select seats to see pricing...</p>';
+        listEl.innerHTML = 'Seats: <span style="color: white; font-weight: 700;">None selected</span>';
+        breakdownEl.innerHTML = '';
         totalEl.textContent = '0';
         return;
       }
 
-      listEl.textContent = selectedSeats.map(s => s.id).join(', ');
+      const seatNames = selectedSeats.map(s => s.id).join(', ');
+      listEl.innerHTML = `Seats: <span style="color: white; font-weight: 700; border: 1px solid #333; padding: 2px 8px; border-radius: 4px;">${seatNames}</span>`;
+      
       const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
       totalEl.textContent = total;
 
       const types = [...new Set(selectedSeats.map(s => s.type))];
       breakdownEl.innerHTML = types.map(type => {
         const count = selectedSeats.filter(s => s.type === type).length;
-        return `<p>${type}: ${count} x ₹${CATEGORIES[type].price} = ₹${count * CATEGORIES[type].price}</p>`;
-      }).join('');
+        return `<span>${type} × ${count}</span>`;
+      }).join(' • ');
     }
 
     async function confirmBooking() {
-      if (selectedSeats.length === 0) return UI.showMessage('Select seats');
+      if (selectedSeats.length === 0) return UI.showMessage('Please select at least one seat');
+      
       const user = API.getSession();
-      if (!user) return UI.showMessage('Login required');
+      if (!user) return UI.showMessage('Please login to continue');
+
+      const btn = document.getElementById('book-btn');
+      btn.disabled = true;
+      btn.textContent = 'Locking seats...';
 
       try {
         const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
+        
+        // POST to booking will perform the Overlap check on server
         const res = await API.fetch('/api/booking', {
           method: 'POST',
           body: JSON.stringify({
@@ -233,7 +217,14 @@
         }));
 
         window.location.href = '/payment.html';
-      } catch (err) { UI.showMessage(err.message); }
+
+      } catch (err) {
+        UI.showMessage(err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Pay Now';
+        // Refresh grid to show newly occupied seats
+        await loadSpecificShow(showId);
+      }
     }
 
     init();
