@@ -14,7 +14,16 @@
     .seat-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
     .row-label { width: 30px; text-align: right; margin-right: 15px; color: #555; font-weight: 700; font-size: 0.85rem; }
     
-    .seat-num { font-size: 0.65rem; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+    .seat { width: 35px; height: 35px; margin: 6px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; background: #333; position: relative; }
+    
+    /* SELECTED */
+    .seat.selected { background: #e50914 !important; box-shadow: 0 0 15px #e50914; transform: scale(1.1); border: 2px solid white; }
+    
+    /* BOOKED */
+    .seat.booked { background: #2a2a2a !important; cursor: not-allowed; opacity: 0.4; }
+    .seat.booked::after { content: '×'; position: absolute; color: #444; font-size: 1.2rem; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+    .seat-num { font-size: 0.65rem; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
     .seat:hover .seat-num { opacity: 1; }
 
     .category-divider { width: 100%; margin: 1.5rem 0 0.5rem; color: #333; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; text-align: left; padding-left: 45px; border-bottom: 1px solid #1a1a1a; padding-bottom: 8px; }
@@ -42,9 +51,9 @@
     </div>
 
     <div class="legend" style="margin-bottom: 3rem;">
-      <div class="legend-item"><div class="seat"></div> Available</div>
+      <div class="legend-item"><div class="seat" style="background: #333;"></div> Available</div>
       <div class="legend-item"><div class="seat selected"></div> Your Selection</div>
-      <div class="legend-item"><div class="seat occupied"></div> Sold Out</div>
+      <div class="legend-item"><div class="seat booked"></div> Sold Out</div>
       <div style="flex-basis: 100%; height: 1px;"></div>
       <div class="legend-item"><div class="seat vip"></div> VIP (₹300)</div>
       <div class="legend-item"><div class="seat premium"></div> Premium (₹200)</div>
@@ -150,7 +159,7 @@
 
     function loadSeatsGrid() {
       const grid = document.getElementById('seats-grid');
-      const occupied = currentShow.selected_seats || [];
+      const booked = currentShow.selected_seats || [];
       grid.innerHTML = '';
       selectedSeats = [];
       updateSummary();
@@ -178,11 +187,12 @@
         for (let i = 1; i <= seatsPerRow; i++) {
           const seatId = `${row}${i}`;
           const seat = document.createElement('div');
+          seat.id = seatId;
           let category = 'REGULAR';
           if (CATEGORIES.VIP.rows.includes(row)) category = 'VIP';
           else if (CATEGORIES.PREMIUM.rows.includes(row)) category = 'PREMIUM';
 
-          seat.className = `seat ${CATEGORIES[category].css} ${occupied.includes(seatId) ? 'occupied' : ''}`;
+          seat.className = `seat ${CATEGORIES[category].css} ${booked.includes(seatId) ? 'booked' : ''}`;
           seat.innerHTML = `<span class="seat-num">${i}</span>`;
           seat.onclick = () => toggleSeat(seat, seatId, category);
           rowDiv.appendChild(seat);
@@ -192,7 +202,7 @@
     }
 
     function toggleSeat(el, id, categoryName) {
-      if (el.classList.contains('occupied')) return;
+      if (el.classList.contains('booked')) return;
       const isSelected = el.classList.toggle('selected');
       if (isSelected) {
         selectedSeats.push({ id, type: categoryName, price: CATEGORIES[categoryName].price });
@@ -240,17 +250,14 @@
       try {
         const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
         
-        // POST to booking will perform the Overlap check on server
-        const res = await API.fetch('/api/booking', {
+        // POST to new /api/book endpoint
+        const res = await API.fetch('/api/book', {
           method: 'POST',
           body: JSON.stringify({
-            screenid: currentShow.screen_id,
-            user_id: user.user_id,
-            movie_id: movieId, // Explicitly pass movie identity
-            noofseats: selectedSeats.length,
+            showId: showId,
+            userId: user.user_id,
             seats: selectedSeats.map(s => s.id),
-            price: total,
-            payment_status: 'Pending'
+            amount: total
           })
         });
 
