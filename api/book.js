@@ -14,30 +14,34 @@ export default async function handler(req, res) {
       // PART 1: IDENTITY RESOLUTION (Isolate by Unique Screen Key)
       // We look for a show matching this unique smart ID. 
       // This ensures Seat A1 in Screen X is different from Seat A1 in Screen Y.
-      let result = await query("SELECT screen_id, selected_seats FROM shows WHERE screen_id = $1", [showId]);
-
       if (result.rows.length === 0) {
         // AUTO-SYNC: Create the show record if it's the first booking for this specific screening
-        // Parse metadata from smart ID or use defaults
-        const parts = showId.split('-'); // e.g., ["CIN", "M001", "2026-05-20", "1015AM"]
-        const mid = parts[1] || 'M001';
+        const parts = showId.split('-'); // e.g., ["CIN", "S1", "2026-05-20", "1015AM"]
+        const mid = req.body.movieId || parts[1] || 'M001'; // Fallback to provided movie ID
         const date = parts[2] || 'CURRENT_DATE';
+        const sNo = showId.includes('-S') ? parseInt(showId.split('-S')[1]) : 1;
         
         const { rows: tRows } = await query('SELECT theater_id FROM theater LIMIT 1');
         const tid = tRows[0]?.theater_id || 1;
 
         await query(
           `INSERT INTO shows (screen_id, movie_id, theater_id, timmings, show_date, screen_no) 
-           VALUES ($1, $2, $3, '10:15:00', $4, 1) 
+           VALUES ($1, $2, $3, '10:15:00', $4, $5) 
            ON CONFLICT (screen_id) DO NOTHING`,
-          [showId, mid, tid, date]
+          [showId, mid, tid, date, sNo]
         );
         
-        // Re-fetch to confirm
-        result = await query("SELECT screen_id, selected_seats FROM shows WHERE screen_id = $1", [showId]);
+        result = await query("SELECT screen_id, selected_seats, movie_id FROM shows WHERE screen_id = $1", [showId]);
       }
 
       const showRecord = result.rows[0];
+      
+      // TASK 3: Strict Collision Check
+      // If the slot is taken by a DIFFERENT movie, block it
+      if (showRecord && showRecord.movie_id && showRecord.movie_id !== req.body.movieId && req.body.movieId) {
+        return res.status(409).json({ error: "Time slot already occupied by another movie screening." });
+      }
+
       const existingSeats = showRecord?.selected_seats || [];
 
       // PART 2: ISOLATED CONFLICT CHECK

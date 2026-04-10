@@ -277,23 +277,22 @@
       renderContent();
     }
 
-    function goToSeats(showId, theatreName, time) {
-      // Professional Datetime Sync
-      const dateObj = new Date(`${selectedDate} ${time}`);
-      const datetime = dateObj.toISOString();
-
-      // PART 1: Generate UNIQUE Show ID (Theater-Movie-Date-Time)
-      // This prevents global seat conflicts between different movies
+      // PART 1: Generate Slot-Based Smart ID (Theater-Screen-Date-Time)
+      // Different movies in the SAME screen at the SAME time will now be blocked.
       const timeClean = time.replace(/[:\s]/g, '');
-      const smartShowId = `${theatreName.substring(0,3).toUpperCase()}-${movieId}-${selectedDate}-${timeClean}`;
+      
+      // Assign logical screen number (Mock: Screen 1 for first half of movies, Screen 2 for others)
+      const screenNo = movieId === 'M001' || movieId === 'M004' ? 1 : 2;
+      const smartShowId = `${theatreName.substring(0,3).toUpperCase()}-S${screenNo}-${selectedDate}-${timeClean}`;
 
       localStorage.setItem('booking_context', JSON.stringify({
-        showId: smartShowId, // Use unique smart ID
+        showId: smartShowId, 
         theatreName,
         time,
         date: selectedDate,
         movieId,
-        datetime
+        datetime,
+        screenNo
       }));
       window.location.href = `/seats.html?showId=${smartShowId}&movieId=${movieId}&datetime=${datetime}`;
     }

@@ -266,6 +266,7 @@
           method: 'POST',
           body: JSON.stringify({
             showId: showId,
+            movieId: movieId, // Explicitly pass movie ID for collision check
             userId: user.user_id,
             seats: selectedSeats.map(s => s.id),
             amount: total
