@@ -19,8 +19,28 @@ export default async function handler(req, res) {
   }
 
   const showId = q.id;
-  if (!showId) {
-    return res.status(400).json({ error: 'Show ID is required' });
+  const movieId = q.movieId;
+
+  if (!showId && !movieId) {
+    return res.status(400).json({ error: 'Show ID or Movie ID is required' });
+  }
+
+  // Support for Movie-Wide Search (NEW)
+  if (movieId) {
+    try {
+      const result = await query(
+        `SELECT s.screen_id, s.movie_id, s.theater_id, s.timmings, s.show_date, s.screen_no, 
+                t.theater_name, t.city as location, s.selected_seats
+         FROM shows s 
+         JOIN theater t ON s.theater_id = t.theater_id 
+         WHERE s.movie_id = $1`,
+        [movieId]
+      );
+      return res.status(200).json({ success: true, shows: result.rows });
+    } catch (err) {
+      console.error('Movie Shows Error:', err);
+      return res.status(500).json({ error: err.message });
+    }
   }
 
   // 1. Check Mock Data First (guarantees UI stability for these specific development IDs)
