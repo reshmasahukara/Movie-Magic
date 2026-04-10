@@ -82,19 +82,15 @@ CREATE TABLE IF NOT EXISTS payments (
 INSERT INTO admin (user_name, password) VALUES ('admin', '$2b$10$Ex7a3U/6v6k.6hMv3I5BieH2h9lF5Y.Uu/K8b6VjJvUuJ/v8v5q/m'); -- admin123 hashed
 
 INSERT INTO movie (movie_id, movie_name, movie_rating, movie_dimensions, genre, status, description, language) VALUES 
-('M001', 'Inception', '8.8', '2D/IMAX', 'Sci-Fi', 'Running', 'A thief who steals corporate secrets through the use of dream-sharing technology.', 'English'),
-('M002', 'Interstellar', '8.7', '4DX', 'Adventure', 'Running', 'A team of explorers travel through a wormhole in space in an attempt to ensure humanity''s survival.', 'English'),
-('M003', 'The Dark Knight', '9.0', '2D', 'Action', 'Running', 'When the menace known as the Joker wreaks havoc and chaos on the people of Gotham.', 'English')
+('M001', 'RAAKA', '9.2', 'IMAX 3D', 'Action/Thriller', 'Coming Soon', 'A high-octane action epic.', 'Telugu/Hindi'),
+('M002', 'OG', '9.5', '2D/4DX', 'Gangster Drama', 'Running', 'The original gangster returns to reclaim his throne.', 'Telugu'),
+('M003', 'SPIRIT', '9.0', '2D', 'Crime/Action', 'In Production', 'A gripping police procedural drama.', 'Multi-Language'),
+('M004', 'VARANASI', '8.8', 'Standard', 'Spiritual/Drama', 'Now Showing', 'A journey of self-discovery in the holy city.', 'Hindi')
 ON CONFLICT (movie_id) DO NOTHING;
 
 INSERT INTO theater (theater_name, city) VALUES 
-('Cinema Magic', 'Mumbai'),
-('Galaxy IMAX', 'Bangalore')
+('Cinepolis Nexus', 'Hyderabad'),
+('INOX', 'Hyderabad')
 ON CONFLICT (theater_id) DO NOTHING;
 
-INSERT INTO theater1 (theater_id, movie_id) VALUES (1, 'M001'), (2, 'M002'), (1, 'M003') ON CONFLICT DO NOTHING;
-
-INSERT INTO shows (movie_id, theater_id, timmings, show_date, screen_no, screen_dimensions, no_of_seats) VALUES 
-('M001', 1, '18:00:00', '2026-05-10', 1, 'Standard', 100),
-('M002', 2, '21:00:00', '2026-05-11', 2, 'IMAX', 150)
-ON CONFLICT (screen_id) DO NOTHING;
+-- Map movies to theaters and add shows via seed.js for dynamic ID handling.
