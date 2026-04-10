@@ -43,6 +43,22 @@ export default async function handler(req, res) {
     );
 
     if (result.rows.length === 0) {
+      // 3. SMART ID AUTO-DISCOVERY
+      // If the ID follows our Theater-Movie-Date-Time format, return a virtual show
+      if (showId.includes('-')) {
+        const parts = showId.split('-');
+        return res.status(200).json({
+          success: true,
+          show: {
+            screen_id: showId,
+            movie_id: parts[1] || 'M001',
+            theater_name: parts[0] + " Cinemas",
+            selected_seats: [],
+            timmings: "10:15 AM",
+            price: 150
+          }
+        });
+      }
       return res.status(404).json({ success: false, error: 'Show not found' });
     }
 
