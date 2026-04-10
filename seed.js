@@ -56,6 +56,26 @@ async function seed() {
     console.log('Theaters seeded.');
 
     // 4. Seed Shows (Multiple dates and times)
+    console.log('Generating show schedules and manual mock entries...');
+    
+    // 4.1 Force-Seed Mock IDs for Selection Hub Stability
+    const mockShows = [
+      ['M001', theaterIds[0], '10:15:00', new Date().toISOString().split('T')[0], 1, 'IMAX 3D', 101],
+      ['M001', theaterIds[0], '18:05:00', new Date().toISOString().split('T')[0], 1, '3D', 102],
+      ['M001', theaterIds[1], '10:45:00', new Date().toISOString().split('T')[0], 2, '2D', 201],
+      ['M001', theaterIds[1], '19:40:00', new Date().toISOString().split('T')[0], 2, '3D', 202],
+      ['M001', theaterIds[2], '16:00:00', new Date().toISOString().split('T')[0], 3, '2D', 301],
+      ['M001', theaterIds[3], '13:15:00', new Date().toISOString().split('T')[0], 4, '2D', 401],
+      ['M001', theaterIds[4], '18:00:00', new Date().toISOString().split('T')[0], 5, '2D', 501]
+    ];
+
+    for (const s of mockShows) {
+        await pool.query(
+            'INSERT INTO shows (movie_id, theater_id, timmings, show_date, screen_no, screen_dimensions, screen_id) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (screen_id) DO NOTHING',
+            s
+        );
+    }
+
     const today = new Date();
     const dates = [];
     for (let i = 0; i < 5; i++) {

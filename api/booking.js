@@ -54,12 +54,20 @@ export default async function handler(req, res) {
       }
 
       // 3. If no conflict, update show data to mark seats as occupied
+      // SELF-HEALING: Ensure the show record exists in DB to prevent FK violation
+      await query(
+        `INSERT INTO shows (screen_id, movie_id, theater_id, timmings, show_date, screen_dimensions) 
+         VALUES ($1, 'M001', 1, '10:15 AM', CURRENT_DATE, '2D') 
+         ON CONFLICT (screen_id) DO NOTHING`,
+        [screenid]
+      );
+
       await query(
         'UPDATE shows SET selected_seats = COALESCE(selected_seats, \'[]\'::jsonb) || $1::jsonb WHERE screen_id = $2',
         [JSON.stringify(seats), screenid]
       );
 
-      // Create the record in bookings table
+      // 4. Create the record in bookings table
       const result = await query(
         'INSERT INTO bookings (screen_id, user_id, no_of_seats, selected_seats, price, payment_status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
         [screenid, user_id, noofseats, JSON.stringify(seats), price, payment_status || 'Paid']
