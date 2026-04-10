@@ -78,7 +78,7 @@
           const created = new Date(b.created_at || Date.now()).toLocaleString();
           
           return `
-            <div class="ticket animate-fade-in" onclick="window.location.href='/success.html'">
+            <div class="ticket animate-fade-in">
               <div class="ticket-main">
                 <span class="status-badge status-${status}">${status}</span>
                 <h3 style="font-size: 1.6rem; color: white; margin-bottom: 0.4rem;">${b.movie_name || "Movie Magic"}</h3>
@@ -96,8 +96,11 @@
                 </div>
 
                 <div class="ticket-footer">
-                  <span>ID: #MM-${b.id}</span>
-                  <span>Booked: ${created}</span>
+                  <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <span>ID: #MM-${b.id}</span>
+                    <span>Booked: ${created}</span>
+                  </div>
+                  <button onclick="window.location.href='/ticket.html?bookingId=${b.id}'" class="btn-primary" style="padding: 0.4rem 1rem; font-size: 0.7rem; background: transparent; border: 1px solid var(--primary);">Download Ticket</button>
                 </div>
               </div>
               <div class="ticket-side">ADMIT ONE</div>

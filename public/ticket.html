@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Cinema Pass | Movie Magic</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <style>
+    .ticket-view-container { 
+      min-height: 80vh; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center; 
+      padding: 2rem;
+    }
+    .ticket-card {
+      background: #121212;
+      color: white;
+      width: 100%;
+      max-width: 400px;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.7);
+      border: 1px solid rgba(255,255,255,0.05);
+      position: relative;
+    }
+    .ticket-header { 
+      background: var(--primary); 
+      padding: 1.5rem; 
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(229, 9, 20, 0.3);
+    }
+    .brand-title { letter-spacing: 6px; font-weight: 900; font-size: 1.1rem; margin: 0; color: white; text-transform: uppercase; }
+    .brand-tagline { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.8; margin-top: 5px; }
+    .ticket-body { padding: 2.5rem; }
+    .movie-title { font-size: 2.4rem; font-weight: 900; line-height: 1; margin-bottom: 2rem; color: white; text-transform: uppercase; }
+    .ticket-info { display: flex; justify-content: space-between; margin-bottom: 1.5rem; text-align: left; }
+    .info-label { color: #555; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
+    .info-val { font-weight: 600; font-size: 0.95rem; }
+    .perforated { border-top: 2px dashed #222; margin: 2.5rem 0; position: relative; width: calc(100% + 5rem); margin-left: -2.5rem; }
+    .perforated::before, .perforated::after { content: ''; position: absolute; top: -12px; width: 24px; height: 24px; background: var(--bg-dark); border-radius: 50%; }
+    .perforated::before { left: 10px; }
+    .perforated::after { right: 10px; }
+    .qr-container { background: white; width: 130px; height: 130px; margin: 0 auto; padding: 8px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+    #qrcode-canvas { width: 100% !important; height: 100% !important; }
+  </style>
+</head>
+<body>
+  <nav></nav>
+
+  <main class="container">
+    <div id="ticket-anchor" class="ticket-view-container">
+      <p style="color: var(--text-muted)">Fetching your secure digital pass...</p>
+    </div>
+  </main>
+
+  <script src="js/utils.js"></script>
+  <script>
+    async function init() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const bookingId = urlParams.get('bookingId');
+      
+      if (!bookingId) {
+        window.location.href = '/history.html';
+        return;
+      }
+
+      const user = API.getSession();
+      if(!user) return window.location.href = '/login.html';
+
+      try {
+        const { bookings } = await API.fetch(`/api/booking?action=history&userid=${user.user_id}`);
+        const data = bookings.find(b => b.id == bookingId);
+        
+        if (!data) throw new Error("Ticket not found in your account.");
+
+        // Defensive Render
+        const template = `
+          <div id="ticket-element" class="ticket-card animate-fade-in" style="margin-bottom: 2.5rem;">
+            <div class="ticket-header">
+              <p class="brand-title">🎬 MOVIE MAGIC</p>
+              <p class="brand-tagline">Your Ultimate Movie Experience</p>
+            </div>
+            <div class="ticket-body">
+              <h2 class="movie-title">${data.movie_name || "MOVIE MAGIC"}</h2>
+              
+              <div class="ticket-info">
+                <div>
+                  <p class="info-label">Cinema Venue</p>
+                  <p class="info-val">${data.theater_name || "Movie Magic Cinemas"}</p>
+                </div>
+                <div style="text-align: right;">
+                  <p class="info-label">Show Time</p>
+                  <p class="info-val">${data.timmings || "00:00"}</p>
+                </div>
+              </div>
+
+              <div class="ticket-info">
+                <div>
+                  <p class="info-label">Date</p>
+                  <p class="info-val">${new Date(data.show_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}</p>
+                </div>
+                <div style="text-align: right;">
+                  <p class="info-label">Seats</p>
+                  <p class="info-val">${(data.selected_seats || []).join(', ')}</p>
+                </div>
+              </div>
+
+              <div class="perforated"></div>
+
+              <div class="ticket-info">
+                <div>
+                  <p class="info-label">Transaction Reference</p>
+                  <p class="info-val" style="color: var(--primary)">#MM-${data.id}-${data.user_id}</p>
+                </div>
+                <div style="text-align: right;">
+                  <p class="info-label">Status</p>
+                  <p class="info-val" style="color: #28a745;">${data.payment_status.toUpperCase()}</p>
+                </div>
+              </div>
+
+              <div class="qr-container">
+                <canvas id="qrcode-canvas"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 1rem;">
+            <button onclick="downloadPDF()" class="btn-primary" style="background: transparent; border: 1px solid var(--primary);">Save to Device (PDF)</button>
+            <button onclick="window.history.back()" class="btn-primary">Back to History</button>
+          </div>
+        `;
+
+        UI.safeRender('ticket-anchor', template);
+
+        // Generate QR
+        const canvas = document.getElementById('qrcode-canvas');
+        QRCode.toCanvas(canvas, JSON.stringify({id: data.id, seats: data.selected_seats}), { width: 130, margin: 0 });
+
+      } catch (err) {
+        UI.safeRender('ticket-anchor', `<p style="color: var(--primary)">${err.message}</p>`);
+      }
+    }
+
+    function downloadPDF() {
+      const element = document.getElementById('ticket-element');
+      const opt = {
+        margin: 10,
+        filename: 'MovieTicket.pdf',
+        html2canvas: { scale: 2, backgroundColor: '#0F0F0F' },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(element).save();
+    }
+
+    init();
+  </script>
+</body>
+</html>

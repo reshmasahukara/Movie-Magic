@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theaters Selection | Movie Magic</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .show-header { background: #1F1F1F; padding: 2.5rem 0; border-bottom: 1px solid #333; }
+    .date-bar { 
+      display: flex; 
+      gap: 15px; 
+      overflow-x: auto; 
+      padding: 1.5rem 0; 
+      scrollbar-width: none; 
+      border-bottom: 1px solid #333;
+    }
+    .date-bar::-webkit-scrollbar { display: none; }
+    .date-item { 
+      min-width: 60px; 
+      height: 75px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      transition: all 0.3s;
+      border: 1px solid transparent;
+      color: #777;
+    }
+    .date-item.active { background: var(--primary); color: white; transform: scale(1.05); }
+    .date-item:hover:not(.active) { border-color: var(--primary); color: #ccc; }
+
+    .filters-bar { display: flex; gap: 1rem; padding: 1.5rem 0; flex-wrap: wrap; }
+    .filter-chip { 
+      padding: 6px 16px; 
+      border: 1px solid #444; 
+      border-radius: 20px; 
+      font-size: 0.85rem; 
+      cursor: pointer; 
+      transition: 0.3s;
+      color: #999;
+    }
+    .filter-chip.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+    .theater-card { 
+      background: var(--card-bg); 
+      border: 1px solid var(--glass); 
+      border-radius: 12px; 
+      padding: 1.5rem; 
+      margin-bottom: 1.5rem; 
+    }
+    .timing-btn { 
+      padding: 8px 18px; 
+      border: 1px solid #28a745; 
+      border-radius: 4px; 
+      background: transparent; 
+      color: #28a745; 
+      font-weight: 500; 
+      cursor: pointer; 
+      transition: 0.3s;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+    .timing-btn:hover { background: #28a745; color: white; }
+    
+    .label-tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; border: 1px solid #333; color: #666; margin-left: 10px; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+  <nav></nav>
+
+  <header class="show-header">
+    <div class="container">
+      <h1 id="movie-title" style="font-size: 2.2rem; margin-bottom: 0.5rem; font-weight: 800;">Movie Title</h1>
+      <p id="movie-meta" style="color: var(--text-muted); font-weight: 500;">UA • Action • 2h 45m</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Date Selector -->
+    <div class="date-bar" id="date-selector"></div>
+
+    <!-- Filters -->
+    <div class="filters-bar" id="filters-container">
+      <div class="filter-chip active" data-filter="all">All Shows</div>
+      <div class="filter-chip" data-filter="price-low">₹0 - ₹200</div>
+      <div class="filter-chip" data-filter="price-high">₹201+</div>
+      <div class="filter-chip" data-filter="3d">3D Only</div>
+      <div class="filter-chip" data-filter="2d">2D Only</div>
+    </div>
+
+    <!-- Theater List -->
+    <div id="theater-list" style="margin-top: 2rem;">
+      <p style="text-align: center; color: var(--text-muted); padding: 4rem;">Finding the best seats for you...</p>
+    </div>
+  </main>
+
+  <script src="js/utils.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const movieId = urlParams.get('movieId');
+    let selectedDate = new Date().toISOString().split('T')[0];
+    let activeFilter = 'all';
+    let allShows = [];
+    let allTheaters = [];
+
+    async function init() {
+      if (!movieId) return window.location.href = '/';
+      
+      renderDates();
+      setupFilters();
+      await fetchData();
+      renderContent();
+    }
+
+    function setupFilters() {
+      document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.onclick = () => {
+          document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          activeFilter = chip.dataset.filter;
+          renderContent();
+        };
+      });
+    }
+
+    function renderDates() {
+      const container = document.getElementById('date-selector');
+      const today = new Date();
+      let html = '';
+      
+      for(let i=0; i<7; i++) {
+        const d = new Date();
+        d.setDate(today.getDate() + i);
+        const day = d.toLocaleString('en-us', {weekday: 'short'});
+        const date = d.getDate();
+        const full = d.toISOString().split('T')[0];
+        
+        html += `
+          <div class="date-item ${full === selectedDate ? 'active' : ''}" onclick="changeDate('${full}')">
+            <span style="font-size: 0.7rem; text-transform: uppercase;">${day}</span>
+            <span style="font-size: 1.2rem; font-weight: 800;">${date}</span>
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    function changeDate(date) {
+      selectedDate = date;
+      renderDates();
+      renderContent();
+    }
+
+    async function fetchData() {
+      try {
+        const res = await API.fetch('/api/movies', { 
+          method: 'POST', 
+          body: JSON.stringify({ movieId }) 
+        });
+        allShows = res.shows;
+        allTheaters = res.theaters;
+        
+        const movieRes = await API.fetch('/api/movies');
+        const movie = movieRes.movies.find(m => m.movie_id === movieId);
+        if(movie) {
+          document.getElementById('movie-title').textContent = movie.movie_name;
+          document.getElementById('movie-meta').textContent = `${movie.movie_rating} • ${movie.genre} • ${movie.language}`;
+        }
+      } catch (err) {
+        UI.showMessage(err.message);
+      }
+    }
+
+    function renderContent() {
+      const container = document.getElementById('theater-list');
+      let filteredShows = allShows.filter(s => s.show_date.startsWith(selectedDate));
+      
+      // Apply Active Filter
+      if (activeFilter === '3d') filteredShows = filteredShows.filter(s => s.screen_dimensions?.includes('3D'));
+      if (activeFilter === '2d') filteredShows = filteredShows.filter(s => !s.screen_dimensions?.includes('3D'));
+      if (activeFilter === 'price-low') filteredShows = filteredShows.filter(s => s.screen_dimensions !== 'IMAX 3D' && s.screen_dimensions !== '4DX');
+      if (activeFilter === 'price-high') filteredShows = filteredShows.filter(s => s.screen_dimensions === 'IMAX 3D' || s.screen_dimensions === '4DX');
+      
+      if(filteredShows.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 4rem; color: #555;">No shows available for the selected criteria.</div>`;
+        return;
+      }
+
+      const theaterMap = {};
+      filteredShows.forEach(s => {
+        if(!theaterMap[s.theater_id]) theaterMap[s.theater_id] = [];
+        theaterMap[s.theater_id].push(s);
+      });
+
+      let html = '';
+      Object.keys(theaterMap).forEach(tId => {
+        const theater = allTheaters.find(t => t.theater_id == tId);
+        const shows = theaterMap[tId];
+        
+        html += `
+          <div class="theater-card">
+            <div style="display: flex; align-items: center; margin-bottom: 1.2rem;">
+              <h3 style="font-size: 1rem; color: #fff;">${theater.theater_name}</h3>
+              <span class="label-tag">Non-cancellable</span>
+            </div>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+              ${shows.map(s => `
+                <button class="timing-btn" onclick="goToSeats('${s.screen_id}')">
+                  ${s.timmings.substring(0,5)}
+                   <span style="display: block; font-size: 0.6rem; opacity: 0.7;">${s.screen_dimensions || '2D'}</span>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function goToSeats(showId) {
+      window.location.href = `/booking.html?showId=${showId}&movieId=${movieId}`;
+    }
+
+    init();
+  </script>
+</body>
+</html>
