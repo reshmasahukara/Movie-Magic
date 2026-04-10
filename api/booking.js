@@ -35,37 +35,37 @@ export default async function handler(req, res) {
 
     // 3. Book Seats Logic (Finalized after payment)
     if (method === 'POST') {
-      const { screenid, user_id, noofseats, seats, price, payment_status } = body;
+      const { screenid, user_id, noofseats, seats, price, payment_status, movie_id } = req.body;
       if (!screenid || !user_id || !seats) {
         return res.status(400).json({ error: "Missing booking details" });
       }
 
-      // 1. Fetch current booked seats to prevent double-booking
-      const { rows: showRows } = await query('SELECT selected_seats FROM shows WHERE screen_id = $1', [screenid]);
-      const currentlyBooked = showRows[0]?.selected_seats || [];
-      
-      // 2. Check for intersection
-      const conflict = seats.filter(seat => currentlyBooked.includes(seat));
-      if (conflict.length > 0) {
-        return res.status(400).json({ 
-          error: `Seats [${conflict.join(', ')}] have just been booked by another user. Please select different seats.`,
-          conflict: true
-        });
+      // 1. Transactional check for existing seats to prevent double booking
+      const checkRes = await query(
+        'SELECT selected_seats FROM shows WHERE screen_id = $1',
+        [screenid]
+      );
+
+      if (checkRes.rows.length > 0) {
+        const existingSeats = checkRes.rows[0].selected_seats || [];
+        const overlap = seats.filter(s => existingSeats.includes(s));
+        if (overlap.length > 0) {
+          return res.status(400).json({ success: false, message: `Seats ${overlap.join(', ')} already booked.` });
+        }
       }
 
       // 3. If no conflict, update show data to mark seats as occupied
       // SELF-HEALING: Ensure the show record exists in DB to prevent FK/NotNull violations
-      // Fetch any valid theater and movie to satisfy FK constraints if needed
+      // Fetch any valid theater satisfy FK constraints if needed
       const { rows: tRows } = await query('SELECT theater_id FROM theater LIMIT 1');
-      const { rows: mRows } = await query('SELECT movie_id FROM movie LIMIT 1');
       const fallbackTheater = tRows[0]?.theater_id || 1;
-      const fallbackMovie = mRows[0]?.movie_id || 'M001';
+      const targetMovie = movie_id || 'M001'; // Use provided movie ID
 
       await query(
         `INSERT INTO shows (screen_id, movie_id, theater_id, timmings, show_date, screen_no, screen_dimensions) 
          VALUES ($1, $2, $3, '10:15:00', CURRENT_DATE, 1, '2D') 
          ON CONFLICT (screen_id) DO NOTHING`,
-        [screenid, fallbackMovie, fallbackTheater]
+        [screenid, targetMovie, fallbackTheater]
       );
 
       await query(
