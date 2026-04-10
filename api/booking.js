@@ -1,5 +1,5 @@
-import db from '../utils/db.js';
-import { renderView } from '../utils/render.js';
+import db from './db.js';
+import { renderView } from './render.js';
 
 export default async function handler(req, res) {
   try {

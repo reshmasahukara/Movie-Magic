@@ -1,12 +1,16 @@
 {
   "version": 2,
+  "builds": [
+    { "src": "api/*.js", "use": "@vercel/node" }
+  ],
   "rewrites": [
     { "source": "/", "destination": "/api/movies" },
     { "source": "/index", "destination": "/api/movies" },
     { "source": "/userlogin", "destination": "/api/login" },
     { "source": "/usersignup", "destination": "/api/signup" },
     { "source": "/moviesdash", "destination": "/api/movies?action=moviesdash" },
-    { "source": "/admindash", "destination": "/api/admin?action=dash" }
+    { "source": "/admindash", "destination": "/api/admin?action=dash" },
+    { "source": "/api/success", "destination": "/api/booking?action=success" }
   ],
   "env": {
     "BCRYPT_ROUNDS": "10"

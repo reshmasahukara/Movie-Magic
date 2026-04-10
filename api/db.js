@@ -31,5 +31,9 @@ export const query = async (text, params) => {
   return pool.query(text, params);
 };
 
+// Fallback handler if api/db is hit directly
+export default async function handler(req, res) {
+  res.status(200).json({ message: "Database Utility Active" });
+}
+
 export { pool };
-export default { query, pool };
