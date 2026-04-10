@@ -10,14 +10,18 @@
     .screen-line { width: 80%; height: 4px; background: #333; border-radius: 50%; box-shadow: 0 10px 30px rgba(229, 9, 20, 0.4); margin-bottom: 10px; }
     .screen-text { color: #555; font-size: 0.75rem; letter-spacing: 5px; text-transform: uppercase; }
     
-    .seats-grid-wrapper { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 2rem 0; overflow-x: auto; padding: 1rem; }
-    .seat-row { display: flex; align-items: center; gap: 8px; }
+    .seats-grid-wrapper { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 2rem 0; padding: 1rem; overflow: visible; }
+    .seat-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
     .row-label { width: 30px; text-align: right; margin-right: 15px; color: #555; font-weight: 700; font-size: 0.85rem; }
     
     .seat-num { font-size: 0.65rem; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
     .seat:hover .seat-num { opacity: 1; }
 
     .category-divider { width: 100%; margin: 1.5rem 0 0.5rem; color: #333; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; text-align: left; padding-left: 45px; border-bottom: 1px solid #1a1a1a; padding-bottom: 8px; }
+    
+    @media (max-width: 768px) {
+      .seat-row { flex-wrap: wrap; }
+    }
   </style>
 </head>
 <body>
@@ -53,7 +57,7 @@
       <!-- Injected by JS -->
     </div>
 
-    <div class="booking-dock" style="background: #111; border-top: 1px solid #222; padding: 2rem 0; position: sticky; bottom: 0;">
+    <div class="booking-dock" style="background: #111; border-top: 1px solid #222; padding: 2rem 0; margin-top: 4rem;">
       <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
         <div>
           <p id="selected-list" style="color: #666; font-size: 0.85rem; margin-bottom: 5px;">Seats: <span style="color: white; font-weight: 700;">None selected</span></p>
