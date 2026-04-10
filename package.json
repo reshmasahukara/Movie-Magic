@@ -1,23 +1,16 @@
 {
-  "name": "ticket_booking",
-  "version": "1.0.0",
-  "description": "movie ticket booking system",
-  "main": "index.js",
+  "name": "movie-magic",
+  "version": "1.1.0",
+  "description": "Production movie ticket booking system for Vercel & Neon",
   "type": "module",
+  "main": "api/movies.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vercel dev"
   },
-  "author": "dinesh",
-  "license": "ISC",
   "dependencies": {
-    "bcrypt": "^6.0.0",
-    "body-parser": "^1.20.2",
-    "crypto": "^1.0.1",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.3.1",
     "ejs": "^3.1.9",
-    "express": "^4.18.2",
-    "node-localstorage": "^2.2.1",
-    "nodemon": "^2.0.22",
-    "path": "^0.12.7",
-    "pg": "^8.20.0"
+    "pg": "^8.11.3"
   }
 }

@@ -1,5 +1,5 @@
 import db from './db.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { renderView } from './render.js';
 
 export default async function handler(req, res) {

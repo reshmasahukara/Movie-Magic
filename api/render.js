@@ -3,37 +3,38 @@ import path from 'path';
 import fs from 'fs';
 
 /**
- * Renders an EJS view and sends it as a response.
+ * Standardized rendering utility for EJS templates in Vercel.
+ * Uses robust path resolution and filesystem checks.
  */
 export async function renderView(res, viewName, data = {}) {
+  // Use process.cwd() as the base, which is consistent on Vercel
   const viewsDir = path.join(process.cwd(), 'views');
   const viewPath = path.join(viewsDir, `${viewName}.ejs`);
 
   try {
-    // Debug: Check if views directory exists in the serverless bundle
-    if (!fs.existsSync(viewsDir)) {
-      throw new Error(`Views directory not found at ${viewsDir}`);
-    }
-
+    // 1. Check if the template exists before trying to render
     if (!fs.existsSync(viewPath)) {
-      throw new Error(`Template not found at ${viewPath}`);
+      console.error(`MISSING TEMPLATE: ${viewPath}`);
+      return res.status(404).json({ 
+        error: "Template Not Found",
+        file: `${viewName}.ejs`,
+        lookedIn: viewsDir
+      });
     }
 
+    // 2. Render and send
     const html = await ejs.renderFile(viewPath, data);
     res.setHeader('Content-Type', 'text/html');
     res.status(200).send(html);
   } catch (error) {
-    console.error(`Rendering Error [${viewName}]:`, error.message);
+    console.error(`EJS RENDER ERROR [${viewName}]:`, error.message);
     res.status(500).json({ 
-      error: "Render Failure",
-      details: error.message,
-      pathChecked: viewPath,
-      suggestion: "Ensure 'views' folder is included in vercel.json 'includeFiles'"
+      error: "Page Render Failed",
+      details: error.message
     });
   }
 }
 
-// Fallback handler if api/render is hit directly
 export default async function handler(req, res) {
-  res.status(200).json({ message: "Rendering Utility Active" });
+  res.status(200).json({ status: "Rendering utility operational" });
 }
