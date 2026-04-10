@@ -109,7 +109,6 @@
         localStorage.setItem('last_booking_id', paymentData.booking_id);
         
         setTimeout(() => {
-          localStorage.removeItem('paymentData');
           window.location.href = '/success.html';
         }, 1000);
 
