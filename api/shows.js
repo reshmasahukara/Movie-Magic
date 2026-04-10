@@ -1,5 +1,16 @@
 import { query } from './db.js';
 
+// Unified Mock Registry corresponding to booking.html theater/show IDs
+const MOCK_SHOWS = {
+  "101": { screen_id: "101", theater_id: 1, theater_name: "Cinepolis: Nexus", timmings: "10:15 AM", movie_name: "Movie Magic", price: 150, format: "2D", selected_seats: [] },
+  "102": { screen_id: "102", theater_id: 1, theater_name: "Cinepolis: Nexus", timmings: "06:05 PM", movie_name: "Movie Magic", price: 250, format: "3D", selected_seats: [] },
+  "201": { screen_id: "201", theater_id: 2, theater_name: "INOX: DN Regalia Mall", timmings: "10:45 AM", movie_name: "Movie Magic", price: 200, format: "2D", selected_seats: [] },
+  "202": { screen_id: "202", theater_id: 2, theater_name: "INOX: DN Regalia Mall", timmings: "07:40 PM", movie_name: "Movie Magic", price: 300, format: "3D", selected_seats: [] },
+  "301": { screen_id: "301", theater_id: 3, theater_name: "INOX: Symphony Mall", timmings: "04:00 PM", movie_name: "Movie Magic", price: 180, format: "2D", selected_seats: [] },
+  "401": { screen_id: "401", theater_id: 4, theater_name: "PVR: Utkal Kanika Galleria", timmings: "01:15 PM", movie_name: "Movie Magic", price: 220, format: "2D", selected_seats: [] },
+  "501": { screen_id: "501", theater_id: 5, theater_name: "PJ Movies (Veena Theatre)", timmings: "06:00 PM", movie_name: "Movie Magic", price: 120, format: "2D", selected_seats: [] }
+};
+
 export default async function handler(req, res) {
   const { method, query: q } = req;
 
@@ -12,8 +23,16 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Show ID is required' });
   }
 
+  // 1. Check Mock Data First (guarantees UI stability for these specific development IDs)
+  if (MOCK_SHOWS[showId]) {
+    return res.status(200).json({
+      success: true,
+      show: MOCK_SHOWS[showId]
+    });
+  }
+
   try {
-    // Fetch show and join with theater/movie for complete context
+    // 2. Fallback to Database for dynamic/seeded IDs
     const result = await query(
       `SELECT s.*, t.theater_name, t.location, m.movie_name 
        FROM shows s 
