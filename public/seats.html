@@ -88,21 +88,33 @@
     }
 
     async function loadSpecificShow(id) {
+      console.log("Fetching Show ID:", id);
       try {
-        const { theaters, shows } = await API.fetch('/api/movies', {
-          method: 'POST',
-          body: JSON.stringify({ movieId })
-        });
-        
-        const show = shows.find(s => s.screen_id == id);
-        const theater = theaters.find(t => t.theater_id == show.theater_id);
-        
-        if (show && theater) {
-          currentShow = show;
-          document.getElementById('selected-show-title').textContent = `${theater.theater_name} | ${show.timmings}`;
+        // Fetch show details specifically from the new endpoint
+        const data = await API.fetch(`/api/shows?id=${id}`);
+        console.log("API Response:", data);
+
+        if (!data || !data.success || !data.show) {
+          UI.showMessage("Show data not found", "error");
+          setTimeout(() => window.location.href = '/', 2000);
+          return;
+        }
+
+        const show = data.show;
+        currentShow = show;
+
+        if (show) {
+          // Use safe access mapping
+          const theaterName = show?.theater_name || "Movie Magic Cinemas";
+          const showTime = show?.timmings || "00:00";
+          
+          document.getElementById('selected-show-title').textContent = `${theaterName} | ${showTime}`;
           loadSeatsGrid();
         }
-      } catch (err) { UI.showMessage(err.message); }
+      } catch (err) {
+        console.error("Show Load Error:", err);
+        UI.showMessage("Failed to load show details", "error");
+      }
     }
 
     function loadSeatsGrid() {
