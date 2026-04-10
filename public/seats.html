@@ -148,10 +148,13 @@
       const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 
       rows.forEach((row) => {
-        // Add Category Divider
-        if (row === 'A') grid.innerHTML += '<div class="category-divider">VIP Seating (Rows A-B)</div>';
-        if (row === 'C') grid.innerHTML += '<div class="category-divider">Premium Seating (Rows C-E)</div>';
-        if (row === 'F') grid.innerHTML += '<div class="category-divider">Regular Seating (Rows F-H)</div>';
+        // Add Category Divider (Use DOM method to preserve listeners)
+        if (row === 'A' || row === 'C' || row === 'F') {
+          const divider = document.createElement('div');
+          divider.className = 'category-divider';
+          divider.textContent = row === 'A' ? 'VIP Seating (Rows A-B)' : (row === 'C' ? 'Premium Seating (Rows C-E)' : 'Regular Seating (Rows F-H)');
+          grid.appendChild(divider);
+        }
 
         const rowDiv = document.createElement('div');
         rowDiv.className = 'seat-row';
