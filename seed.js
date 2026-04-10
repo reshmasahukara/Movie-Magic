@@ -22,7 +22,8 @@ async function seed() {
       CREATE TABLE IF NOT EXISTS theater (theater_id SERIAL PRIMARY KEY, theater_name VARCHAR(255) NOT NULL, city VARCHAR(255));
       CREATE TABLE IF NOT EXISTS theater1 (theater_id INTEGER REFERENCES theater(theater_id) ON DELETE CASCADE, movie_id VARCHAR(255) REFERENCES movie(movie_id) ON DELETE CASCADE, PRIMARY KEY (theater_id, movie_id));
       CREATE TABLE IF NOT EXISTS shows (screen_id SERIAL PRIMARY KEY, movie_id VARCHAR(255) REFERENCES movie(movie_id) ON DELETE CASCADE, theater_id INTEGER REFERENCES theater(theater_id) ON DELETE CASCADE, timmings TIME NOT NULL, show_date DATE NOT NULL, screen_no INTEGER NOT NULL, screen_dimensions VARCHAR(50), no_of_seats INTEGER DEFAULT 0, selected_seats JSONB DEFAULT '[]'::jsonb);
-      CREATE TABLE IF NOT EXISTS bookings (id SERIAL PRIMARY KEY, screen_id INTEGER REFERENCES shows(screen_id) ON DELETE CASCADE, user_id INTEGER REFERENCES customer(user_id) ON DELETE CASCADE, no_of_seats INTEGER DEFAULT 0, selected_seats JSONB DEFAULT '[]'::jsonb, price NUMERIC(10, 2) DEFAULT 0.00);
+      CREATE TABLE IF NOT EXISTS bookings (id SERIAL PRIMARY KEY, screen_id INTEGER REFERENCES shows(screen_id) ON DELETE CASCADE, user_id INTEGER REFERENCES customer(user_id) ON DELETE CASCADE, no_of_seats INTEGER DEFAULT 0, selected_seats JSONB DEFAULT '[]'::jsonb, price NUMERIC(10, 2) DEFAULT 0.00, status VARCHAR(50) DEFAULT 'PENDING', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+      CREATE TABLE IF NOT EXISTS payments (id SERIAL PRIMARY KEY, booking_id INTEGER REFERENCES bookings(id) ON DELETE CASCADE, amount NUMERIC(10, 2) NOT NULL, status VARCHAR(50) DEFAULT 'SUCCESS', transaction_id VARCHAR(255), payment_method VARCHAR(50), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
     `);
 
     // 2. Clear existing dynamic data (for fresh start)

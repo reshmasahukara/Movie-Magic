@@ -62,7 +62,20 @@ CREATE TABLE IF NOT EXISTS bookings (
     user_id INTEGER REFERENCES customer(user_id) ON DELETE CASCADE,
     no_of_seats INTEGER DEFAULT 0,
     selected_seats JSONB DEFAULT '[]'::jsonb,
-    price NUMERIC(10, 2) DEFAULT 0.00
+    price NUMERIC(10, 2) DEFAULT 0.00,
+    status VARCHAR(50) DEFAULT 'PENDING', -- PENDING, PAID, FAILED
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 8. Payments Table
+CREATE TABLE IF NOT EXISTS payments (
+    id SERIAL PRIMARY KEY,
+    booking_id INTEGER REFERENCES bookings(id) ON DELETE CASCADE,
+    amount NUMERIC(10, 2) NOT NULL,
+    status VARCHAR(50) DEFAULT 'SUCCESS',
+    transaction_id VARCHAR(255),
+    payment_method VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Seed Initial Data

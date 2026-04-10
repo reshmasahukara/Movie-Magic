@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Checkout | Movie Magic</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav></nav>
+
+  <main class="container">
+    <div class="auth-container" style="max-width: 600px;">
+      <h2 style="margin-bottom: 2rem; color: var(--primary);">Secure Checkout</h2>
+      
+      <div id="booking-details" style="background: var(--glass); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+        <p style="color: var(--text-muted)">Loading ticket details...</p>
+      </div>
+
+      <form id="payment-form">
+        <div class="form-group">
+          <label>Cardholder Name</label>
+          <input type="text" id="card-name" placeholder="John Doe" required>
+        </div>
+        <div class="form-group">
+          <label>Card Number</label>
+          <input type="text" id="card-number" placeholder="4567 •••• •••• 1234" required>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label>Expiry (MM/YY)</label>
+            <input type="text" placeholder="12/28" required>
+          </div>
+          <div class="form-group">
+            <label>CVV</label>
+            <input type="password" placeholder="•••" required>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem; font-size: 1.1rem;" id="pay-btn">
+          Pay ₹<span id="pay-amount">0</span>
+        </button>
+      </form>
+
+      <p style="text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-top: 1.5rem;">
+        🔒 This is a simulated secure payment environment.
+      </p>
+    </div>
+  </main>
+
+  <script src="js/utils.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookingId = urlParams.get('bookingId');
+    let bookingData = null;
+
+    async function init() {
+      if (!bookingId) {
+        window.location.href = '/';
+        return;
+      }
+
+      const user = API.getSession();
+      try {
+        const { bookings } = await API.fetch(`/api/booking?action=success&userid=${user.user_id}`);
+        bookingData = bookings.find(b => b.id == bookingId);
+        
+        if (!bookingData) throw new Error("Booking not found");
+
+        document.getElementById('booking-details').innerHTML = `
+          <h4 style="color: white; margin-bottom: 0.5rem;">${bookingData.movie_name}</h4>
+          <p style="font-size: 0.9rem;">${bookingData.timmings} | ${bookingData.show_date}</p>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">Seats: ${bookingData.selected_seats.join(', ')}</p>
+        `;
+        document.getElementById('pay-amount').textContent = bookingData.price;
+        document.getElementById('pay-btn').textContent = `Pay ₹${bookingData.price}`;
+      } catch (err) {
+        UI.showMessage(err.message);
+      }
+    }
+
+    document.getElementById('payment-form').onsubmit = async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('pay-btn');
+      btn.textContent = "Processing...";
+      btn.disabled = true;
+
+      try {
+        const res = await API.fetch('/api/payment', {
+          method: 'POST',
+          body: JSON.stringify({
+            booking_id: bookingId,
+            card_name: document.getElementById('card-name').value,
+            amount: bookingData.price
+          })
+        });
+
+        UI.showMessage(res.message, 'success');
+        setTimeout(() => window.location.href = '/history.html', 1500);
+      } catch (err) {
+        UI.showMessage(err.message);
+        btn.textContent = `Pay ₹${bookingData.price}`;
+        btn.disabled = false;
+      }
+    };
+
+    init();
+  </script>
+</body>
+</html>

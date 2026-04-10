@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Bookings | Movie Magic</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .ticket { background: var(--card-bg); border: 1px solid var(--glass); border-radius: 12px; margin-bottom: 2rem; display: flex; overflow: hidden; position: relative; }
+    .ticket-main { padding: 2rem; flex: 1; border-right: 2px dashed var(--bg-dark); }
+    .ticket-side { width: 150px; padding: 2rem; background: var(--primary); display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl; transform: rotate(180deg); color: white; font-weight: 800; }
+    .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-bottom: 1rem; display: inline-block; }
+    .status-PAID { background: #28a745; color: white; }
+    .status-PENDING { background: #ffc107; color: black; }
+    .status-FAILED { background: #E50914; color: white; }
+  </style>
+</head>
+<body>
+  <nav></nav>
+
+  <main class="container">
+    <h2 style="margin-bottom: 2rem;">Booking History</h2>
+    <div id="history-list">
+      <p>Loading your tickets...</p>
+    </div>
+  </main>
+
+  <script src="js/utils.js"></script>
+  <script>
+    async function loadHistory() {
+      const user = API.getSession();
+      if (!user) { window.location.href = '/login.html'; return; }
+
+      try {
+        const { bookings } = await API.fetch(`/api/booking?action=history&userid=${user.user_id}`);
+        const list = document.getElementById('history-list');
+        
+        if (bookings.length === 0) {
+          list.innerHTML = '<p style="color: var(--text-muted)">You haven\'t booked any tickets yet.</p>';
+          return;
+        }
+
+        list.innerHTML = bookings.map(b => `
+          <div class="ticket">
+            <div class="ticket-main">
+              <span class="status-badge status-${b.status}">${b.status}</span>
+              <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">${b.movie_name}</h3>
+              <p style="color: var(--text-muted); font-size: 0.9rem;">${b.timmings} | ${new Date(b.show_date).toLocaleDateString()}</p>
+              <div style="margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                  <p style="color: var(--text-muted); font-size: 0.8rem;">SEATS</p>
+                  <p style="font-weight: bold;">${b.selected_seats.join(', ')}</p>
+                </div>
+                <div>
+                  <p style="color: var(--text-muted); font-size: 0.8rem;">TOTAL PRICE</p>
+                  <p style="font-weight: bold;">₹${b.price}</p>
+                </div>
+              </div>
+              <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 1.5rem;">Booking ID: #${b.id} | Booked on: ${new Date(b.created_at).toLocaleString()}</p>
+            </div>
+            <div class="ticket-side">ADMIT ONE</div>
+          </div>
+        `).join('');
+      } catch (err) {
+        UI.showMessage(err.message);
+      }
+    }
+
+    loadHistory();
+  </script>
+</body>
+</html>
