@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import db from './db.js';
+import { query } from './db.js';
 
 export default async function handler(req, res) {
   try {
@@ -18,13 +18,13 @@ export default async function handler(req, res) {
       const shortNumber2 = Math.floor(longNumber / 100000);
       const user_id = shortNumber + shortNumber2;
 
-      const checkUser = await db.query('SELECT user_id FROM customer WHERE user_id = $1 OR email = $2', [user_id, email]);
+      const checkUser = await query('SELECT user_id FROM customer WHERE user_id = $1 OR email = $2', [user_id, email]);
       if (checkUser.rows.length > 0) {
         return res.status(409).json({ error: "User ID or Email already exists" });
       }
 
       const hashpass = await bcrypt.hash(password, 10);
-      await db.query(
+      await query(
         'INSERT INTO customer (user_id, name, email, password, city, contact_no) VALUES ($1, $2, $3, $4, $5, $6)',
         [user_id, name, email, hashpass, city, contactno]
       );

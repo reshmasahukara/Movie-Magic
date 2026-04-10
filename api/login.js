@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import db from './db.js';
+import { query } from './db.js';
 
 export default async function handler(req, res) {
   try {
@@ -11,7 +11,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Email and password are required" });
       }
 
-      const result = await db.query('SELECT * FROM customer WHERE email = $1', [email]);
+      const result = await query('SELECT * FROM customer WHERE email = $1', [email]);
       if (result.rows.length > 0) {
         const user = result.rows[0];
         const match = await bcrypt.compare(password, user.password);
