@@ -26,7 +26,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Missing booking details" });
       }
 
-      await db.query(
+      await query(
         'UPDATE shows SET selected_seats = COALESCE(selected_seats, \'[]\'::jsonb) || $1::jsonb WHERE screen_id = $2',
         [JSON.stringify(seats), screenid]
       );
