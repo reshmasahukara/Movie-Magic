@@ -55,11 +55,17 @@ export default async function handler(req, res) {
 
       // 3. If no conflict, update show data to mark seats as occupied
       // SELF-HEALING: Ensure the show record exists in DB to prevent FK/NotNull violations
+      // Fetch any valid theater and movie to satisfy FK constraints if needed
+      const { rows: tRows } = await query('SELECT theater_id FROM theater LIMIT 1');
+      const { rows: mRows } = await query('SELECT movie_id FROM movie LIMIT 1');
+      const fallbackTheater = tRows[0]?.theater_id || 1;
+      const fallbackMovie = mRows[0]?.movie_id || 'M001';
+
       await query(
         `INSERT INTO shows (screen_id, movie_id, theater_id, timmings, show_date, screen_no, screen_dimensions) 
-         VALUES ($1, 'M001', 1, '10:15:00', CURRENT_DATE, 1, '2D') 
+         VALUES ($1, $2, $3, '10:15:00', CURRENT_DATE, 1, '2D') 
          ON CONFLICT (screen_id) DO NOTHING`,
-        [screenid]
+        [screenid, fallbackMovie, fallbackTheater]
       );
 
       await query(
