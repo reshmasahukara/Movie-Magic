@@ -278,15 +278,19 @@
     }
 
     function goToSeats(showId, theatreName, time) {
-      // 9. Data Handling: Save to localStorage before redirect
+      // Professional Datetime Sync: Convert human-readable time and date to ISO
+      const dateObj = new Date(`${selectedDate} ${time}`);
+      const datetime = dateObj.toISOString();
+
       localStorage.setItem('booking_context', JSON.stringify({
         showId,
         theatreName,
         time,
         date: selectedDate,
-        movieId
+        movieId,
+        datetime
       }));
-      window.location.href = `/seats.html?showId=${showId}&movieId=${movieId}&time=${time}`;
+      window.location.href = `/seats.html?showId=${showId}&movieId=${movieId}&datetime=${datetime}`;
     }
 
     // Initial Execution

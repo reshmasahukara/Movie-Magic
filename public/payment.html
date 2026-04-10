@@ -69,10 +69,26 @@
       paymentData = JSON.parse(stored);
       document.getElementById('display-id').textContent = `#${paymentData.booking_id}`;
 
+      // Professional Datetime Parsing & Formatting
+      const urlParams = new URLSearchParams(window.location.search);
+      const datetimeParam = urlParams.get('datetime');
+      console.log("Received datetime:", datetimeParam);
+
+      let dateString = "Date Pending";
+      let timeString = "00:00";
+
+      if (datetimeParam) {
+        const dateObj = new Date(datetimeParam);
+        if (!isNaN(dateObj.getTime())) {
+          dateString = dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+          timeString = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+        }
+      }
+
       document.getElementById('booking-details').innerHTML = `
         <div style="text-align: center;">
           <h4 style="color: white; font-size: 1.2rem; margin-bottom: 0.5rem;">${paymentData.movie_name}</h4>
-          <p style="font-size: 0.9rem; color: var(--text-muted);">${paymentData.timmings} | ${new Date(paymentData.show_date).toLocaleDateString()}</p>
+          <p style="font-size: 0.9rem; color: var(--text-muted);">${timeString} • ${dateString}</p>
           <div style="margin: 1rem 0; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted)">Seats</span>
             <span style="color: white; font-weight: bold;">${paymentData.seats.join(', ')}</span>

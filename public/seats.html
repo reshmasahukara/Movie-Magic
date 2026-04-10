@@ -272,6 +272,7 @@
           })
         });
 
+        const datetime = urlParams.get('datetime');
         const theaterName = currentShow?.theater_name || "Movie Magic Cinemas";
         localStorage.setItem('paymentData', JSON.stringify({
           booking_id: res.bookingId,
@@ -280,10 +281,11 @@
           theater_name: theaterName,
           timmings: currentShow.timmings,
           show_date: currentShow.show_date,
-          seats: selectedSeats.map(s => s.id)
+          seats: selectedSeats.map(s => s.id),
+          datetime: datetime
         }));
 
-        window.location.href = '/payment.html';
+        window.location.href = `/payment.html?datetime=${datetime}`;
 
       } catch (err) {
         UI.showMessage(err.message, 'error');
