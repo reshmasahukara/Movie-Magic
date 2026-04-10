@@ -12,7 +12,11 @@ const API = {
     return data;
   },
   saveSession: (user) => localStorage.setItem('movie_magic_user', JSON.stringify(user)),
-  getSession: () => JSON.parse(localStorage.getItem('movie_magic_user')),
+  getSession: () => {
+    try {
+      return JSON.parse(localStorage.getItem('movie_magic_user')) || null;
+    } catch { return null; }
+  },
   logout: () => {
     localStorage.removeItem('movie_magic_user');
     window.location.href = '/login.html';
@@ -20,6 +24,15 @@ const API = {
 };
 
 const UI = {
+  // Defensive Rendering: Clears container before adding new context
+  safeRender: (id, html) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.innerHTML = ""; // Force clear before render to prevent overlapping
+      el.insertAdjacentHTML('beforeend', html);
+    }
+  },
+
   showMessage: (msg, type = 'error') => {
     const div = document.createElement('div');
     div.className = `toast ${type}`;
@@ -55,7 +68,7 @@ const UI = {
   }
 };
 
-// Global Search Handler (for index.html)
+// Global Search Handler
 window.handleSearch = (val) => {
   const cards = document.querySelectorAll('.movie-card');
   const query = val.toLowerCase();
@@ -65,7 +78,7 @@ window.handleSearch = (val) => {
   });
 };
 
-// Inject Navbar styles and init
+// Inject Global UI styles
 const style = document.createElement('style');
 style.textContent = `
   .toast { position: fixed; top: 20px; right: 20px; padding: 1rem 2rem; border-radius: 8px; z-index: 9999; animation: slideIn 0.3s ease; }
@@ -74,8 +87,8 @@ style.textContent = `
   @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
   
   .search-bar { flex: 1; max-width: 400px; margin: 0 2rem; }
-  .search-bar input { width: 100%; padding: 0.6rem 1.2rem; background: #2A2A2A; border: 1px solid var(--glass); border-radius: 20px; color: white; outline: none; }
-  .search-bar input:focus { border-color: var(--primary); }
+  .search-bar input { width: 100%; padding: 0.6rem 1.2rem; background: #2A2A2A; border: 1px solid var(--glass); border-radius: 20px; color: white; outline: none; transition: all 0.3s; }
+  .search-bar input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(229, 9, 20, 0.2); }
 `;
 document.head.appendChild(style);
 

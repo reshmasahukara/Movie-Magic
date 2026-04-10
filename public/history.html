@@ -6,22 +6,50 @@
   <title>My Bookings | Movie Magic</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
-    .ticket { background: var(--card-bg); border: 1px solid var(--glass); border-radius: 12px; margin-bottom: 2rem; display: flex; overflow: hidden; position: relative; }
-    .ticket-main { padding: 2rem; flex: 1; border-right: 2px dashed var(--bg-dark); }
-    .ticket-side { width: 150px; padding: 2rem; background: var(--primary); display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl; transform: rotate(180deg); color: white; font-weight: 800; }
-    .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-bottom: 1rem; display: inline-block; }
-    .status-PAID { background: #28a745; color: white; }
-    .status-PENDING { background: #ffc107; color: black; }
-    .status-FAILED { background: #E50914; color: white; }
+    #history-list { 
+      max-width: 900px; 
+      margin: 2rem auto; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 1.5rem; 
+      padding: 0 20px;
+    }
+    
+    .ticket { 
+      background: #1A1A1A; 
+      border: 1px solid rgba(255,255,255,0.05); 
+      border-radius: 16px; 
+      display: flex; 
+      overflow: hidden; 
+      position: relative; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      min-height: 180px;
+    }
+
+    .ticket-main { padding: 1.5rem 2rem; flex: 1; border-right: 2px dashed #0F0F0F; }
+    .ticket-side { width: 120px; padding: 1rem; background: var(--primary); display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl; transform: rotate(180deg); color: white; font-weight: 900; letter-spacing: 4px; font-size: 0.8rem; }
+    
+    .status-badge { padding: 4px 12px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.8rem; display: inline-block; letter-spacing: 1px; }
+    .status-paid { background: #28a745; color: white; }
+    .status-pending { background: #ffc107; color: black; }
+    .status-failed { background: #E50914; color: white; }
+
+    .ticket-footer { margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #555; }
   </style>
 </head>
 <body>
   <nav></nav>
 
   <main class="container">
-    <h2 style="margin-bottom: 2rem;">Booking History</h2>
+    <div style="max-width: 900px; margin: 0 auto; padding: 0 20px;">
+      <h2 style="font-size: 2rem; font-weight: 800;">Your Booking History</h2>
+      <p style="color: var(--text-muted); margin-top: 0.5rem;">Total verified transactions and pending passes.</p>
+    </div>
+
     <div id="history-list">
-      <p>Loading your tickets...</p>
+      <div style="padding: 4rem; text-align: center; color: var(--text-muted);">
+        <p>Synchronizing with server...</p>
+      </div>
     </div>
   </main>
 
@@ -33,40 +61,60 @@
 
       try {
         const { bookings } = await API.fetch(`/api/booking?action=history&userid=${user.user_id}`);
-        const list = document.getElementById('history-list');
         
-        if (bookings.length === 0) {
-          list.innerHTML = '<p style="color: var(--text-muted)">You haven\'t booked any tickets yet.</p>';
+        if (!bookings || bookings.length === 0) {
+          UI.safeRender('history-list', `
+            <div style="padding: 5rem 2rem; text-align: center; background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px dashed rgba(255,255,255,0.1);">
+              <p style="font-size: 1.2rem; color: var(--text-muted);">You haven't booked any tickets yet. 🍿</p>
+              <button onclick="window.location.href='/'" class="btn-primary" style="margin-top: 1.5rem">Browse Movies</button>
+            </div>
+          `);
           return;
         }
 
-        list.innerHTML = bookings.map(b => `
-          <div class="ticket">
-            <div class="ticket-main">
-              <span class="status-badge status-${b.status}">${b.status}</span>
-              <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">${b.movie_name}</h3>
-              <p style="color: var(--text-muted); font-size: 0.9rem;">${b.timmings} | ${new Date(b.show_date).toLocaleDateString()}</p>
-              <div style="margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div>
-                  <p style="color: var(--text-muted); font-size: 0.8rem;">SEATS</p>
-                  <p style="font-weight: bold;">${b.selected_seats.join(', ')}</p>
+        const html = bookings.map(b => {
+          const status = (b.payment_status || "Pending").toLowerCase();
+          const date = new Date(b.show_date || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          const created = new Date(b.created_at || Date.now()).toLocaleString();
+          
+          return `
+            <div class="ticket animate-fade-in" onclick="window.location.href='/success.html'">
+              <div class="ticket-main">
+                <span class="status-badge status-${status}">${status}</span>
+                <h3 style="font-size: 1.6rem; color: white; margin-bottom: 0.4rem;">${b.movie_name || "Movie Magic"}</h3>
+                <p style="color: #888; font-size: 0.85rem; font-weight: 500;">${b.timmings || "00:00"} | ${date}</p>
+                
+                <div style="margin-top: 1.2rem; display: flex; gap: 2.5rem;">
+                  <div>
+                    <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">SEATS</p>
+                    <p style="font-weight: 700; font-size: 0.9rem;">${(b.selected_seats || []).join(', ') || "-"}</p>
+                  </div>
+                  <div>
+                    <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">AMOUNT</p>
+                    <p style="font-weight: 700; font-size: 0.9rem; color: var(--primary);">₹${b.price || 0}</p>
+                  </div>
                 </div>
-                <div>
-                  <p style="color: var(--text-muted); font-size: 0.8rem;">TOTAL PRICE</p>
-                  <p style="font-weight: bold;">₹${b.price}</p>
+
+                <div class="ticket-footer">
+                  <span>ID: #MM-${b.id}</span>
+                  <span>Booked: ${created}</span>
                 </div>
               </div>
-              <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 1.5rem;">Booking ID: #${b.id} | Booked on: ${new Date(b.created_at).toLocaleString()}</p>
+              <div class="ticket-side">ADMIT ONE</div>
             </div>
-            <div class="ticket-side">ADMIT ONE</div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
+
+        UI.safeRender('history-list', html);
+
       } catch (err) {
         UI.showMessage(err.message);
+        UI.safeRender('history-list', `<p style="text-align: center; color: var(--primary);">Failed to load history: ${err.message}</p>`);
       }
     }
 
-    loadHistory();
+    // Defensive Trigger
+    window.addEventListener('load', loadHistory);
   </script>
 </body>
 </html>
