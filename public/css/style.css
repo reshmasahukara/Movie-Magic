@@ -175,12 +175,61 @@ nav .links a:hover {
 
 .seat.selected {
   background: var(--primary);
+  box-shadow: 0 0 10px var(--primary);
 }
+
+/* Category Colors */
+.seat.vip { background: #FFD700; } /* Gold */
+.seat.premium { background: #007bff; } /* Blue */
+.seat.regular { background: #6c757d; } /* Gray */
 
 .seat.occupied {
   background: #111;
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.3;
+}
+
+/* Screen UI */
+.screen-container {
+  width: 100%;
+  padding: 2rem 0 4rem;
+  display: flex;
+  flex-direction: column;
+  items-center: center;
+  align-items: center;
+}
+
+.screen-visual {
+  width: 80%;
+  height: 12px;
+  background: white;
+  border-radius: 50% / 100%;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  box-shadow: 0 15px 30px rgba(255,255,255,0.4);
+  margin-bottom: 1rem;
+}
+
+.screen-label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 3rem;
+  font-size: 0.9rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .seat:not(.occupied):hover {
