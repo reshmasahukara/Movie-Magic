@@ -217,28 +217,42 @@
       const user = API.getSession();
       if (!user) { UI.showMessage('Please login to book tickets'); return; }
 
-      // Step 1: Store selected seats temporarily in localStorage
-      const theaterName = document.getElementById('selected-show-title').textContent.split('|')[0].trim();
-      const tempBooking = {
-        screenid: currentShow.screen_id,
-        user_id: user.user_id,
-        noofseats: selectedSeats.length,
-        seats: selectedSeats.map(s => s.id),
-        price: selectedSeats.reduce((sum, s) => sum + s.price, 0),
-        movie_name: theaterName, // Note: Title extraction fix
-        timmings: currentShow.timmings,
-        show_date: currentShow.show_date,
-        details: selectedSeats.map(s => `${s.id} (${s.type})`).join(', ')
-      };
+      const btn = document.querySelector('button[onclick="confirmBooking()"]');
+      if (btn) btn.disabled = true;
 
-      // Extract movie name specifically from breadcrumb or state if possible
-      const movieTitle = document.querySelector('h2#selected-show-title')?.textContent.split('|')[0] || "Movie Selection";
+      try {
+        const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
+        
+        // Step 1: Create the booking in DB as 'Pending'
+        const res = await API.fetch('/api/booking', {
+          method: 'POST',
+          body: JSON.stringify({
+            screenid: currentShow.screen_id,
+            user_id: user.user_id,
+            noofseats: selectedSeats.length,
+            seats: selectedSeats.map(s => s.id),
+            price: total,
+            payment_status: 'Pending'
+          })
+        });
 
-      localStorage.setItem('pending_booking', JSON.stringify(tempBooking));
+        // Step 2: Store crucial ID and amount for payment.html
+        localStorage.setItem('paymentData', JSON.stringify({
+          booking_id: res.bookingId,
+          amount: total,
+          movie_name: document.getElementById('selected-show-title').textContent.split('|')[0].trim(),
+          timmings: currentShow.timmings,
+          show_date: currentShow.show_date,
+          seats: selectedSeats.map(s => s.id)
+        }));
 
-      // Step 2: Redirect to payment page
-      UI.showMessage('Selection saved. Redirecting to payment...', 'success');
-      setTimeout(() => window.location.href = '/payment.html', 1000);
+        UI.showMessage('Booking initialized. Redirecting...', 'success');
+        setTimeout(() => window.location.href = '/payment.html', 1000);
+
+      } catch (err) {
+        UI.showMessage(err.message);
+        if (btn) btn.disabled = false;
+      }
     }
 
     init();

@@ -10,13 +10,15 @@ export default async function handler(req, res) {
 
     const { booking_id, card_name, amount, payment_method } = body;
 
+    // Strict validation to fix "Booking ID and Amount are required" error
     if (!booking_id || !amount) {
-      return res.status(400).json({ error: "Booking ID and Amount are required" });
+      console.error('Validation Failed:', { booking_id, amount });
+      return res.status(400).json({ error: "Booking ID and Amount are required for payment processing" });
     }
 
     // Simulate Payment Processing (90% success rate)
     const isSuccess = Math.random() > 0.1;
-    const status = isSuccess ? 'PAID' : 'FAILED';
+    const paymentStatus = isSuccess ? 'Paid' : 'Failed';
     const txnId = `TXN_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
     // 1. Log Payment into 'payments' table
@@ -25,10 +27,10 @@ export default async function handler(req, res) {
       [booking_id, amount, isSuccess ? 'SUCCESS' : 'FAILURE', txnId, payment_method || 'Credit/Debit Card']
     );
 
-    // 2. Update Booking Status
+    // 2. Update Booking Status (Fixing column name to 'payment_status')
     await query(
-      'UPDATE bookings SET status = $1 WHERE id = $2',
-      [status, booking_id]
+      'UPDATE bookings SET payment_status = $1 WHERE id = $2',
+      [paymentStatus, booking_id]
     );
 
     if (isSuccess) {
@@ -36,14 +38,14 @@ export default async function handler(req, res) {
         success: true, 
         message: "Payment successful!", 
         transaction_id: txnId,
-        status: status
+        status: paymentStatus
       });
     } else {
       return res.status(402).json({ 
         success: false, 
         message: "Payment declined by bank.", 
         transaction_id: txnId,
-        status: status
+        status: paymentStatus
       });
     }
 

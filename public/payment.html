@@ -14,7 +14,7 @@
       <h2 style="margin-bottom: 2rem; color: var(--primary); text-align: center;">Secure Checkout</h2>
       
       <div id="booking-details" style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid var(--glass);">
-        <p style="color: var(--text-muted); text-align: center;">Loading ticket details...</p>
+        <p style="color: var(--text-muted); text-align: center;">Loading transaction data...</p>
       </div>
 
       <form id="payment-form">
@@ -38,88 +38,85 @@
         </div>
 
         <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1.5rem; height: 55px; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; gap: 10px;" id="pay-btn">
-          <span>Pay Now</span>
+          <span>Authorize Payment</span>
         </button>
       </form>
+
+      <div style="margin-top: 1rem; text-align: center;">
+        <p style="font-size: 0.7rem; color: #555;">Booking ID: <span id="display-id">#00000</span></p>
+      </div>
 
       <div style="margin-top: 2rem; display: flex; align-items: center; justify-content: center; gap: 1rem; opacity: 0.5;">
         <img src="https://img.icons8.com/color/48/000000/visa.png" width="30">
         <img src="https://img.icons8.com/color/48/000000/mastercard.png" width="30">
-        <p style="font-size: 0.75rem; color: var(--text-muted);">Secure SSL Encryption</p>
+        <p style="font-size: 0.75rem; color: var(--text-muted);">Secure Gateway</p>
       </div>
     </div>
   </main>
 
   <script src="js/utils.js"></script>
   <script>
-    let pendingData = null;
+    let paymentData = null;
 
     async function init() {
-      const stored = localStorage.getItem('pending_booking');
+      const stored = localStorage.getItem('paymentData');
       if (!stored) {
-        UI.showMessage('No pending booking found. Redirecting...');
+        UI.showMessage('Transaction data missing. Redirecting...');
         setTimeout(() => window.location.href = '/', 1500);
         return;
       }
 
-      pendingData = JSON.parse(stored);
+      paymentData = JSON.parse(stored);
+      document.getElementById('display-id').textContent = `#${paymentData.booking_id}`;
 
       document.getElementById('booking-details').innerHTML = `
         <div style="text-align: center;">
-          <h4 style="color: white; font-size: 1.2rem; margin-bottom: 0.5rem;">${pendingData.movie_name}</h4>
-          <p style="font-size: 0.9rem; color: var(--text-muted);">${pendingData.timmings} | ${new Date(pendingData.show_date).toLocaleDateString()}</p>
+          <h4 style="color: white; font-size: 1.2rem; margin-bottom: 0.5rem;">${paymentData.movie_name}</h4>
+          <p style="font-size: 0.9rem; color: var(--text-muted);">${paymentData.timmings} | ${new Date(paymentData.show_date).toLocaleDateString()}</p>
           <div style="margin: 1rem 0; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between;">
-            <span style="color: var(--text-muted)">Seats (${pendingData.noofseats})</span>
-            <span style="color: white; font-weight: bold;">${pendingData.seats.join(', ')}</span>
+            <span style="color: var(--text-muted)">Seats</span>
+            <span style="color: white; font-weight: bold;">${paymentData.seats.join(', ')}</span>
           </div>
           <div style="display: flex; justify-content: space-between; font-size: 1.25rem;">
-            <span style="color: white;">Amount</span>
-            <span style="color: var(--primary); font-weight: 800;">₹${pendingData.price}</span>
+            <span style="color: white;">Amount Due</span>
+            <span style="color: var(--primary); font-weight: 800;">₹${paymentData.amount}</span>
           </div>
         </div>
       `;
-      document.getElementById('pay-btn').querySelector('span').textContent = `Pay ₹${pendingData.price}`;
+      document.getElementById('pay-btn').querySelector('span').textContent = `Pay ₹${paymentData.amount}`;
     }
 
     document.getElementById('payment-form').onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('pay-btn');
       btn.disabled = true;
-      btn.querySelector('span').textContent = "Authorizing...";
+      btn.querySelector('span').textContent = "Processing...";
 
       try {
-        // Step 1: Simulated Payment API Call
-        await API.fetch('/api/payment', {
+        // Correctly passing booking_id and amount to fix the reported error
+        const payRes = await API.fetch('/api/payment', {
           method: 'POST',
           body: JSON.stringify({
-            amount: pendingData.price,
+            booking_id: paymentData.booking_id,
+            amount: paymentData.amount,
             card_name: document.getElementById('card-name').value
-          })
-        });
-
-        // Step 2: Final Booking API Call
-        const bookRes = await API.fetch('/api/booking', {
-          method: 'POST',
-          body: JSON.stringify({
-            ...pendingData,
-            payment_status: 'Paid'
           })
         });
 
         UI.showMessage('Payment Successful!', 'success');
         
-        // Save final booking ID for success page before clearing session
-        localStorage.setItem('last_booking_id', bookRes.bookingId);
+        // Save ID for ticket generation
+        localStorage.setItem('last_booking_id', paymentData.booking_id);
         
         setTimeout(() => {
-          localStorage.removeItem('pending_booking');
+          localStorage.removeItem('paymentData');
           window.location.href = '/success.html';
         }, 1000);
 
       } catch (err) {
         UI.showMessage(err.message);
         btn.disabled = false;
-        btn.querySelector('span').textContent = `Pay ₹${pendingData.price}`;
+        btn.querySelector('span').textContent = `Pay ₹${paymentData.amount}`;
       }
     };
 
