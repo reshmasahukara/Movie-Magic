@@ -102,9 +102,20 @@
       "501": { theater_name: "PJ Movies (Veena Theatre)", timmings: "06:00 PM", price: 120 }
     };
 
+    let movieName = "Movie Magic";
+
     async function loadSpecificShow(id) {
       console.log("Fetching Show ID:", id);
       try {
+        // Fetch Movie Details first to get real name
+        if (movieId) {
+          try {
+            const { movies } = await API.fetch('/api/movies');
+            const movie = movies.find(m => m.movie_id === movieId);
+            if (movie) movieName = movie.movie_name;
+          } catch (e) { console.warn("Movie meta fetch failed"); }
+        }
+
         const data = await API.fetch(`/api/shows?id=${id}`);
         console.log("API Response:", data);
 
@@ -119,7 +130,7 @@
 
         const theaterName = currentShow?.theater_name || "Movie Magic Cinemas";
         const showTime = currentShow?.timmings || "00:00";
-        document.getElementById('selected-show-title').textContent = `${theaterName} | ${showTime}`;
+        document.getElementById('selected-show-title').textContent = `${movieName} | ${theaterName}`;
         loadSeatsGrid();
 
       } catch (err) {
@@ -242,10 +253,12 @@
           })
         });
 
+        const theaterName = currentShow?.theater_name || "Movie Magic Cinemas";
         localStorage.setItem('paymentData', JSON.stringify({
           booking_id: res.bookingId,
           amount: total,
-          movie_name: document.getElementById('selected-show-title').textContent.split('|')[0].trim(),
+          movie_name: movieName,
+          theater_name: theaterName,
           timmings: currentShow.timmings,
           show_date: currentShow.show_date,
           seats: selectedSeats.map(s => s.id)
