@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Confirmed | Movie Magic</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- html2pdf.js for Ticket Download -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    .success-container { text-align: center; padding: 4rem 1rem; }
+    
+    /* Digital Ticket Styling */
+    .ticket-card {
+      background: #1e1e1e;
+      color: white;
+      width: 100%;
+      max-width: 450px;
+      margin: 2rem auto;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+      position: relative;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .ticket-header { background: var(--primary); padding: 1.5rem; }
+    .ticket-body { padding: 2.5rem; position: relative; }
+    
+    /* Perforated Line effect */
+    .perforated {
+      border-top: 2px dashed #333;
+      margin: 1.5rem 0;
+      position: relative;
+    }
+    .perforated::before, .perforated::after {
+      content: '';
+      position: absolute;
+      top: -11px;
+      width: 22px;
+      height: 22px;
+      background: var(--bg-dark);
+      border-radius: 50%;
+    }
+    .perforated::before { left: -36px; }
+    .perforated::after { right: -36px; }
+
+    .ticket-info { display: flex; justify-content: space-between; margin-bottom: 1.5rem; text-align: left; }
+    .info-label { color: #888; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .info-val { font-weight: bold; font-size: 1rem; }
+
+    .qr-mock {
+      width: 100px;
+      height: 100px;
+      background: white;
+      margin: 1.5rem auto 0;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .qr-mock img { width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <nav></nav>
+
+  <main class="container">
+    <div class="success-container animate-fade-in">
+      <div style="background: rgba(40, 167, 69, 0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem; border: 2px solid #28a745;">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </div>
+      
+      <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Booking Confirmed!</h1>
+      <p style="color: var(--text-muted);">Your transaction was successful. Show this ticket at the counter.</p>
+
+      <!-- Digital Ticket -->
+      <div id="ticket-capture">
+        <div class="ticket-card" id="ticket-element">
+          <div class="ticket-header">
+            <h2 style="letter-spacing: 4px; font-weight: 900; font-size: 1rem; margin: 0;">MOVIE MAGIC TICKET</h2>
+          </div>
+          <div class="ticket-body">
+            <h3 id="t-movie" style="font-size: 2rem; margin-bottom: 2rem; line-height: 1.1;">MOVIE NAME</h3>
+            
+            <div class="ticket-info">
+              <div>
+                <p class="info-label">Theater</p>
+                <p class="info-val" id="t-theater">Cinema Hall</p>
+              </div>
+              <div style="text-align: right;">
+                <p class="info-label">Show Time</p>
+                <p class="info-val" id="t-time">00:00 AM</p>
+              </div>
+            </div>
+
+            <div class="ticket-info">
+              <div>
+                <p class="info-label">Date</p>
+                <p class="info-val" id="t-date">01 Jan 2026</p>
+              </div>
+              <div style="text-align: right;">
+                <p class="info-label">Seats</p>
+                <p class="info-val" id="t-seats">None</p>
+              </div>
+            </div>
+
+            <div class="perforated"></div>
+
+            <div class="ticket-info" style="margin-bottom: 0;">
+              <div>
+                <p class="info-label">Ticket ID</p>
+                <p class="info-val" id="t-id">#00000</p>
+              </div>
+              <div style="text-align: right;">
+                <p class="info-label">Total Amount</p>
+                <p class="info-val" style="color: var(--primary);">₹<span id="t-price">0</span></p>
+              </div>
+            </div>
+
+            <div class="qr-mock">
+              <img id="t-qr" src="" alt="QR">
+            </div>
+            <p style="font-size: 0.6rem; color: #555; margin-top: 1rem; text-transform: uppercase; letter-spacing: 1px;">Scan at Entrance</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 3rem;">
+        <button onclick="downloadTicket()" class="btn-primary" style="background: #333; border: 1px solid var(--primary);">Download Ticket (PDF)</button>
+        <button onclick="window.location.href='/dashboard.html'" class="btn-primary">View in Dashboard</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/utils.js"></script>
+  <script>
+    const bookingId = localStorage.getItem('last_booking_id');
+
+    async function init() {
+      if (!bookingId) {
+        window.location.href = '/';
+        return;
+      }
+
+      const user = API.getSession();
+      try {
+        const { bookings } = await API.fetch(`/api/booking?action=success&userid=${user.user_id}`);
+        const data = bookings.find(b => b.id == bookingId);
+        
+        if (!data) throw new Error("Ticket data not found");
+
+        document.getElementById('t-movie').textContent = data.movie_name;
+        document.getElementById('t-theater').textContent = "Movie Magic Cinema"; // Fallback or fetch from API
+        document.getElementById('t-time').textContent = data.timmings;
+        document.getElementById('t-date').textContent = new Date(data.show_date).toDateString();
+        document.getElementById('t-seats').textContent = data.selected_seats.join(', ');
+        document.getElementById('t-price').textContent = data.price;
+        document.getElementById('t-id').textContent = `#MM-${data.id}-${Math.floor(Math.random()*900 + 100)}`;
+        
+        // Generate dynamic QR
+        const qrContent = `MM-TICKET-${data.id}-${data.user_id}`;
+        document.getElementById('t-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrContent)}&color=000000`;
+
+      } catch (err) {
+        UI.showMessage(err.message);
+      }
+    }
+
+    function downloadTicket() {
+      const element = document.getElementById('ticket-element');
+      const opt = {
+        margin:       10,
+        filename:     `MovieMagic_Ticket_${bookingId}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, backgroundColor: '#0F0F0F' },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      // New Promise-based usage:
+      html2pdf().set(opt).from(element).save();
+    }
+
+    init();
+  </script>
+</body>
+</html>

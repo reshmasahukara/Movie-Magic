@@ -218,16 +218,21 @@
       if (!user) { UI.showMessage('Please login to book tickets'); return; }
 
       // Step 1: Store selected seats temporarily in localStorage
+      const theaterName = document.getElementById('selected-show-title').textContent.split('|')[0].trim();
       const tempBooking = {
         screenid: currentShow.screen_id,
         user_id: user.user_id,
         noofseats: selectedSeats.length,
         seats: selectedSeats.map(s => s.id),
         price: selectedSeats.reduce((sum, s) => sum + s.price, 0),
-        movie_name: document.getElementById('selected-show-title').textContent.split('|')[0].trim(),
+        movie_name: theaterName, // Note: Title extraction fix
         timmings: currentShow.timmings,
-        show_date: currentShow.show_date
+        show_date: currentShow.show_date,
+        details: selectedSeats.map(s => `${s.id} (${s.type})`).join(', ')
       };
+
+      // Extract movie name specifically from breadcrumb or state if possible
+      const movieTitle = document.querySelector('h2#selected-show-title')?.textContent.split('|')[0] || "Movie Selection";
 
       localStorage.setItem('pending_booking', JSON.stringify(tempBooking));
 

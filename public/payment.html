@@ -6,15 +6,15 @@
   <title>Payment Checkout | Movie Magic</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body style="height: 100vh; display: flex; flex-direction: column;">
   <nav></nav>
 
-  <main class="container">
-    <div class="auth-container" style="max-width: 600px;">
-      <h2 style="margin-bottom: 2rem; color: var(--primary);">Secure Checkout</h2>
+  <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px;">
+    <div class="auth-container" style="margin: 0; width: 100%; max-width: 500px; padding: 2.5rem; position: relative; z-index: 1;">
+      <h2 style="margin-bottom: 2rem; color: var(--primary); text-align: center;">Secure Checkout</h2>
       
-      <div id="booking-details" style="background: var(--glass); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
-        <p style="color: var(--text-muted)">Loading ticket details...</p>
+      <div id="booking-details" style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid var(--glass);">
+        <p style="color: var(--text-muted); text-align: center;">Loading ticket details...</p>
       </div>
 
       <form id="payment-form">
@@ -24,27 +24,29 @@
         </div>
         <div class="form-group">
           <label>Card Number</label>
-          <input type="text" id="card-number" placeholder="4567 •••• •••• 1234" required>
+          <input type="text" id="card-num" placeholder="4567 •••• •••• 1234" maxlength="19" required>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
           <div class="form-group">
             <label>Expiry (MM/YY)</label>
-            <input type="text" placeholder="12/28" required>
+            <input type="text" placeholder="12/28" maxlength="5" required>
           </div>
           <div class="form-group">
             <label>CVV</label>
-            <input type="password" placeholder="•••" required>
+            <input type="password" placeholder="•••" maxlength="3" required>
           </div>
         </div>
 
-        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem; font-size: 1.1rem;" id="pay-btn">
-          Pay Now
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1.5rem; height: 55px; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; gap: 10px;" id="pay-btn">
+          <span>Pay Now</span>
         </button>
       </form>
 
-      <p style="text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-top: 1.5rem;">
-        🔒 This is a simulated secure payment environment.
-      </p>
+      <div style="margin-top: 2rem; display: flex; align-items: center; justify-content: center; gap: 1rem; opacity: 0.5;">
+        <img src="https://img.icons8.com/color/48/000000/visa.png" width="30">
+        <img src="https://img.icons8.com/color/48/000000/mastercard.png" width="30">
+        <p style="font-size: 0.75rem; color: var(--text-muted);">Secure SSL Encryption</p>
+      </div>
     </div>
   </main>
 
@@ -63,23 +65,31 @@
       pendingData = JSON.parse(stored);
 
       document.getElementById('booking-details').innerHTML = `
-        <h4 style="color: white; margin-bottom: 0.5rem;">${pendingData.movie_name}</h4>
-        <p style="font-size: 0.9rem;">${pendingData.timmings} | ${new Date(pendingData.show_date).toLocaleDateString()}</p>
-        <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">Seats: ${pendingData.seats.join(', ')}</p>
-        <p style="font-size: 1.2rem; font-weight: bold; margin-top: 1rem; color: var(--primary);">Total: ₹${pendingData.price}</p>
+        <div style="text-align: center;">
+          <h4 style="color: white; font-size: 1.2rem; margin-bottom: 0.5rem;">${pendingData.movie_name}</h4>
+          <p style="font-size: 0.9rem; color: var(--text-muted);">${pendingData.timmings} | ${new Date(pendingData.show_date).toLocaleDateString()}</p>
+          <div style="margin: 1rem 0; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted)">Seats (${pendingData.noofseats})</span>
+            <span style="color: white; font-weight: bold;">${pendingData.seats.join(', ')}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 1.25rem;">
+            <span style="color: white;">Amount</span>
+            <span style="color: var(--primary); font-weight: 800;">₹${pendingData.price}</span>
+          </div>
+        </div>
       `;
-      document.getElementById('pay-btn').textContent = `Pay ₹${pendingData.price}`;
+      document.getElementById('pay-btn').querySelector('span').textContent = `Pay ₹${pendingData.price}`;
     }
 
     document.getElementById('payment-form').onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('pay-btn');
-      btn.textContent = "Authorizing...";
       btn.disabled = true;
+      btn.querySelector('span').textContent = "Authorizing...";
 
       try {
         // Step 1: Simulated Payment API Call
-        const payRes = await API.fetch('/api/payment', {
+        await API.fetch('/api/payment', {
           method: 'POST',
           body: JSON.stringify({
             amount: pendingData.price,
@@ -87,9 +97,7 @@
           })
         });
 
-        UI.showMessage('Payment authorized. Generating tickets...', 'success');
-
-        // Step 2: Final Booking API Call (Now that payment is confirmed)
+        // Step 2: Final Booking API Call
         const bookRes = await API.fetch('/api/booking', {
           method: 'POST',
           body: JSON.stringify({
@@ -98,15 +106,20 @@
           })
         });
 
-        // Step 3: Cleanup and Success
-        localStorage.removeItem('pending_booking');
-        UI.showMessage('Booking confirmed successfully!', 'success');
-        setTimeout(() => window.location.href = '/history.html', 1500);
+        UI.showMessage('Payment Successful!', 'success');
+        
+        // Save final booking ID for success page before clearing session
+        localStorage.setItem('last_booking_id', bookRes.bookingId);
+        
+        setTimeout(() => {
+          localStorage.removeItem('pending_booking');
+          window.location.href = '/success.html';
+        }, 1000);
 
       } catch (err) {
         UI.showMessage(err.message);
-        btn.textContent = `Pay ₹${pendingData.price}`;
         btn.disabled = false;
+        btn.querySelector('span').textContent = `Pay ₹${pendingData.price}`;
       }
     };
 
