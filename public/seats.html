@@ -14,13 +14,24 @@
     .seat-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
     .row-label { width: 30px; text-align: right; margin-right: 15px; color: #555; font-weight: 700; font-size: 0.85rem; }
     
-    .seat { width: 35px; height: 35px; margin: 6px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; background: #333; position: relative; }
+    .seat { width: 35px; height: 35px; margin: 6px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; background: #333; position: relative; border: 1px solid rgba(255,255,255,0.1); }
     
-    /* SELECTED */
-    .seat.selected { background: #e50914 !important; box-shadow: 0 0 15px #e50914; transform: scale(1.1); border: 2px solid white; }
+    /* CATEGORY COLORS (Moved up so .selected wins) */
+    .seat.vip { background: #FFD700 !important; border-color: #DAA520; }
+    .seat.premium { background: #007bff !important; border-color: #0056b3; }
+    .seat.regular { background: #6c757d !important; border-color: #495057; }
+
+    /* SELECTED (HIGH PRIORITY) */
+    .seat.selected { 
+      background: #e50914 !important; 
+      box-shadow: 0 0 20px #e50914, 0 0 40px rgba(229, 9, 20, 0.4) !important; 
+      transform: scale(1.15) !important; 
+      border: 3px solid white !important;
+      z-index: 10;
+    }
     
     /* BOOKED */
-    .seat.booked { background: #2a2a2a !important; cursor: not-allowed; opacity: 0.4; }
+    .seat.booked { background: #1a1a1a !important; cursor: not-allowed; opacity: 0.3 !important; border: none !important; }
     .seat.booked::after { content: '×'; position: absolute; color: #444; font-size: 1.2rem; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 
     .seat-num { font-size: 0.65rem; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
