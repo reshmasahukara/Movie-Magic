@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     no_of_seats INTEGER DEFAULT 0,
     selected_seats JSONB DEFAULT '[]'::jsonb,
     price NUMERIC(10, 2) DEFAULT 0.00,
-    status VARCHAR(50) DEFAULT 'PENDING', -- PENDING, PAID, FAILED
+    payment_status VARCHAR(50) DEFAULT 'Paid',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

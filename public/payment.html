@@ -38,7 +38,7 @@
         </div>
 
         <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem; font-size: 1.1rem;" id="pay-btn">
-          Pay ₹<span id="pay-amount">0</span>
+          Pay Now
         </button>
       </form>
 
@@ -50,56 +50,62 @@
 
   <script src="js/utils.js"></script>
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const bookingId = urlParams.get('bookingId');
-    let bookingData = null;
+    let pendingData = null;
 
     async function init() {
-      if (!bookingId) {
-        window.location.href = '/';
+      const stored = localStorage.getItem('pending_booking');
+      if (!stored) {
+        UI.showMessage('No pending booking found. Redirecting...');
+        setTimeout(() => window.location.href = '/', 1500);
         return;
       }
 
-      const user = API.getSession();
-      try {
-        const { bookings } = await API.fetch(`/api/booking?action=success&userid=${user.user_id}`);
-        bookingData = bookings.find(b => b.id == bookingId);
-        
-        if (!bookingData) throw new Error("Booking not found");
+      pendingData = JSON.parse(stored);
 
-        document.getElementById('booking-details').innerHTML = `
-          <h4 style="color: white; margin-bottom: 0.5rem;">${bookingData.movie_name}</h4>
-          <p style="font-size: 0.9rem;">${bookingData.timmings} | ${bookingData.show_date}</p>
-          <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">Seats: ${bookingData.selected_seats.join(', ')}</p>
-        `;
-        document.getElementById('pay-amount').textContent = bookingData.price;
-        document.getElementById('pay-btn').textContent = `Pay ₹${bookingData.price}`;
-      } catch (err) {
-        UI.showMessage(err.message);
-      }
+      document.getElementById('booking-details').innerHTML = `
+        <h4 style="color: white; margin-bottom: 0.5rem;">${pendingData.movie_name}</h4>
+        <p style="font-size: 0.9rem;">${pendingData.timmings} | ${new Date(pendingData.show_date).toLocaleDateString()}</p>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">Seats: ${pendingData.seats.join(', ')}</p>
+        <p style="font-size: 1.2rem; font-weight: bold; margin-top: 1rem; color: var(--primary);">Total: ₹${pendingData.price}</p>
+      `;
+      document.getElementById('pay-btn').textContent = `Pay ₹${pendingData.price}`;
     }
 
     document.getElementById('payment-form').onsubmit = async (e) => {
       e.preventDefault();
       const btn = document.getElementById('pay-btn');
-      btn.textContent = "Processing...";
+      btn.textContent = "Authorizing...";
       btn.disabled = true;
 
       try {
-        const res = await API.fetch('/api/payment', {
+        // Step 1: Simulated Payment API Call
+        const payRes = await API.fetch('/api/payment', {
           method: 'POST',
           body: JSON.stringify({
-            booking_id: bookingId,
-            card_name: document.getElementById('card-name').value,
-            amount: bookingData.price
+            amount: pendingData.price,
+            card_name: document.getElementById('card-name').value
           })
         });
 
-        UI.showMessage(res.message, 'success');
+        UI.showMessage('Payment authorized. Generating tickets...', 'success');
+
+        // Step 2: Final Booking API Call (Now that payment is confirmed)
+        const bookRes = await API.fetch('/api/booking', {
+          method: 'POST',
+          body: JSON.stringify({
+            ...pendingData,
+            payment_status: 'Paid'
+          })
+        });
+
+        // Step 3: Cleanup and Success
+        localStorage.removeItem('pending_booking');
+        UI.showMessage('Booking confirmed successfully!', 'success');
         setTimeout(() => window.location.href = '/history.html', 1500);
+
       } catch (err) {
         UI.showMessage(err.message);
-        btn.textContent = `Pay ₹${bookingData.price}`;
+        btn.textContent = `Pay ₹${pendingData.price}`;
         btn.disabled = false;
       }
     };

@@ -217,29 +217,23 @@
       const user = API.getSession();
       if (!user) { UI.showMessage('Please login to book tickets'); return; }
 
-      try {
-        const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
-        
-        const res = await API.fetch('/api/booking?action=book', {
-          method: 'POST',
-          body: JSON.stringify({
-            screenid: currentShow.screen_id,
-            user_id: user.user_id,
-            noofseats: selectedSeats.length,
-            seats: selectedSeats.map(s => s.id),
-            price: total
-          })
-        });
+      // Step 1: Store selected seats temporarily in localStorage
+      const tempBooking = {
+        screenid: currentShow.screen_id,
+        user_id: user.user_id,
+        noofseats: selectedSeats.length,
+        seats: selectedSeats.map(s => s.id),
+        price: selectedSeats.reduce((sum, s) => sum + s.price, 0),
+        movie_name: document.getElementById('selected-show-title').textContent.split('|')[0].trim(),
+        timmings: currentShow.timmings,
+        show_date: currentShow.show_date
+      };
 
-        // Get the latest booking ID for this user to pass to payment
-        const hist = await API.fetch(`/api/booking?action=success&userid=${user.user_id}&screenid=${currentShow.screen_id}`);
-        const bookingId = hist.bookings[0].id;
+      localStorage.setItem('pending_booking', JSON.stringify(tempBooking));
 
-        UI.showMessage('Booking initialized. Redirecting to payment...', 'success');
-        setTimeout(() => window.location.href = `/payment.html?bookingId=${bookingId}`, 1500);
-      } catch (err) {
-        UI.showMessage(err.message);
-      }
+      // Step 2: Redirect to payment page
+      UI.showMessage('Selection saved. Redirecting to payment...', 'success');
+      setTimeout(() => window.location.href = '/payment.html', 1000);
     }
 
     init();

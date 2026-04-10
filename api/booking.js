@@ -33,31 +33,26 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, bookings: result.rows });
     }
 
-    // 3. Book Seats Logic
+    // 3. Book Seats Logic (Finalized after payment)
     if (method === 'POST') {
-      const { screenid, user_id, noofseats, seats, price } = body;
+      const { screenid, user_id, noofseats, seats, price, payment_status } = body;
       if (!screenid || !user_id || !seats) {
         return res.status(400).json({ error: "Missing booking details" });
       }
 
+      // Update show data to mark seats as occupied
       await query(
         'UPDATE shows SET selected_seats = COALESCE(selected_seats, \'[]\'::jsonb) || $1::jsonb WHERE screen_id = $2',
         [JSON.stringify(seats), screenid]
       );
 
-      const existing = await query('SELECT * FROM bookings WHERE screen_id = $1 AND user_id = $2', [screenid, user_id]);
-      if (existing.rows.length > 0) {
-        await query(
-          'UPDATE bookings SET no_of_seats = no_of_seats + $1, selected_seats = COALESCE(selected_seats, \'[]\'::jsonb) || $2::jsonb, price = price + $3 WHERE id = $4',
-          [noofseats, JSON.stringify(seats), price, existing.rows[0].id]
-        );
-      } else {
-        await query(
-          'INSERT INTO bookings (screen_id, user_id, no_of_seats, selected_seats, price) VALUES ($1, $2, $3, $4, $5)',
-          [screenid, user_id, noofseats, JSON.stringify(seats), price]
-        );
-      }
-      return res.status(200).json({ success: true, message: 'Seats booked successfully!' });
+      // Create the record in bookings table
+      const result = await query(
+        'INSERT INTO bookings (screen_id, user_id, no_of_seats, selected_seats, price, payment_status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+        [screenid, user_id, noofseats, JSON.stringify(seats), price, payment_status || 'Paid']
+      );
+      
+      return res.status(200).json({ success: true, message: 'Seats booked successfully!', bookingId: result.rows[0].id });
     }
 
     return res.status(405).json({ error: `Method ${method} Not Allowed` });
