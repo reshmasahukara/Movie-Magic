@@ -278,19 +278,24 @@
     }
 
     function goToSeats(showId, theatreName, time) {
-      // Professional Datetime Sync: Convert human-readable time and date to ISO
+      // Professional Datetime Sync
       const dateObj = new Date(`${selectedDate} ${time}`);
       const datetime = dateObj.toISOString();
 
+      // PART 1: Generate UNIQUE Show ID (Theater-Movie-Date-Time)
+      // This prevents global seat conflicts between different movies
+      const timeClean = time.replace(/[:\s]/g, '');
+      const smartShowId = `${theatreName.substring(0,3).toUpperCase()}-${movieId}-${selectedDate}-${timeClean}`;
+
       localStorage.setItem('booking_context', JSON.stringify({
-        showId,
+        showId: smartShowId, // Use unique smart ID
         theatreName,
         time,
         date: selectedDate,
         movieId,
         datetime
       }));
-      window.location.href = `/seats.html?showId=${showId}&movieId=${movieId}&datetime=${datetime}`;
+      window.location.href = `/seats.html?showId=${smartShowId}&movieId=${movieId}&datetime=${datetime}`;
     }
 
     // Initial Execution
