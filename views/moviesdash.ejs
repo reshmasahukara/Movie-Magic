@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Movie App</title>
+   <!-- Libraries Stylesheet -->
+   <link href="lib/animate/animate.min.css" rel="stylesheet">
+   <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+   <link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+
+   <!-- Customized Bootstrap Stylesheet -->
+   <link href="css/bootstrap.min.css" rel="stylesheet">
+
+   <!-- Template Stylesheet -->
+   <link href="/css/indexstyles.css" rel="stylesheet">
+  <style>
+    	h1 {
+			background-color: #333;
+			color: #fff;
+			margin: 0;
+			padding: 10px;
+			text-align: center;
+		}
+   .card {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+ 
+  margin: 100px;
+  display: inline-block;
+  width: 300px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+}
+
+.card img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 5px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.card:hover img {
+  transform: scale(1.1);
+}
+
+.card h2 {
+  margin-top: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  transition: color 0.3s ease-in-out;
+}
+
+.card:hover h2 {
+  color: #e74c3c;
+}
+
+.card p {
+  margin-top: 5px;
+  font-size: 16px;
+  color: #666;
+}
+
+button {
+  background-color: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  margin-top: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+button:hover {
+  background-color: #c0392b;
+}
+.navbar-brand {
+            color: #f2f2f2;
+            position: relative;
+            left: 20px;
+        }
+        .navbar {
+            background-color: #333;
+        }
+        .pos{
+            position: relative;
+            left: 1300px;
+            bottom: 20px;
+        }
+
+  </style>
+</head>
+<body>
+  <h1>Movies</h1>
+  <nav class="navbar navbar-expand-lg navbar-light px-4 px-lg-5 py-3 py-lg-0">
+   
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+        <span class="fa fa-bars"></span>
+    </button>
+    <div class="pos">
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <div class="navbar-nav ms-auto py-0">
+                <a href="/api/movies" class="nav-item nav-link active">Home</a>
+                <a href="/api/movies?action=moviesdash" class="nav-item nav-link">Movies</a>
+                <a href="/api/login" class="nav-item nav-link">Logout</a>
+                <a id="myLink" class="nav-item nav-link" href="">Profile</a>
+            </div>
+            </div>
+    </div>
+   
+    </div>
+</nav>
+   
+    <% movies.forEach(movie => { %>
+      <div class="card">
+        
+  <form method="post" action="/api/movies?movieId=<%= movie.movie_id %>" >
+      
+    <img src = <%=movie.imglink %> > </img>
+      <h2><%= movie.movie_name %></h2>
+      <p><strong>Movie ID:</strong> <%= movie.movie_id %></p>
+      <p><strong>Rating:</strong> <%= movie.movie_rating %></p>
+      <p><strong>Dimensions:</strong> <%= movie.movie_dimensions %></p>
+      <p><strong>Genre:</strong> <%= movie.Genre %></p>
+      <p><strong>Status:</strong> <%= movie.status %></p>
+      <p><strong>Language:</strong> <%= movie.language %></p>
+      <p><strong>Description:</strong> <%= movie.Description %></p>
+      <button type="submit" >    Booknow
+  </button>
+    </div>
+
+
+</form>
+    <% }) %>
+  </body>d
+  
+</html>

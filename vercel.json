@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/", "destination": "/api/movies" },
+    { "source": "/index", "destination": "/api/movies" },
+    { "source": "/userlogin", "destination": "/api/login" },
+    { "source": "/usersignup", "destination": "/api/signup" },
+    { "source": "/moviesdash", "destination": "/api/movies?action=moviesdash" },
+    { "source": "/admindash", "destination": "/api/admin?action=dash" }
+  ],
+  "env": {
+    "BCRYPT_ROUNDS": "10"
+  }
+}

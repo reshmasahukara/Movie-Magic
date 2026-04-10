@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>booking success</title>
+</head>
+<style>
+    /* Add your CSS styles here */
+  
+h1 {
+			background-color: #333;
+			color: #fff;
+			margin: 0;
+			padding: 10px;
+			text-align: center;
+		}
+    button {
+  background-color: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  margin-top: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+button:hover {
+  background-color: #c0392b;
+}
+
+.h2{
+  text-align: justify;
+}
+.img{
+    height: 300px;
+    width: 300px;
+}
+
+.con
+{
+position: relative;
+top: 100px;
+left: 670px;
+
+}
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: #333;
+  color: #fff;
+}
+
+nav h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+nav .btn {
+  padding: 0.5rem 1rem;
+  background-color: #fff;
+  color: #333;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+nav .btn:hover {
+  background-color: #ff0000;
+  color: #333;
+}
+
+  </style>
+<nav>
+    <h1>Ticket</h1>
+    <a href="/userlogin" class="btn">logout</a>
+    <a href="/index" class="btn">Home</a>
+</nav>
+<body>
+    <div class="con" >
+
+        <img  class=" img"src="/images/verificatiion.png" alt="">
+ <br>
+        <% success.forEach(function(success) { %>
+            <tr>
+            <strong><a >  Screen ID :</a> </strong>
+              <td><%= success.screen_id %></td>
+              <br>
+              <strong> <a >  No of Seats Selected</a></strong>
+              <td><%= success.no_of_seats %></td>
+              <br>
+             <strong> <a >  Selected Seats</a> </strong>
+              <td><%= success.selected_seats %></td>
+              <br>
+               <strong><a >  Total Price</a></strong>
+              <td><%= success.price%></td>
+            
+            </tr>
+        <% }); %>
+
+    </div>
+    
+
+</body>
+</html>

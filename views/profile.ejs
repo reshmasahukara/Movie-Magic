@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+     <!-- Libraries Stylesheet -->
+     <link href="lib/animate/animate.min.css" rel="stylesheet">
+     <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+     <link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+ 
+     <!-- Customized Bootstrap Stylesheet -->
+     <link href="css/bootstrap.min.css" rel="stylesheet">
+ 
+     <!-- Template Stylesheet -->
+     <link href="/css/indexstyles.css" rel="stylesheet">
+ </head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            background-color: #f2f2f2;
+        }
+        .card {
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px auto;
+            position: relative;
+            top: 250px;
+            max-width: 600px;
+        }
+        .card a {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            text-decoration: none;
+        }
+        .card a:hover {
+            text-decoration: underline;
+        }
+
+        .pos{
+            position: relative;
+            left: 1300px;
+            bottom: 80px;
+        }
+        .bg
+        {
+            background-color: black;
+        }
+        .navbar-brand {
+            color: #f2f2f2;
+            position: relative;
+            left: 20px;
+        }
+        .navbar {
+            background-color: #333;
+        }
+        #img{
+            position: relative;
+            left: 180px;
+        }
+    </style>
+</head>
+<body>
+
+    
+    <nav class="navbar navbar-expand-lg navbar-light px-4 px-lg-5 py-3 py-lg-0">
+        <a  class="navbar-brand ">
+            <h1 class="text-primary m-0"><i class="fa fa-map-marker-alt me-3"></i>Movie Magic</h1>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+            <span class="fa fa-bars"></span>
+        </button>
+        <div class="pos">
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <div class="navbar-nav ms-auto py-0">
+                    <a href="/index" class="nav-item nav-link active">Home</a>
+                    <a href="/moviesdash" class="nav-item nav-link">Movies</a>
+                    <a href="/userlogin" class="nav-item nav-link">Logout</a>
+                    <a id="myLink" class="nav-item nav-link" href="">Profile</a>
+                </div>
+                </div>
+        </div>
+       
+        </div>
+    </nav>
+
+  
+    <div class="card">
+         <img  id ="img"src="/images/user.png" alt="">
+         <br>
+         <br>
+        <% result.forEach(function(result) { %>
+            <strong><a >USER ID :</a></strong>
+            <a><%= result.user_id  %></a>
+            <strong><a >USER NAME :</a></strong>
+            <a><%= result.Name %></a>
+            <strong><a >USER EMAIL :</a></strong>
+            <a><%= result.email %></a>
+            <strong><a >USER ADDRESS :</a></strong>
+            <a><%= result.city %></a>
+            <strong><a >USER CONTACT NO :</a></strong>
+            <a><%= result.contact_no%></a>
+        <% }); %>
+    </div>
+
+</body>
+</html>
