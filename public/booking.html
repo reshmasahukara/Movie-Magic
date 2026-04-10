@@ -3,63 +3,97 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Book Tickets | Movie Magic</title>
+  <title>Theaters Selection | Movie Magic</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .show-header { background: #1F1F1F; padding: 2.5rem 0; border-bottom: 1px solid #333; }
+    .date-bar { 
+      display: flex; 
+      gap: 15px; 
+      overflow-x: auto; 
+      padding: 1.5rem 0; 
+      scrollbar-width: none; 
+      border-bottom: 1px solid #333;
+    }
+    .date-bar::-webkit-scrollbar { display: none; }
+    .date-item { 
+      min-width: 60px; 
+      height: 75px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      transition: all 0.3s;
+      border: 1px solid transparent;
+      color: #777;
+    }
+    .date-item.active { background: var(--primary); color: white; transform: scale(1.05); }
+    .date-item:hover:not(.active) { border-color: var(--primary); color: #ccc; }
+
+    .filters-bar { display: flex; gap: 1rem; padding: 1.5rem 0; flex-wrap: wrap; }
+    .filter-chip { 
+      padding: 6px 16px; 
+      border: 1px solid #444; 
+      border-radius: 20px; 
+      font-size: 0.85rem; 
+      cursor: pointer; 
+      transition: 0.3s;
+      color: #999;
+    }
+    .filter-chip.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+    .theater-card { 
+      background: var(--card-bg); 
+      border: 1px solid var(--glass); 
+      border-radius: 12px; 
+      padding: 1.5rem; 
+      margin-bottom: 1.5rem; 
+    }
+    .timing-btn { 
+      padding: 8px 18px; 
+      border: 1px solid #28a745; 
+      border-radius: 4px; 
+      background: transparent; 
+      color: #28a745; 
+      font-weight: 500; 
+      cursor: pointer; 
+      transition: 0.3s;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+    .timing-btn:hover { background: #28a745; color: white; }
+    
+    .label-tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; border: 1px solid #333; color: #666; margin-left: 10px; text-transform: uppercase; }
+  </style>
 </head>
 <body>
-  <nav>
-    <a href="/" class="logo">MOVIE MAGIC</a>
-    <div class="links">
-      <a href="/">Home</a>
-      <a href="/dashboard.html">Dashboard</a>
+  <nav></nav>
+
+  <header class="show-header">
+    <div class="container">
+      <h1 id="movie-title" style="font-size: 2.2rem; margin-bottom: 0.5rem; font-weight: 800;">Movie Title</h1>
+      <p id="movie-meta" style="color: var(--text-muted); font-weight: 500;">UA • Action • 2h 45m</p>
     </div>
-  </nav>
+  </header>
 
   <main class="container">
-    <div id="booking-flow">
-      <!-- Step 1: Selection (Legacy/Fallback) -->
-      <section id="selection-step" style="display: none;">
-        <h2 style="margin-bottom: 2rem;">Select Theater & Show</h2>
-        <div id="theater-list">
-          <p>Loading theaters...</p>
-        </div>
-      </section>
+    <!-- Date Selector -->
+    <div class="date-bar" id="date-selector"></div>
 
-      <!-- Step 2: Seats -->
-      <section id="seats-step">
-        <button onclick="window.history.back()" class="btn-primary" style="margin-bottom: 2rem; background: #333;">← Back</button>
-        
-        <div class="screen-container">
-          <div class="screen-visual"></div>
-          <div class="screen-label">SCREEN</div>
-        </div>
+    <!-- Filters -->
+    <div class="filters-bar" id="filters-container">
+      <div class="filter-chip active" data-filter="all">All Shows</div>
+      <div class="filter-chip" data-filter="price-low">₹0 - ₹200</div>
+      <div class="filter-chip" data-filter="price-high">₹201+</div>
+      <div class="filter-chip" data-filter="3d">3D Only</div>
+      <div class="filter-chip" data-filter="2d">2D Only</div>
+    </div>
 
-        <div class="legend" style="display: flex; gap: 20px; justify-content: center; margin-bottom: 2rem;">
-          <div class="legend-item"><div class="seat vip"></div> VIP (₹300)</div>
-          <div class="legend-item"><div class="seat premium"></div> Premium (₹200)</div>
-          <div class="legend-item"><div class="seat regular"></div> Regular (₹100)</div>
-          <div class="legend-item"><div class="seat occupied"></div> Booked</div>
-        </div>
-
-        <h2 id="selected-show-title" style="text-align: center; margin-bottom: 2rem; color: var(--text-muted)">Select Your Seats</h2>
-        
-        <div class="seats-container" id="seats-grid"></div>
-
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-top: 3rem; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--glass);">
-          <div style="flex: 1;">
-            <h4 style="margin-bottom: 1rem; color: var(--primary);">BOOKING SUMMARY</h4>
-            <div id="seat-breakdown" style="font-size: 0.9rem; margin-bottom: 1rem;">
-              <p style="color: var(--text-muted)">Select seats to see pricing...</p>
-            </div>
-            <p style="color: var(--text-muted)">Selected Seats: <span id="selected-list" style="color: white; font-weight: bold;">None</span></p>
-          </div>
-          <div style="text-align: right;">
-            <p style="font-size: 0.9rem; color: var(--text-muted)">Subtotal</p>
-            <p style="font-size: 2rem; font-weight: 800; color: white;">₹<span id="total-price">0</span></p>
-            <button class="btn-primary" style="margin-top: 1rem; width: 200px;" onclick="confirmBooking()">Confirm Booking</button>
-          </div>
-        </div>
-      </section>
+    <!-- Theater List -->
+    <div id="theater-list" style="margin-top: 2rem;">
+      <p style="text-align: center; color: var(--text-muted); padding: 4rem;">Finding the best seats for you...</p>
     </div>
   </main>
 
@@ -67,173 +101,127 @@
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const movieId = urlParams.get('movieId');
-    const showId = urlParams.get('showId');
-    let currentShow = null;
-    let selectedSeats = [];
-
-    const CATEGORIES = {
-      VIP: { price: 300, rows: ['A', 'B'], css: 'vip' },
-      PREMIUM: { price: 200, rows: ['C', 'D', 'E', 'F'], css: 'premium' },
-      REGULAR: { price: 100, rows: ['G', 'H', 'I', 'J'], css: 'regular' }
-    };
+    let selectedDate = new Date().toISOString().split('T')[0];
+    let activeFilter = 'all';
+    let allShows = [];
+    let allTheaters = [];
 
     async function init() {
       if (!movieId) return window.location.href = '/';
       
-      if (showId) {
-        await loadSpecificShow(showId);
-      } else {
-        // Fallback for direct index access without showId
-        document.getElementById('selection-step').style.display = 'block';
-        document.getElementById('seats-step').style.display = 'none';
-        await loadTheaterInfo();
-      }
+      renderDates();
+      setupFilters();
+      await fetchData();
+      renderContent();
     }
 
-    async function loadSpecificShow(id) {
+    function setupFilters() {
+      document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.onclick = () => {
+          document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          activeFilter = chip.dataset.filter;
+          renderContent();
+        };
+      });
+    }
+
+    function renderDates() {
+      const container = document.getElementById('date-selector');
+      const today = new Date();
+      let html = '';
+      
+      for(let i=0; i<7; i++) {
+        const d = new Date();
+        d.setDate(today.getDate() + i);
+        const day = d.toLocaleString('en-us', {weekday: 'short'});
+        const date = d.getDate();
+        const full = d.toISOString().split('T')[0];
+        
+        html += `
+          <div class="date-item ${full === selectedDate ? 'active' : ''}" onclick="changeDate('${full}')">
+            <span style="font-size: 0.7rem; text-transform: uppercase;">${day}</span>
+            <span style="font-size: 1.2rem; font-weight: 800;">${date}</span>
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    function changeDate(date) {
+      selectedDate = date;
+      renderDates();
+      renderContent();
+    }
+
+    async function fetchData() {
       try {
-        const { theaters, shows } = await API.fetch('/api/movies', {
-          method: 'POST',
-          body: JSON.stringify({ movieId })
+        const res = await API.fetch('/api/movies', { 
+          method: 'POST', 
+          body: JSON.stringify({ movieId }) 
         });
+        allShows = res.shows;
+        allTheaters = res.theaters;
         
-        const show = shows.find(s => s.screen_id == id);
-        const theater = theaters.find(t => t.theater_id == show.theater_id);
-        
-        if (show && theater) {
-          selectShow(show, theater.theater_name);
-        } else {
-          throw new Error("Show details not found.");
+        const movieRes = await API.fetch('/api/movies');
+        const movie = movieRes.movies.find(m => m.movie_id === movieId);
+        if(movie) {
+          document.getElementById('movie-title').textContent = movie.movie_name;
+          document.getElementById('movie-meta').textContent = `${movie.movie_rating} • ${movie.genre} • ${movie.language}`;
         }
       } catch (err) {
         UI.showMessage(err.message);
       }
     }
 
-    async function loadTheaterInfo() {
-      try {
-        const { theaters, shows } = await API.fetch('/api/movies', {
-          method: 'POST',
-          body: JSON.stringify({ movieId })
-        });
-        
-        const list = document.getElementById('theater-list');
-        list.innerHTML = theaters.map(t => {
-          const tShows = shows.filter(s => s.theater_id === t.theater_id);
-          return `
-            <div class="movie-card" style="padding: 2rem; margin-bottom: 1.5rem;">
-              <h3>${t.theater_name}</h3>
-              <div style="display: flex; gap: 10px; margin-top: 1rem;">
-                ${tShows.map(s => `<button class="btn-primary" onclick='selectShow(${JSON.stringify(s)}, "${t.theater_name}")'>${s.timmings}</button>`).join('')}
-              </div>
-            </div>
-          `;
-        }).join('');
-      } catch (err) { UI.showMessage(err.message); }
-    }
-
-    function selectShow(show, theaterName) {
-      currentShow = show;
-      document.getElementById('selected-show-title').textContent = `${theaterName} | ${show.timmings}`;
-      document.getElementById('selection-step').style.display = 'none';
-      document.getElementById('seats-step').style.display = 'block';
-      loadSeats();
-    }
-
-    function loadSeats() {
-      const grid = document.getElementById('seats-grid');
-      const occupied = currentShow.selected_seats || [];
-      grid.innerHTML = '';
-      selectedSeats = [];
-      updateSummary();
-
-      const seatsPerRow = 10;
-      const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
-
-      grid.style.gridTemplateColumns = `repeat(${seatsPerRow + 1}, 1fr)`;
-
-      rows.forEach((row) => {
-        const rowLabel = document.createElement('div');
-        rowLabel.style.color = '#555';
-        rowLabel.textContent = row;
-        grid.appendChild(rowLabel);
-
-        for (let i = 1; i <= seatsPerRow; i++) {
-          const seatId = `${row}${i}`;
-          const seat = document.createElement('div');
-          let category = 'REGULAR';
-          if (CATEGORIES.VIP.rows.includes(row)) category = 'VIP';
-          else if (CATEGORIES.PREMIUM.rows.includes(row)) category = 'PREMIUM';
-
-          seat.className = `seat ${CATEGORIES[category].css} ${occupied.includes(seatId) ? 'occupied' : ''}`;
-          seat.onclick = () => toggleSeat(seat, seatId, category);
-          grid.appendChild(seat);
-        }
-      });
-    }
-
-    function toggleSeat(el, id, categoryName) {
-      if (el.classList.contains('occupied')) return;
-      const category = CATEGORIES[categoryName];
-      const isSelected = el.classList.toggle('selected');
-      if (isSelected) selectedSeats.push({ id, type: categoryName, price: category.price });
-      else selectedSeats = selectedSeats.filter(s => s.id !== id);
-      updateSummary();
-    }
-
-    function updateSummary() {
-      const listEl = document.getElementById('selected-list');
-      const breakdownEl = document.getElementById('seat-breakdown');
-      const totalEl = document.getElementById('total-price');
-
-      if (selectedSeats.length === 0) {
-        listEl.textContent = 'None';
-        breakdownEl.innerHTML = '<p style="color: var(--text-muted)">Select seats to see pricing...</p>';
-        totalEl.textContent = '0';
+    function renderContent() {
+      const container = document.getElementById('theater-list');
+      let filteredShows = allShows.filter(s => s.show_date.startsWith(selectedDate));
+      
+      // Apply Active Filter
+      if (activeFilter === '3d') filteredShows = filteredShows.filter(s => s.screen_dimensions?.includes('3D'));
+      if (activeFilter === '2d') filteredShows = filteredShows.filter(s => !s.screen_dimensions?.includes('3D'));
+      if (activeFilter === 'price-low') filteredShows = filteredShows.filter(s => s.screen_dimensions !== 'IMAX 3D' && s.screen_dimensions !== '4DX');
+      if (activeFilter === 'price-high') filteredShows = filteredShows.filter(s => s.screen_dimensions === 'IMAX 3D' || s.screen_dimensions === '4DX');
+      
+      if(filteredShows.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 4rem; color: #555;">No shows available for the selected criteria.</div>`;
         return;
       }
 
-      listEl.textContent = selectedSeats.map(s => s.id).join(', ');
-      const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
-      totalEl.textContent = total;
+      const theaterMap = {};
+      filteredShows.forEach(s => {
+        if(!theaterMap[s.theater_id]) theaterMap[s.theater_id] = [];
+        theaterMap[s.theater_id].push(s);
+      });
 
-      const types = [...new Set(selectedSeats.map(s => s.type))];
-      breakdownEl.innerHTML = types.map(type => {
-        const count = selectedSeats.filter(s => s.type === type).length;
-        return `<p>${type}: ${count} x ₹${CATEGORIES[type].price} = ₹${count * CATEGORIES[type].price}</p>`;
-      }).join('');
+      let html = '';
+      Object.keys(theaterMap).forEach(tId => {
+        const theater = allTheaters.find(t => t.theater_id == tId);
+        const shows = theaterMap[tId];
+        
+        html += `
+          <div class="theater-card">
+            <div style="display: flex; align-items: center; margin-bottom: 1.2rem;">
+              <h3 style="font-size: 1rem; color: #fff;">${theater.theater_name}</h3>
+              <span class="label-tag">Non-cancellable</span>
+            </div>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+              ${shows.map(s => `
+                <button class="timing-btn" onclick="goToSeats('${s.screen_id}')">
+                  ${s.timmings.substring(0,5)}
+                   <span style="display: block; font-size: 0.6rem; opacity: 0.7;">${s.screen_dimensions || '2D'}</span>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
     }
 
-    async function confirmBooking() {
-      if (selectedSeats.length === 0) return UI.showMessage('Select seats');
-      const user = API.getSession();
-      if (!user) return UI.showMessage('Login required');
-
-      try {
-        const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
-        const res = await API.fetch('/api/booking', {
-          method: 'POST',
-          body: JSON.stringify({
-            screenid: currentShow.screen_id,
-            user_id: user.user_id,
-            noofseats: selectedSeats.length,
-            seats: selectedSeats.map(s => s.id),
-            price: total,
-            payment_status: 'Pending'
-          })
-        });
-
-        localStorage.setItem('paymentData', JSON.stringify({
-          booking_id: res.bookingId,
-          amount: total,
-          movie_name: document.getElementById('selected-show-title').textContent.split('|')[0].trim(),
-          timmings: currentShow.timmings,
-          show_date: currentShow.show_date,
-          seats: selectedSeats.map(s => s.id)
-        }));
-
-        window.location.href = '/payment.html';
-      } catch (err) { UI.showMessage(err.message); }
+    function goToSeats(showId) {
+      window.location.href = `/seats.html?showId=${showId}&movieId=${movieId}`;
     }
 
     init();
