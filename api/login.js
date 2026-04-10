@@ -3,21 +3,25 @@ import db from '../utils/db.js';
 import { renderView } from '../utils/render.js';
 
 export default async function handler(req, res) {
-  const { method } = req;
+  try {
+    const { method } = req;
 
-  if (method === 'GET') {
-    return await renderView(res, 'userlogin');
-  }
-
-  if (method === 'POST') {
-    // Check if it's logout (determined by URL or body)
-    if (req.url.includes('logout')) {
-      res.setHeader('Location', '/admin');
-      return res.status(302).end();
+    if (method === 'GET') {
+      return await renderView(res, 'userlogin');
     }
 
-    const { email, password } = req.body;
-    try {
+    if (method === 'POST') {
+      // Logic for logout redirect
+      if (req.url.includes('logout')) {
+        res.setHeader('Location', '/userlogin');
+        return res.status(302).end();
+      }
+
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required" });
+      }
+
       const result = await db.query('SELECT * FROM customer WHERE email = $1', [email]);
       if (result.rows.length > 0) {
         const user = result.rows[0];
@@ -25,14 +29,14 @@ export default async function handler(req, res) {
         if (match) {
           return res.status(200).json({ details: [user] });
         }
-        return res.status(401).json("Invalid password");
+        return res.status(401).json({ error: "Invalid password" });
       }
-      return res.status(404).json("User Not Found");
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json("Server Error");
+      return res.status(404).json({ error: "User Not Found" });
     }
-  }
 
-  return res.status(405).send('Method Not Allowed');
+    return res.status(405).json({ error: `Method ${method} Not Allowed` });
+  } catch (error) {
+    console.error('Login API Error:', error);
+    return res.status(500).json({ error: error.message });
+  }
 }
