@@ -78,15 +78,23 @@
       100% { transform: scale(1.1); }
     }
     
-    .seat.booked { background: #111 !important; cursor: not-allowed; opacity: 0.6 !important; border: 1px solid #222 !important; }
+    .seat.booked { 
+      background: #111 !important; 
+      border: 1px solid #333 !important; 
+      color: #666 !important;
+      cursor: not-allowed; 
+      position: relative;
+      opacity: 1 !important;
+    }
     .seat.booked::after { 
-        content: '×'; 
-        color: #777; 
-        font-size: 1.2rem; 
-        font-weight: 300; 
+        content: "✕"; 
+        color: #ff3b3b; 
+        font-size: 14px; 
+        font-weight: bold; 
         position: absolute;
         top: 50%; left: 50%;
         transform: translate(-50%, -50%);
+        pointer-events: none;
     }
 
     .seat-num { font-size: 0.6rem; color: #777; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
@@ -279,7 +287,11 @@
           seatEl.className = `seat ${CATEGORIES[cat].css} ${booked.includes(seatId) ? 'booked' : ''}`;
           seatEl.innerHTML = `<span class="seat-num">${i}</span>`;
           
-          if (!booked.includes(seatId)) {
+          if (booked.includes(seatId)) {
+            seatEl.className = `seat ${CATEGORIES[cat].css} booked`;
+            seatEl.title = "Booked";
+          } else {
+            seatEl.className = `seat ${CATEGORIES[cat].css}`;
             seatEl.onclick = () => toggleSeat(seatEl, seatId, cat);
           }
           rowDiv.appendChild(seatEl);
