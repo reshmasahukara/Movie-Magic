@@ -171,23 +171,23 @@
     let selectedCity = localStorage.getItem('selectedCity');
 
     const LIVE_CATEGORIES = [
-      { name: 'Comedy Shows', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://images.unsplash.com/photo-1514525253361-bee831b2e0dc?auto=format&fit=crop&w=600")' },
-      { name: 'Theatre Shows', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://images.unsplash.com/photo-1503095396549-807a8bc3667c?auto=format&fit=crop&w=600")' },
-      { name: 'Kids', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://images.unsplash.com/photo-1472162072942-cd5147eb3902?auto=format&fit=crop&w=600")' },
-      { name: 'Music Shows', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600")' },
-      { name: 'Workshops & More', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://images.unsplash.com/photo-1529070538774-1843cb3265df?auto=format&fit=crop&w=600")' }
+      { name: 'Comedy Shows', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://media.istockphoto.com/id/93376585/photo/comedian-performing.jpg?s=612x612&w=0&k=20&c=c7McqlMCRlpEfa1xm-eghbqM4aUA8k5p2s_6K0zuJtU=")' },
+      { name: 'Theatre Shows', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://media.gettyimages.com/id/545472596/photo/a-general-view-taken-on-june-14-2016-shows-the-bolshoi-theatres-auditorium-in-moscow-afp.jpg?s=612x612&w=0&k=20&c=2sy-qSdLPGzE1Xf2gIPd3acDwJOMT-TljjbfmXZwfd0=")' },
+      { name: 'Kids', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://img.freepik.com/free-photo/group-kids-friends-arm-around-sitting-together_1150-3907.jpg?semt=ais_hybrid&w=740&q=80")' },
+      { name: 'Music Shows', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://media.gettyimages.com/id/1355867882/photo/rear-view-low-angle-view-of-a-microphone-and-spotlights-on-stage-at-a-live-concert-with.jpg?s=612x612&w=0&k=20&c=gc6rHwMoRYHLVLP9LbPKgMxW5edeP-9uifeHh4SAVG8=")' },
+      { name: 'Workshops & More', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://thumbs.dreamstime.com/b/vintage-mechanical-workshops-school-green-blackboard-background-150583210.jpg")' }
     ];
 
     const SAMPLE_MUSIC = [
       { id: 'mus1', name: 'Sunburn Home Festival', date: 'Sat, 20 Apr', venue: 'Digital Event', city: 'Online', tag: 'Music', img: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=600' },
-      { id: 'mus2', name: 'Live Jazz Night', date: 'Wed, 25 Apr', venue: 'The Blue Door', city: 'Bengaluru', tag: 'Music', img: 'https://images.unsplash.com/photo-1514525253361-bee831b2e0dc?auto=format&fit=crop&w=600' },
+      { id: 'mus2', name: 'Live Jazz Night', date: 'Wed, 25 Apr', venue: 'The Blue Door', city: 'Bengaluru', tag: 'Music', img: 'https://www.shutterstock.com/image-vector/live-music-jazz-night-neon-260nw-1891078309.jpg' },
       { id: 'mus3', name: 'EDM Pulse 2026', date: 'Fri, 02 May', venue: 'MMRDA Grounds', city: 'Mumbai', tag: 'Music', img: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=600' },
-      { id: 'mus4', name: 'Symphony Orchestra', date: 'Sun, 10 May', venue: 'NCPA', city: 'Mumbai', tag: 'Classical', img: 'https://images.unsplash.com/photo-1465821185615-9344227ad59a?auto=format&fit=crop&w=600' }
+      { id: 'mus4', name: 'Symphony Orchestra', date: 'Sun, 10 May', venue: 'NCPA', city: 'Mumbai', tag: 'Classical', img: 'https://www.springfieldsymphony.org/wp-content/uploads/2025/10/DSC_6517-1024x681.jpg' }
     ];
 
     const SAMPLE_OUTDOOR = [
       { id: 'out1', name: 'Camping in Pawna', date: '18 - 19 Apr', venue: 'Pawna Lake', city: 'Pune', tag: 'Outdoor', img: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=600' },
-      { id: 'out2', name: 'Stargazing at Malshej', date: 'Sat, 02 May', venue: 'Malshej Ghat', city: 'Mumbai', tag: 'Adventure', img: 'https://images.unsplash.com/photo-1470252649358-9646c80cc464?auto=format&fit=crop&w=600' },
+      { id: 'out2', name: 'Stargazing at Malshej', date: 'Sat, 02 May', venue: 'Malshej Ghat', city: 'Mumbai', tag: 'Adventure', img: 'https://static2.tripoto.com/media/filter/nl/img/1240564/TripDocument/1682613144_malshej_ghat.jpg.webp' },
       { id: 'out3', name: 'Riverside Trekking', date: 'Sun, 03 May', venue: 'Vaitarna', city: 'Nashik', tag: 'Outdoor', img: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=600' }
     ];
 
