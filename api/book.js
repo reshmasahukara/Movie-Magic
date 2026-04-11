@@ -16,10 +16,14 @@ export default async function handler(req, res) {
 
       if (result.rows.length === 0) {
         // AUTO-SYNC: Create the show record if it's the first booking for this specific screening
-        const parts = showId.split('-'); // e.g., ["CIN", "S1", "2026-05-20", "1015AM"]
-        const mid = req.body.movieId || parts[1] || 'M001'; 
-        const date = parts[2] || 'CURRENT_DATE';
-        const sNo = showId.includes('-S') ? parseInt(showId.split('-S')[1]) : 1;
+        const parts = showId.split('-'); // e.g., ["CIN", "S1", "2026", "05", "20", "101500"]
+        const mid = req.body.movieId || 'M001'; 
+        
+        // Correctly join the date parts if it follows the YYYY-MM-DD format (indices 2, 3, 4)
+        const date = (parts.length >= 5) ? `${parts[2]}-${parts[3]}-${parts[4]}` : 'CURRENT_DATE';
+        
+        // Screen number is usually the second part
+        const sNo = parts[1] ? parseInt(parts[1].replace('S', '')) : 1;
         
         const { rows: tRows } = await query('SELECT theater_id FROM theater LIMIT 1');
         const tid = tRows[0]?.theater_id || 1;
