@@ -397,21 +397,35 @@ nav .links a:hover {
 
   /* Movie & Event Cards */
   .movie-card, .event-card, .music-card, .outdoor-card {
-    width: 160px !important;
-    min-width: 160px !important;
-    max-width: 160px !important;
+    width: 170px !important;
+    min-width: 170px !important;
+    max-width: 170px !important;
     margin-right: 1rem !important;
-    padding: 10px !important;
+    padding: 0 !important; /* Reset padding to allow edge-to-edge images */
     border-radius: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    opacity: 1 !important;
+    transform: scale(1) !important;
   }
 
   .movie-card img, .event-card img, .music-card img, .outdoor-card img {
+    width: 100% !important;
     height: 220px !important;
-    border-radius: 8px !important;
+    display: block !important;
+    object-fit: cover !important;
+    border-radius: 12px 12px 0 0 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 
-  .event-card .image-box, .music-card .image-box, .outdoor-card .image-box {
+  .poster-wrap, .image-box {
+    width: 100% !important;
     height: 220px !important;
+    overflow: hidden !important;
+    background: #111 !important;
+    border-radius: 12px 12px 0 0 !important;
   }
 
   .movie-info, .event-card-content {
