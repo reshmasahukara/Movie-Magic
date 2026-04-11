@@ -12,22 +12,18 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Missing required fields" });
       }
 
-      // Traditional ID generation logic preserved
-      const longNumber = parseInt(contactno || "0");
-      const shortNumber = longNumber % 1000;
-      const shortNumber2 = Math.floor(longNumber / 100000);
-      const user_id = shortNumber + shortNumber2;
-
-      const checkUser = await query('SELECT user_id FROM customer WHERE user_id = $1 OR email = $2', [user_id, email]);
+      const checkUser = await query('SELECT user_id FROM customer WHERE email = $1', [email]);
       if (checkUser.rows.length > 0) {
-        return res.status(409).json({ error: "User ID or Email already exists" });
+        return res.status(409).json({ error: "Email already exists" });
       }
 
       const hashpass = await bcrypt.hash(password, 10);
-      await query(
-        'INSERT INTO customer (user_id, name, email, password, city, contact_no) VALUES ($1, $2, $3, $4, $5, $6)',
-        [user_id, name, email, hashpass, city, contactno]
+      const result = await query(
+        'INSERT INTO customer (name, email, password, city, contact_no) VALUES ($1, $2, $3, $4, $5) RETURNING user_id',
+        [name, email, hashpass, city, contactno]
       );
+
+      const user_id = result.rows[0].user_id;
 
       return res.status(201).json({ 
         success: true, 
