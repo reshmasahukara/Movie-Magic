@@ -386,18 +386,22 @@
           })
         });
 
-        localStorage.setItem('paymentData', JSON.stringify({
+        const paymentDataObj = {
           booking_id: res.bookingId,
           amount: total,
           movie_name: movieName,
           theater_name: theaterName,
           timmings: datetime ? new Date(datetime).toLocaleTimeString() : (currentShow.timmings || "10:15 AM"),
-          show_date: datetime ? new Date(datetime).toISOString().split('T')[0] : (currentShow.show_date || new Date().toISOString().split('T')[0]),
+          show_date: datetime ? new Date(datetime).toISOString().split('T')[0] : (new Date(currentShow.show_date || Date.now()).toISOString().split('T')[0]),
           seats: selectedSeats.map(s => s.id),
           datetime: datetime
-        }));
+        };
 
-        window.location.href = `/payment.html?datetime=${datetime}`;
+        console.log("Saving Payment Data:", paymentDataObj);
+        localStorage.setItem('paymentData', JSON.stringify(paymentDataObj));
+
+        const encodedDatetime = datetime ? encodeURIComponent(datetime) : '';
+        window.location.href = `/payment.html?datetime=${encodedDatetime}`;
 
       } catch (err) {
         console.warn("Booking conflict detected:", err);

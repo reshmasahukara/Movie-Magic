@@ -126,11 +126,12 @@ export default async function handler(req, res) {
 
         const bookingId = bookingRes.rows[0].id;
 
-        // 5. Secure individual seat locks (Hardware-level safety)
+        // 5. Secure individual seat locks (Temporal Instance Specific)
+        const showInstanceId = `${screenid}_${show_date}_${show_time.replace(/\s+/g, '')}`;
         for (const seat of seats) {
           await query(
             "INSERT INTO booked_seats (booking_id, screen_id, seat_number) VALUES ($1, $2, $3)",
-            [bookingId, screenid, seat]
+            [bookingId, showInstanceId, seat]
           );
         }
 
