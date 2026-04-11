@@ -39,6 +39,14 @@ const POSTER_MAP = {
   "GADAR2": "https://m.media-amazon.com/images/I/910Vs55LMZL.jpg",
   "Sultan": "https://rukminim2.flixcart.com/image/416/416/xif0q/movie/o/0/z/2016-dvd-yash-raj-films-hindi-sultan-movie-original-imah9nr2xnnsxjb9.jpeg?q=70&crop=false",
 
+  // PUSHPA SERIES (High Res)
+  "PUSHPA THE RULE": "https://cdn.sacnilk.com/image/movie/2024/6630.jpg",
+  "Pushpa The Rule": "https://cdn.sacnilk.com/image/movie/2024/6630.jpg",
+  "Pushpa 2: The Rule": "https://cdn.sacnilk.com/image/movie/2024/6630.jpg",
+  "Pushpa: The Rise": "http://www.impawards.com/intl/india/2021/posters/pushpa_the_rise__part_one_xlg.jpg",
+  "Pushpa The Rise": "http://www.impawards.com/intl/india/2021/posters/pushpa_the_rise__part_one_xlg.jpg",
+  "Pushpa: The Rise Part One": "http://www.impawards.com/intl/india/2021/posters/pushpa_the_rise__part_one_xlg.jpg",
+
   // HOLLYWOOD
   "Avatar": "https://image.tmdb.org/t/p/w500/8Y7WrRK1iQHEX7UIftBeBMjPjWD.jpg",
   "Titanic": "https://image.tmdb.org/t/p/w500/6mtVn4O1gSWGvCXCo8Sv8gc9jL5.jpg",
@@ -49,13 +57,25 @@ const POSTER_MAP = {
 };
 
 /**
- * Global utility to get poster by name
+ * Global utility to get poster by name or object
  */
 window.MoviePoster = {
-  get: function(movieName) {
-    if (!movieName) return FALLBACK_POSTER;
-    // Look up exact or trimmed
-    const cleanName = movieName.trim();
-    return POSTER_MAP[cleanName] || FALLBACK_POSTER;
+  get: function(movie) {
+    if (!movie) return FALLBACK_POSTER;
+    
+    // Support passing either a string or a movie object
+    if (typeof movie === 'string') {
+      const cleanName = movie.trim();
+      return POSTER_MAP[cleanName] || FALLBACK_POSTER;
+    }
+
+    // Logic Priority: movie_name -> title -> local fallback -> global fallback
+    const poster = POSTER_MAP[movie.movie_name] || POSTER_MAP[movie.title];
+    
+    if (!poster && (movie.movie_name || '').toLowerCase().includes('pushpa')) {
+        return "/images/movies/pushpa-rise.jpg"; // Local safety fallback for Pushpa
+    }
+    
+    return poster || FALLBACK_POSTER;
   }
 };
