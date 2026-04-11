@@ -346,3 +346,86 @@ nav .links a:hover {
 .scroll-btn:hover {  background: var(--primary); border-color: var(--primary); }
 .scroll-btn.left { left: 0.5%; }
 .scroll-btn.right { right: 0.5%; }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  body { overflow-x: hidden; }
+
+  .container {
+    width: 100%;
+    padding: 12px;
+  }
+
+  nav {
+    flex-direction: column;
+    padding: 1rem 12px;
+    gap: 15px;
+  }
+
+  nav .logo {
+    font-size: 1.4rem;
+  }
+
+  nav .links {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  nav .links a {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  /* Global Headings & Buttons */
+  h1 { font-size: 24px !important; }
+  h2 { font-size: 22px !important; }
+
+  .btn-primary {
+    padding: 8px 12px;
+    font-size: 14px;
+    width: 100%; /* Full width buttons on mobile */
+  }
+
+  /* Movie & Event Cards */
+  .movie-card, .event-card, .music-card, .outdoor-card {
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+    margin-right: 1rem !important;
+    padding: 10px !important;
+    border-radius: 12px !important;
+  }
+
+  .movie-card img, .event-card img, .music-card img, .outdoor-card img {
+    height: 220px !important;
+    border-radius: 8px !important;
+  }
+
+  .event-card .image-box, .music-card .image-box, .outdoor-card .image-box {
+    height: 220px !important;
+  }
+
+  .movie-info, .event-card-content {
+    padding: 10px 5px !important;
+  }
+
+  .movie-info h3, .event-name {
+    font-size: 1rem !important;
+  }
+
+  .carousel-section h2 {
+    padding: 0;
+    text-align: left;
+  }
+
+  .section-header-bar {
+    padding: 0 !important;
+    margin-bottom: 1rem;
+  }
+
+  .scroll-btn {
+    display: none; /* Hide scroll buttons on mobile, use touch scroll */
+  }
+}

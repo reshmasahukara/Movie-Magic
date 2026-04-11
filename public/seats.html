@@ -110,13 +110,16 @@
     .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: #888; }
     .legend-item .seat { cursor: default; width: 16px; height: 16px; margin: 0; border-radius: 3px; }
 
-    @media (max-width: 1024px) {
-      .seat { width: 24px; height: 24px; }
-      .seat-row { height: 28px; }
-    }
-    
     @media (max-width: 768px) {
-      .seat-row { flex-wrap: wrap; }
+      .seat { width: 26px; height: 26px; margin: 1px; border-radius: 4px; }
+      .seat-row { height: 28px; gap: 2px; }
+      .row-label { width: 20px; font-size: 0.65rem; margin-right: 6px; }
+      .seats-grid-wrapper { padding: 8px 4px; }
+      .container { padding: 12px !important; }
+      .booking-dock .container { flex-direction: column; gap: 15px; text-align: center !important; }
+      .booking-dock div { text-align: center !important; }
+      #total-price { font-size: 1.8rem; }
+      #book-btn { min-width: 100%; }
     }
   </style>
 </head>
