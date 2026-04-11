@@ -191,13 +191,14 @@
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const movieId = urlParams.get('movieId') || urlParams.get('movieid');
-    const showId = urlParams.get('showId') || urlParams.get('showid'); // Support case-insensitivity
+    const initialShowId = urlParams.get('showId') || urlParams.get('showid');
     const datetime = urlParams.get('datetime');
     
+    let activeShowId = initialShowId; // Dynamic tracker
     let movieName = "Movie Magic";
     let currentShow = null;
     let selectedSeats = [];
-    let validShow = true; // Flag for button safety
+    let validShow = true;
 
     const CATEGORIES = {
       VIP: { price: 300, rows: ['A', 'B'], css: 'vip' },
@@ -206,17 +207,14 @@
     };
 
     async function init() {
-      if (!movieId || !showId) return window.location.href = '/';
+      if (!movieId || !initialShowId) return window.location.href = '/';
       
-      // Load Movie Master first for Title and Poster
       try {
         const { movies } = await API.fetch('/api/movies');
         const m = movies.find(x => x.movie_id === movieId);
         if (m) {
           movieName = m.movie_name;
           document.getElementById('selected-show-title').textContent = movieName;
-          
-          // Background Poster
           const posterUrl = MoviePoster.get(movieName);
           document.getElementById('hero-bg').style.backgroundImage = `url('${posterUrl}')`;
         }
@@ -227,41 +225,60 @@
 
     async function loadShowAndSeats() {
       const btn = document.getElementById('book-btn');
+      const meta = document.getElementById('movie-meta-summary');
+      const selectedCity = localStorage.getItem('selectedCity') || 'Hyderabad';
+
       try {
         const selectedBooking = JSON.parse(localStorage.getItem('selectedBooking') || '{}');
         const show_date = selectedBooking.date;
         const show_time = selectedBooking.time;
 
-        const res = await API.fetch(`/api/shows?id=${showId}`);
+        // 1. Primary Attempt: Use requested ID
+        let res = await API.fetch(`/api/shows?id=${activeShowId}`);
+        
+        // 2. FALLBACK: If invalid ID, search for alternative shows for this movie in current city
+        if (!res.success || !res.show) {
+           console.warn(`Show ${activeShowId} not found, searching for alternatives...`);
+           const searchRes = await API.fetch(`/api/shows?movieId=${movieId}&city=${selectedCity}`);
+           
+           if (searchRes.success && searchRes.shows && searchRes.shows.length > 0) {
+             const fallbackShow = searchRes.shows[0];
+             activeShowId = fallbackShow.screen_id;
+             res = { success: true, show: fallbackShow };
+             UI.showMessage("Requested timing unavailable. Switched to next available show.", "success");
+           } else {
+             throw new Error("No shows available for this movie");
+           }
+        }
+
         if (res.success && res.show) {
           currentShow = res.show;
           validShow = true;
           
           // Sync occupancy
-          const seatRes = await API.fetch(`/api/booking?action=getseats&screen_id=${showId}&show_date=${show_date}&show_time=${show_time}`);
+          const seatRes = await API.fetch(`/api/booking?action=getseats&screen_id=${activeShowId}&show_date=${show_date || currentShow.show_date}&show_time=${show_time || currentShow.timmings}`);
           if (seatRes.success) {
             currentShow.selected_seats = seatRes.seats;
           }
 
           const displayTime = datetime ? new Date(datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (currentShow.timmings || "10:15 AM");
-          document.getElementById('movie-meta-summary').textContent = `${currentShow.theater_name || "Theater"} | ${displayTime} | SCREEN ${currentShow.screen_no || 1}`;
+          meta.textContent = `${currentShow.theater_name || "Theater"} | ${displayTime} | SCREEN ${currentShow.screen_no || 1}`;
+          meta.style.color = "#555";
           
           renderSeatMap();
-        } else {
-          throw new Error("Show not found");
         }
       } catch (err) {
-        console.error("Show data failed:", err);
+        console.error("Booking system lockout:", err);
         validShow = false;
-        document.getElementById('movie-meta-summary').textContent = "SHOW UNAVAILABLE OR EXPIRED";
-        document.getElementById('movie-meta-summary').style.color = "#ff3b3b";
+        meta.textContent = "NO SHOWS CURRENTLY AVAILABLE FOR THIS MOVIE";
+        meta.style.color = "#ff3b3b";
         
         btn.disabled = true;
         btn.style.background = "#222";
         btn.textContent = "SHOW UNAVAILABLE";
         
-        UI.showMessage("This show timing is no longer available. Redirecting...", "error");
-        setTimeout(() => window.location.href = `/booking.html?id=${movieId}`, 3000);
+        UI.showMessage("Selected show expired. Redirecting to booking page...", "error");
+        setTimeout(() => window.location.href = `/booking.html?id=${movieId}`, 4000);
       }
     }
 
@@ -346,7 +363,7 @@
         listEl.innerHTML = 'Selected Seats: <span style="color: white; font-weight: 700;">None</span>';
         breakdownEl.innerHTML = '';
         totalEl.textContent = '0';
-        if (validShow) btn.disabled = true; // Safety
+        if (validShow) btn.disabled = true;
         return;
       }
 
@@ -379,31 +396,28 @@
 
       const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
       
-      // DEBUG LOGIC
-      console.log("=== PRE-PAYMENT VALIDATION ===");
-      console.log("Show ID:", showId);
-      console.log("Movie ID:", movieId);
-      console.log("Selected Seats:", selectedSeats.map(s => s.id));
+      console.log("=== FINAL PAYLOAD VALIDATION ===");
+      console.log("Active Show ID:", activeShowId); 
+      console.log("Seats:", selectedSeats.map(s => s.id));
       console.log("Amount:", total);
-      console.log("User ID:", user.user_id);
 
       try {
         const selectedBooking = JSON.parse(localStorage.getItem('selectedBooking') || '{}');
-        const theaterName = selectedBooking.theaterName || "Movie Magic Cinemas";
+        const theaterName = selectedBooking.theaterName || currentShow.theater_name || "Movie Magic Cinemas";
 
         const res = await API.fetch('/api/booking', {
           method: 'POST',
           body: JSON.stringify({
-            screenid: showId,
+            screenid: activeShowId, // Uses resolved fallback ID
             user_id: user.user_id,
             noofseats: selectedSeats.length,
             seats: selectedSeats.map(s => s.id),
             price: total,
-            payment_status: 'Pending', // As requested
+            payment_status: 'Pending',
             movie_id: movieId,
-             theater_name: theaterName,
-            show_date: selectedBooking.date,
-            show_time: selectedBooking.time
+            theater_name: theaterName,
+            show_date: selectedBooking.date || currentShow.show_date,
+            show_time: selectedBooking.time || currentShow.timmings
           })
         });
 
@@ -423,17 +437,8 @@
         window.location.href = `/payment.html?datetime=${encodedDatetime}`;
 
       } catch (err) {
-        console.warn("Booking conflict/failure:", err);
-        
-        if (err.status === 404 || err.message.toLowerCase().includes('not found')) {
-           UI.showMessage("Show expired. Please choose another timing.", "error");
-           setTimeout(() => window.location.href = `/booking.html?id=${movieId}`, 2000);
-           return;
-        }
-
-        const isConflict = err.status === 400 || err.status === 409;
-        UI.showMessage(isConflict ? (err.message || "Seats taken!") : (err.message || "Failed"), 'error');
-        
+        console.warn("Booking failed:", err);
+        UI.showMessage(err.message || "Failed to book seats", 'error');
         btn.disabled = false;
         btn.textContent = 'PROCEED TO PAY';
         await loadShowAndSeats();
