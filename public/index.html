@@ -294,24 +294,4 @@
     initCity();
   </script>
 </body>
-</html>ated);
-    }
-
-    function goToBooking(id) {
-      const currUser = API.getSession();
-      if (!currUser) {
-        UI.showMessage('Please login to book tickets', 'error');
-        setTimeout(() => window.location.href = '/login.html', 1500);
-        return;
-      }
-      if (!selectedCity) {
-        showCityModal();
-        return;
-      }
-      window.location.href = `/booking.html?movieId=${id}`;
-    }
-
-    initCity();
-  </script>
-</body>
 </html>

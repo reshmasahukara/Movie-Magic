@@ -349,7 +349,14 @@ nav .links a:hover {
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
-  body { overflow-x: hidden; }
+  body { 
+    overflow-x: hidden; 
+  }
+
+  /* Safety: Hide any accidental code leaks */
+  pre, code {
+    display: none !important;
+  }
 
   .container {
     width: 100%;
