@@ -59,9 +59,38 @@
       transform: translateY(10px);
       transition: all 0.3s ease;
     }
-    .movie-card:hover .btn-book {
-      opacity: 1;
-      transform: translateY(0);
+    .movie-card:hover .btn-book { opacity: 1; transform: translateY(0); }
+
+    /* CATEGORY CARDS (Live Events) */
+    .category-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5rem; margin: 2rem 0; }
+    .category-card { 
+      position: relative; height: 160px; border-radius: 12px; overflow: hidden; cursor: pointer;
+      display: flex; align-items: flex-end; padding: 1.5rem; transition: transform 0.3s ease;
+      background-size: cover; background-position: center; border: 1px solid rgba(255,255,255,0.05);
+    }
+    .category-card:hover { transform: scale(1.03); }
+    .category-card::after { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(transparent, rgba(0,0,0,0.8)); z-index: 1; }
+    .category-card span { position: relative; z-index: 2; font-weight: 800; font-size: 1.1rem; color: white; letter-spacing: 0.5px; }
+
+    /* EVENT CARDS (Music & Outdoor) */
+    .event-card { 
+      min-width: 240px; border-radius: 12px; overflow: hidden; background: #111; border: 1px solid #222;
+      transition: all 0.3s ease; scroll-snap-align: start; margin-right: 1.5rem; display: flex; flex-direction: column;
+    }
+    .event-card:hover { border-color: var(--primary); transform: translateY(-5px); }
+    .event-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-bottom: 2px solid var(--primary); }
+    .event-card-content { padding: 1.2rem; display: flex; flex-direction: column; flex: 1; }
+    .event-date { color: var(--primary); font-size: 0.75rem; font-weight: 800; margin-bottom: 5px; text-transform: uppercase; }
+    .event-name { font-weight: 800; font-size: 1.1rem; margin-bottom: 10px; line-height: 1.2; color: #eee; }
+    .event-meta { font-size: 0.8rem; color: #666; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .event-tag { display: inline-block; padding: 3px 8px; background: rgba(255,255,255,0.05); border-radius: 4px; font-size: 0.7rem; color: #999; width: fit-content; }
+
+    @media (max-width: 1024px) {
+      .category-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .category-grid { grid-template-columns: repeat(1, 1fr); }
+      .category-card { height: 120px; }
     }
   </style>
 </head>
@@ -88,17 +117,65 @@
       <a href="/login.html">Login</a>
       <a href="/signup.html">Signup</a>
     </div>
-  </nav>
-
-  <header class="container" style="text-align: center; padding: 4rem 5% 2rem;">
-    <h1 style="font-size: 3rem; margin-bottom: 1rem;">Experience the <span style="color:var(--primary)">Magic</span> of Cinema</h1>
-    <p style="color:var(--text-muted); font-size: 1.2rem;">Book tickets for the latest blockbusters in your city.</p>
+  </nav>  <header class="container" style="text-align: center; padding: 3rem 5% 1rem;">
+    <h1 style="font-size: 3rem; margin-bottom: 0.5rem; font-weight: 900;">Cinema & <span style="color:var(--primary)">Entertainment</span> Live</h1>
+    <p style="color:var(--text-muted); font-size: 1.1rem; letter-spacing: 1px;">Join thousands of fans at the best movies and live events.</p>
   </header>
 
   <main>
-    <div id="carousels-container">
-      <div class="container loading" style="text-align: center;">Loading movies...</div>
-    </div  </main>
+    <!-- 1. Movies Section -->
+    <div id="recommended-movies-section" class="container" style="margin-top: 2rem;">
+      <div class="carousel-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h2 style="margin: 0;">Recommended Movies</h2>
+          <a href="#" style="color: var(--primary); font-size: 0.9rem; font-weight: 700;">See All ❯</a>
+        </div>
+        <button class="scroll-btn left" onclick="scrollCarousel('movies-list', 'left')">❮</button>
+        <div class="carousel-container" id="movies-list">
+          <!-- Movies injected here -->
+        </div>
+        <button class="scroll-btn right" onclick="scrollCarousel('movies-list', 'right')">❯</button>
+      </div>
+    </div>
+
+    <!-- 2. The Best Of Live Events (Categories) -->
+    <div class="container" style="margin: 4rem auto;">
+      <h2 style="margin-bottom: 1.5rem;">The Best Of Live Events</h2>
+      <div class="category-grid" id="category-list">
+        <!-- Live categories injected here -->
+      </div>
+    </div>
+
+    <!-- 3. Your Music Studio (Sliders) -->
+    <div id="music-studio-section" class="container">
+      <div class="carousel-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h2 style="margin: 0;">Your Music Studio</h2>
+          <a href="#" style="color: var(--primary); font-size: 0.9rem; font-weight: 700;">See All ❯</a>
+        </div>
+        <button class="scroll-btn left" onclick="scrollCarousel('music-list', 'left')">❮</button>
+        <div class="carousel-container" id="music-list">
+          <!-- Music events injected here -->
+        </div>
+        <button class="scroll-btn right" onclick="scrollCarousel('music-list', 'right')">❯</button>
+      </div>
+    </div>
+
+    <!-- 4. Outdoor Events (Sliders) -->
+    <div id="outdoor-events-section" class="container" style="margin-top: 4rem; margin-bottom: 6rem;">
+      <div class="carousel-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h2 style="margin: 0;">Outdoor Events</h2>
+          <a href="#" style="color: var(--primary); font-size: 0.9rem; font-weight: 700;">See All ❯</a>
+        </div>
+        <button class="scroll-btn left" onclick="scrollCarousel('outdoor-list', 'left')">❮</button>
+        <div class="carousel-container" id="outdoor-list">
+          <!-- Outdoor events injected here -->
+        </div>
+        <button class="scroll-btn right" onclick="scrollCarousel('outdoor-list', 'right')">❯</button>
+      </div>
+    </div>
+  </main>
 
   <script src="js/posterMap.js"></script>
   <script src="js/utils.js"></script>
@@ -106,27 +183,43 @@
     const CITIES = ['Mumbai', 'Delhi', 'Bengaluru', 'Hyderabad', 'Ahmedabad', 'Pune', 'Chennai', 'Kolkata', 'Kochi', 'Bhubaneswar'];
     let selectedCity = localStorage.getItem('selectedCity');
 
-    const user = API.getSession();
+    const LIVE_CATEGORIES = [
+      { name: 'Comedy Shows', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://images.unsplash.com/photo-1514525253361-bee831b2e0dc?auto=format&fit=crop&w=600")' },
+      { name: 'Theatre Shows', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://images.unsplash.com/photo-1503095396549-807a8bc3667c?auto=format&fit=crop&w=600")' },
+      { name: 'Kids', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://images.unsplash.com/photo-1472162072942-cd5147eb3902?auto=format&fit=crop&w=600")' },
+      { name: 'Music Shows', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600")' },
+      { name: 'Workshops & More', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://images.unsplash.com/photo-1529070538774-1843cb3265df?auto=format&fit=crop&w=600")' }
+    ];
+
+    const SAMPLE_MUSIC = [
+      { id: 'mus1', name: 'Sunburn Home Festival', date: 'Sat, 20 Apr', venue: 'Digital Event', city: 'Online', tag: 'Music', img: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=600' },
+      { id: 'mus2', name: 'Live Jazz Night', date: 'Wed, 25 Apr', venue: 'The Blue Door', city: 'Bengaluru', tag: 'Music', img: 'https://images.unsplash.com/photo-1514525253361-bee831b2e0dc?auto=format&fit=crop&w=600' },
+      { id: 'mus3', name: 'EDM Pulse 2026', date: 'Fri, 02 May', venue: 'MMRDA Grounds', city: 'Mumbai', tag: 'Music', img: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=600' },
+      { id: 'mus4', name: 'Symphony Orchestra', date: 'Sun, 10 May', venue: 'NCPA', city: 'Mumbai', tag: 'Classical', img: 'https://images.unsplash.com/photo-1465821185615-9344227ad59a?auto=format&fit=crop&w=600' }
+    ];
+
+    const SAMPLE_OUTDOOR = [
+      { id: 'out1', name: 'Camping in Pawna', date: '18 - 19 Apr', venue: 'Pawna Lake', city: 'Pune', tag: 'Outdoor', img: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=600' },
+      { id: 'out2', name: 'Stargazing at Malshej', date: 'Sat, 02 May', venue: 'Malshej Ghat', city: 'Mumbai', tag: 'Adventure', img: 'https://images.unsplash.com/photo-1470252649358-9646c80cc464?auto=format&fit=crop&w=600' },
+      { id: 'out3', name: 'Riverside Trekking', date: 'Sun, 03 May', venue: 'Vaitarna', city: 'Nashik', tag: 'Outdoor', img: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=600' }
+    ];
 
     function initCity() {
       // Inject cities into grid
       const cityList = document.getElementById('cityList');
       if (cityList) {
-        cityList.innerHTML = CITIES.map(city => `
-          <button class="city-btn" onclick="selectCity('${city}')">${city}</button>
-        `).join('');
+        cityList.innerHTML = CITIES.map(city => `<button class="city-btn" onclick="selectCity('${city}')">${city}</button>`).join('');
       }
 
-      // Check for showModal query param
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('showModal') === 'true') {
-        showCityModal();
-      }
+      if (urlParams.get('showModal') === 'true') showCityModal();
 
-      if (selectedCity) {
-        updateNavCity();
-      }
+      if (selectedCity) updateNavCity();
+      
       loadMovies(); 
+      renderLiveCategories();
+      renderEventSlider('music-list', SAMPLE_MUSIC);
+      renderEventSlider('outdoor-list', SAMPLE_OUTDOOR);
     }
 
     function showCityModal() {
@@ -145,25 +238,22 @@
       closeCityModal();
       updateNavCity();
       loadMovies();
+      // You could also filter events by city here
     }
 
     function updateNavCity() {
       const btn = document.getElementById('navCityBtn');
-      if(btn && selectedCity) {
-        btn.textContent = selectedCity + ' ▾';
-      }
+      if(btn && selectedCity) btn.textContent = selectedCity + ' ▾';
     }
 
     function scrollCarousel(id, direction) {
       const container = document.getElementById(id);
       if (!container) return;
-      const scrollAmount = 300;
-      container.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+      container.scrollBy({ left: direction === 'left' ? -400 : 400, behavior: 'smooth' });
     }
 
     function generateMovieCard(movie) {
       const posterUrl = MoviePoster.get(movie.movie_name);
-      
       return `
         <div class="movie-card" onclick="window.location.href='/booking.html?id=${movie.movie_id}'">
           <img src="${posterUrl}" alt="${movie.movie_name}" class="poster">
@@ -177,96 +267,67 @@
       `;
     }
 
-    function renderCarousel(title, id, movies) {
-      if (!movies || movies.length === 0) return '';
-      return `
-        <div class="carousel-section">
-          <h2>${title}</h2>
-          <button class="scroll-btn left" onclick="scrollCarousel('${id}', 'left')">❮</button>
-          <div class="carousel-container" id="${id}">
-            ${movies.map(m => generateMovieCard(m)).join('')}
-          </div>
-          <button class="scroll-btn right" onclick="scrollCarousel('${id}', 'right')">❯</button>
+    function renderLiveCategories() {
+      const list = document.getElementById('category-list');
+      list.innerHTML = LIVE_CATEGORIES.map(cat => `
+        <div class="category-card" style="background-image: ${cat.bg}">
+          <span>${cat.name}</span>
         </div>
-      `;
+      `).join('');
+    }
+
+    function renderEventSlider(id, data) {
+      const list = document.getElementById(id);
+      list.innerHTML = data.map(ev => `
+        <div class="event-card">
+          <img src="${ev.img}" alt="${ev.name}">
+          <div class="event-card-content">
+            <span class="event-date">${ev.date}</span>
+            <span class="event-name">${ev.name}</span>
+            <div class="event-meta">📍 ${ev.venue}</div>
+            <div class="event-meta">🏢 ${ev.city}</div>
+            <div style="margin-top: 15px;"><span class="event-tag">${ev.tag}</span></div>
+          </div>
+        </div>
+      `).join('');
     }
 
     function getFallbackMovies() {
-      const movies = [
+      return [
         { movie_id: 'M001', movie_name: 'RAAKA', movie_rating: '9.2', language: 'Telugu/Hindi', genre: 'Action/Thriller' },
         { movie_id: 'M002', movie_name: 'OG', movie_rating: '9.5', language: 'Telugu', genre: 'Gangster Drama' },
-        { movie_id: 'M003', movie_name: 'SPIRIT', movie_rating: '9.0', language: 'Multi-Language', genre: 'Crime/Action' },
-        { movie_id: 'M004', movie_name: 'VARANASI', movie_rating: '8.8', language: 'Hindi', genre: 'Spiritual/Drama' },
-        { movie_id: 'M005', movie_name: 'DRAGON', movie_rating: '8.5', language: 'English', genre: 'Fantasy/Action' },
         { movie_id: 'M006', movie_name: 'PUSHPA THE RULE', movie_rating: '9.8', language: 'Multi-Language', genre: 'Action/Drama' },
-        { movie_id: 'M007', movie_name: 'BAHUBALI 2', movie_rating: '9.9', language: 'Multi-Language', genre: 'Epic/Action' },
-        { movie_id: 'M008', movie_name: 'STRANGER THINGS S5', movie_rating: '9.7', language: 'English', genre: 'Sci-Fi/Horror' },
-        { movie_id: 'M009', movie_name: 'AVENGERS END GAME', movie_rating: '9.6', language: 'English', genre: 'Superhero' },
         { movie_id: 'MT002', movie_name: 'RRR', movie_rating: '9.7', language: 'Telugu/Hindi', genre: 'Action/Drama' },
         { movie_id: 'MT003', movie_name: 'Kalki 2898 AD', movie_rating: '9.2', language: 'Telugu/Hindi', genre: 'Sci-Fi/Epic' },
-        { movie_id: 'MH003', movie_name: 'Titanic', movie_rating: '9.4', language: 'English', genre: 'Romance/Drama' },
-        { movie_id: 'MH005', movie_name: 'Avengers: Infinity War', movie_rating: '9.5', language: 'English', genre: 'Superhero' },
-        { movie_id: 'MH006', movie_name: 'Spider-Man: No Way Home', movie_rating: '9.3', language: 'English', genre: 'Superhero' },
-        { movie_id: 'MH007', movie_name: 'Jurassic World', movie_rating: '8.7', language: 'English', genre: 'Sci-Fi/Adventure' },
-        { movie_id: 'MB002', movie_name: 'Jawan', movie_rating: '9.3', language: 'Hindi', genre: 'Action/Thriller' },
         { movie_id: 'MB007', movie_name: 'Gadar 2', movie_rating: '8.5', language: 'Hindi', genre: 'Action/Drama' },
-        { movie_id: 'MB008', movie_name: 'Sultan', movie_rating: '8.9', language: 'Hindi', genre: 'Sports/Drama' }
+        { movie_id: 'MH001', movie_name: 'Avatar', movie_rating: '9.0', language: 'English', genre: 'Sci-Fi/Action' },
+        { movie_id: 'M004', movie_name: 'VARANASI', movie_rating: '8.8', language: 'Hindi', genre: 'Spiritual/Drama' }
       ];
-      return movies;
     }
 
     async function loadMovies() {
-      const container = document.getElementById('carousels-container');
-      if (!container) return;
+      const list = document.getElementById('movies-list');
+      if (!list) return;
 
       let moviesData = [];
       try {
         const url = selectedCity ? `/api/movies?city=${selectedCity}` : '/api/movies';
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000);
-
-        const { movies } = await API.fetch(url, { signal: controller.signal });
-        clearTimeout(timeoutId);
+        const { movies } = await API.fetch(url);
         moviesData = (movies && movies.length > 0) ? movies : getFallbackMovies();
       } catch (err) {
         moviesData = getFallbackMovies();
       }
 
-      // Global Exclusions (Avatar 2 Removal)
-      moviesData = moviesData.filter(m => 
-        m.movie_name !== "Avatar: The Way of Water" && 
-        m.movie_name !== "Avatar:Way of Water"
-      );
+      // Filter Avatar 2
+      moviesData = moviesData.filter(m => m.movie_name !== "Avatar: The Way of Water" && m.movie_name !== "Avatar:Way of Water");
       
-      let recommended = [], trending = [], comingSoon = [], topRated = [];
-      let tollywood = [], bollywood = [], hollywood = [];
+      list.innerHTML = moviesData.map(m => generateMovieCard(m)).join('');
+    }
 
-      moviesData.forEach((m, idx) => {
-        const rating = parseFloat(m.movie_rating);
-        
-        // Industry Categorization
-        if (m.category === 'Tollywood') tollywood.push(m);
-        else if (m.category === 'Bollywood') bollywood.push(m);
-        else if (m.category === 'Hollywood') hollywood.push(m);
-
-        // General Categorization
-        if (m.status === 'Coming Soon' || m.status === 'In Production') {
-          comingSoon.push(m);
-        } else {
-          if (rating >= 9.5) topRated.push(m);
-          if (idx % 2 === 0 || rating > 9.0) recommended.push(m);
-          if (idx % 3 === 0 || idx % 2 !== 0) trending.push(m);
-        }
-      });
-
-      container.innerHTML = 
-        renderCarousel('Recommended Movies', 'c-rec', recommended) +
-        renderCarousel('Tollywood Blockbusters', 'c-tolly', tollywood) +
-        renderCarousel('Bollywood Hits', 'c-bolly', bollywood) +
-        renderCarousel('Hollywood Specials', 'c-holly', hollywood) +
-        renderCarousel('Trending Now', 'c-trend', trending) +
-        renderCarousel('Coming Soon', 'c-coming', comingSoon) +
-        renderCarousel('Top Rated', 'c-top', topRated);
+    initCity();
+  </script>
+</body>
+</html>ated);
     }
 
     function goToBooking(id) {
