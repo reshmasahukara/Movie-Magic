@@ -13,72 +13,56 @@
       overflow: hidden;
       transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
       cursor: pointer;
-      min-width: 200px;
-      max-width: 200px;
-      margin-right: 1.5rem;
+      min-width: 280px;
+      max-width: 280px;
+      margin-right: 2rem;
       border: 1px solid #333;
     }
-    .movie-card:hover {
-      transform: translateY(-10px) scale(1.05);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-      z-index: 10;
-      border-color: var(--primary);
+    
+    /* SECTION HEADER BAR */
+    .section-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding: 0 1rem;
     }
-    .movie-card img {
-      width: 100%;
-      aspect-ratio: 2/3;
-      object-fit: cover;
-      display: block;
-      background: #252525;
-      transition: opacity 0.3s ease;
+    .section-header-bar h2 {
+      font-size: 1.8rem;
+      font-weight: 900;
+      margin: 0;
+      letter-spacing: -0.5px;
     }
-    .movie-card:hover img {
-      opacity: 0.7;
-    }
-    .movie-info {
-      padding: 1rem;
-      background: linear-gradient(transparent, rgba(0,0,0,0.95) 60%);
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      box-sizing: border-box;
-      color: white;
-    }
-    .btn-book {
-      padding: 8px 16px;
-      background: var(--primary);
-      color: white;
+    .see-all-link {
+      color: var(--primary);
       text-decoration: none;
-      border-radius: 4px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      display: block;
-      text-align: center;
-      margin-top: 10px;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all 0.3s ease;
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: gap 0.3s;
     }
-    .movie-card:hover .btn-book { opacity: 1; transform: translateY(0); }
+    .see-all-link:hover { gap: 10px; }
 
     /* CATEGORY CARDS (Live Events) */
     .category-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5rem; margin: 2rem 0; }
     .category-card { 
-      position: relative; height: 160px; border-radius: 12px; overflow: hidden; cursor: pointer;
+      position: relative; height: 180px; border-radius: 12px; overflow: hidden; cursor: pointer;
       display: flex; align-items: flex-end; padding: 1.5rem; transition: transform 0.3s ease;
       background-size: cover; background-position: center; border: 1px solid rgba(255,255,255,0.05);
     }
     .category-card:hover { transform: scale(1.03); }
     .category-card::after { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(transparent, rgba(0,0,0,0.8)); z-index: 1; }
-    .category-card span { position: relative; z-index: 2; font-weight: 800; font-size: 1.1rem; color: white; letter-spacing: 0.5px; }
+    .category-card span { position: relative; z-index: 2; font-weight: 800; font-size: 1.2rem; color: white; letter-spacing: 0.5px; }
 
     /* EVENT CARDS (Music & Outdoor) */
     .event-card { 
-      min-width: 240px; border-radius: 12px; overflow: hidden; background: #111; border: 1px solid #222;
-      transition: all 0.3s ease; scroll-snap-align: start; margin-right: 1.5rem; display: flex; flex-direction: column;
+      min-width: 320px; border-radius: 12px; overflow: hidden; background: #111; border: 1px solid #222;
+      transition: all 0.3s ease; scroll-snap-align: start; margin-right: 2rem; display: flex; flex-direction: column;
     }
     .event-card:hover { border-color: var(--primary); transform: translateY(-5px); }
-    .event-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-bottom: 2px solid var(--primary); }
+    .event-card img { width: 100%; aspect-ratio: 16/10; object-fit: cover; border-bottom: 2px solid var(--primary); }
     .event-card-content { padding: 1.2rem; display: flex; flex-direction: column; flex: 1; }
     .event-date { color: var(--primary); font-size: 0.75rem; font-weight: 800; margin-bottom: 5px; text-transform: uppercase; }
     .event-name { font-weight: 800; font-size: 1.1rem; margin-bottom: 10px; line-height: 1.2; color: #eee; }
@@ -124,11 +108,11 @@
 
   <main>
     <!-- 1. Movies Section -->
-    <div id="recommended-movies-section" class="container" style="margin-top: 2rem;">
+    <div id="recommended-movies-section" class="container" style="margin-top: 1rem;">
       <div class="carousel-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-          <h2 style="margin: 0;">Recommended Movies</h2>
-          <a href="#" style="color: var(--primary); font-size: 0.9rem; font-weight: 700;">See All ❯</a>
+        <div class="section-header-bar">
+          <h2>Recommended Movies</h2>
+          <a href="#" class="see-all-link">See All ❯</a>
         </div>
         <button class="scroll-btn left" onclick="scrollCarousel('movies-list', 'left')">❮</button>
         <div class="carousel-container" id="movies-list">
@@ -139,19 +123,22 @@
     </div>
 
     <!-- 2. The Best Of Live Events (Categories) -->
-    <div class="container" style="margin: 4rem auto;">
-      <h2 style="margin-bottom: 1.5rem;">The Best Of Live Events</h2>
+    <div class="container" style="margin: 2rem auto;">
+      <div class="section-header-bar">
+        <h2>The Best Of Live Events</h2>
+        <a href="#" class="see-all-link">See All ❯</a>
+      </div>
       <div class="category-grid" id="category-list">
         <!-- Live categories injected here -->
       </div>
     </div>
 
     <!-- 3. Your Music Studio (Sliders) -->
-    <div id="music-studio-section" class="container">
+    <div id="music-studio-section" class="container" style="margin-top: 2rem;">
       <div class="carousel-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-          <h2 style="margin: 0;">Your Music Studio</h2>
-          <a href="#" style="color: var(--primary); font-size: 0.9rem; font-weight: 700;">See All ❯</a>
+        <div class="section-header-bar">
+          <h2>Your Music Studio</h2>
+          <a href="#" class="see-all-link">See All ❯</a>
         </div>
         <button class="scroll-btn left" onclick="scrollCarousel('music-list', 'left')">❮</button>
         <div class="carousel-container" id="music-list">
@@ -162,11 +149,11 @@
     </div>
 
     <!-- 4. Outdoor Events (Sliders) -->
-    <div id="outdoor-events-section" class="container" style="margin-top: 4rem; margin-bottom: 6rem;">
+    <div id="outdoor-events-section" class="container" style="margin-top: 2rem; margin-bottom: 4rem;">
       <div class="carousel-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-          <h2 style="margin: 0;">Outdoor Events</h2>
-          <a href="#" style="color: var(--primary); font-size: 0.9rem; font-weight: 700;">See All ❯</a>
+        <div class="section-header-bar">
+          <h2>Outdoor Events</h2>
+          <a href="#" class="see-all-link">See All ❯</a>
         </div>
         <button class="scroll-btn left" onclick="scrollCarousel('outdoor-list', 'left')">❮</button>
         <div class="carousel-container" id="outdoor-list">
