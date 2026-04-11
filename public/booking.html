@@ -164,6 +164,9 @@
       color: #28a745; 
       font-weight: 500; 
       cursor: pointer; 
+      pointer-events: auto;
+      position: relative;
+      z-index: 5;
       transition: 0.3s;
       font-size: 0.8rem;
       text-align: center;
@@ -464,7 +467,7 @@
             </div>
             <div style="display: flex; gap: 12px; flex-wrap: wrap;">
               ${t.filteredShows.map(s => `
-                <button class="timing-btn" onclick="goToSeats('${s.id}', '${t.name}', '${s.time}')">
+                <button class="timing-btn" data-show-id="${s.id}" data-theater="${t.name}" data-time="${s.time}">
                   ${s.time}
                   <span style="display: block; font-size: 0.6rem; opacity: 0.6; margin-top: 3px;">${s.format} • ₹${s.price}</span>
                 </button>
@@ -474,6 +477,13 @@
         `;
       });
       container.innerHTML = html;
+
+      // Re-bind click events after DOM injection
+      document.querySelectorAll('.timing-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          goToSeats(btn.dataset.showId, btn.dataset.theater, btn.dataset.time);
+        });
+      });
     }
 
     function resetFilters() {
@@ -516,7 +526,8 @@
         screenNo
       }));
 
-      window.location.href = `/seats.html?showId=${smartShowId}&movieId=${officialMovieId}&datetime=${datetime}`;
+      console.log("Navigating to seats page with showId:", smartShowId, "movieId:", officialMovieId);
+      window.location.href = `/seats.html?showId=${encodeURIComponent(smartShowId)}&movieId=${encodeURIComponent(officialMovieId)}&datetime=${encodeURIComponent(datetime)}`;
     }
 
     // Initial Execution
