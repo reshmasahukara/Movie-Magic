@@ -47,49 +47,57 @@
     const CITIES = ['Mumbai', 'Delhi', 'Bengaluru', 'Hyderabad', 'Ahmedabad', 'Pune', 'Chennai', 'Kolkata', 'Kochi', 'Bhubaneswar'];
     let selectedCity = localStorage.getItem('selectedCity');
 
-    const user = API.getSession();
+    const user = API.getSession();    function initCity() {
+      // Inject cities into grid
+      const cityList = document.getElementById('cityList');
+      if (cityList) {
+        cityList.innerHTML = CITIES.map(city => `
+          <button class="city-btn" onclick="selectCity('${city}')">${city}</button>
+        `).join('');
+      }
 
-    function initCity() {
-      document.getElementById('cityList').innerHTML = CITIES.map(city => `
-        <button class="city-btn" onclick="selectCity('${city}')">${city}</button>
-      `).join('');
+      // Check for showModal query param
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('showModal') === 'true') {
+        showCityModal();
+      }
 
       if (selectedCity) {
         updateNavCity();
       }
-      loadMovies(); // Load all movies by default if no city is selected
+      loadMovies(); 
     }
 
     function showCityModal() {
-      document.getElementById('cityModal').classList.add('active');
+      const modal = document.getElementById('cityModal');
+      if (modal) modal.classList.add('active');
     }
 
     function closeCityModal() {
-      document.getElementById('cityModal').classList.remove('active');
+      const modal = document.getElementById('cityModal');
+      if (modal) modal.classList.remove('active');
     }
 
     function selectCity(city) {
       selectedCity = city;
       localStorage.setItem('selectedCity', city);
-      document.getElementById('cityModal').classList.remove('active');
+      closeCityModal();
       updateNavCity();
       loadMovies();
     }
 
     function updateNavCity() {
-      if(selectedCity) {
-        document.getElementById('navCityBtn').textContent = selectedCity + ' ▾';
+      const btn = document.getElementById('navCityBtn');
+      if(btn && selectedCity) {
+        btn.textContent = selectedCity + ' ▾';
       }
     }
 
     function scrollCarousel(id, direction) {
       const container = document.getElementById(id);
+      if (!container) return;
       const scrollAmount = 300;
-      if (direction === 'left') {
-        container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-      } else {
-        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-      }
+      container.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
     }
 
     function generateMovieCard(movie) {
@@ -135,11 +143,14 @@
     }
 
     async function loadMovies() {
+      const container = document.getElementById('carousels-container');
+      if (!container) return;
+
       let moviesData = [];
       try {
         const url = selectedCity ? `/api/movies?city=${selectedCity}` : '/api/movies';
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3500); // Failsafe timeout
+        const timeoutId = setTimeout(() => controller.abort(), 2000); // Shorter failsafe (2s)
 
         const fetchPromise = API.fetch(url, { signal: controller.signal });
         const { movies } = await fetchPromise;
@@ -162,11 +173,8 @@
         }
       });
 
-      const container = document.getElementById('carousels-container');
-      if (!container) return; // defensive
-
       if (moviesData.length === 0) {
-          container.innerHTML = '<div class="container" style="text-align:center;"><h2>No movies available for this city.</h2></div>';
+          container.innerHTML = '<div class="container" style="text-align:center;"><h2>No movies available.</h2></div>';
           return;
       }
 
@@ -178,7 +186,8 @@
     }
 
     function goToBooking(id) {
-      if (!user) {
+      const currUser = API.getSession();
+      if (!currUser) {
         UI.showMessage('Please login to book tickets', 'error');
         setTimeout(() => window.location.href = '/login.html', 1500);
         return;
@@ -187,16 +196,7 @@
         showCityModal();
         return;
       }
-      window.location.href = \`/booking.html?movieId=\${id}\`;
-    }
-
-    // Auth check
-    if (false) {
-      document.getElementById('nav-links').innerHTML = \`
-        <a href="/">Home</a>
-        <a href="/dashboard.html">Dashboard</a>
-        <a href="#" onclick="API.logout()">Logout</a>
-      \`;
+      window.location.href = `/booking.html?movieId=${id}`;
     }
 
     initCity();
