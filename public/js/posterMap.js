@@ -19,7 +19,11 @@ const POSTER_MAP = {
   "AVENGERS END GAME": "https://image.tmdb.org/t/p/w500/2rrLBRKlVJJS0zQ1WVazgNCl4TE.jpg",
 
   // TOLLYWOOD
-  "Baahubali: The Beginning": "https://image.tmdb.org/t/p/w500/961YqzOswV0X9idmSmeqe9RmYp.jpg",
+  "Baahubali: The Beginning": "https://wallpapercave.com/wp/wp8015348.jpg",
+  "Bahubali: The Beginning": "https://wallpapercave.com/wp/wp8015348.jpg",
+  "Baahubali The Beginning": "https://wallpapercave.com/wp/wp8015348.jpg",
+  "Bahubali The Beginning": "https://wallpapercave.com/wp/wp8015348.jpg",
+  "BAAHUBALI: THE BEGINNING": "https://wallpapercave.com/wp/wp8015348.jpg",
   "RRR": "https://image.tmdb.org/t/p/w500/ljHw5eIMnki3HekwkKwCCHsRSbH.jpg",
   "Kalki 2898 AD": "https://image.tmdb.org/t/p/w500/9r0QqBQsD3G5D7P0YMxg3hkkGpz.jpg",
   "Salaar: Part 1": "https://image.tmdb.org/t/p/w500/mNHdClul57prczb5O0krrzyonnn.jpg",
