@@ -45,16 +45,7 @@
     }
     .see-all-link:hover { gap: 10px; }
 
-    /* CATEGORY CARDS (Live Events) */
-    .category-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5rem; margin: 2rem 0; }
-    .category-card { 
-      position: relative; height: 180px; border-radius: 12px; overflow: hidden; cursor: pointer;
-      display: flex; align-items: flex-end; padding: 1.5rem; transition: transform 0.3s ease;
-      background-size: cover; background-position: center; border: 1px solid rgba(255,255,255,0.05);
-    }
-    .category-card:hover { transform: scale(1.03); }
-    .category-card::after { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(transparent, rgba(0,0,0,0.8)); z-index: 1; }
-    .category-card span { position: relative; z-index: 2; font-weight: 800; font-size: 1.2rem; color: white; letter-spacing: 0.5px; }
+
 
     /* EVENT CARDS (Music & Outdoor) */
     .event-card, .music-card, .outdoor-card { 
@@ -85,13 +76,7 @@
     .event-meta { font-size: 0.8rem; color: #666; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
     .event-tag { display: inline-block; padding: 3px 8px; background: rgba(255,255,255,0.05); border-radius: 4px; font-size: 0.7rem; color: #999; width: fit-content; }
 
-    @media (max-width: 1024px) {
-      .category-grid { grid-template-columns: repeat(3, 1fr); }
-    }
-    @media (max-width: 768px) {
-      .category-grid { grid-template-columns: repeat(1, 1fr); }
-      .category-card { height: 120px; }
-    }
+
   </style>
 </head>
 <body>
@@ -138,19 +123,10 @@
       </div>
     </div>
 
-    <!-- 2. The Best Of Live Events (Categories) -->
-    <div class="container" style="margin: 2rem auto;">
-      <div class="section-header-bar" style="padding: 0 1%;">
-        <h2>The Best Of Live Events</h2>
-        <a href="#" class="see-all-link">See All ❯</a>
-      </div>
-      <div class="category-grid" id="category-list">
-        <!-- Live categories injected here -->
-      </div>
-    </div>
+
 
     <!-- 3. Your Music Studio (Sliders) -->
-    <div id="music-studio-section" class="container" style="margin-top: 2rem;">
+    <div id="music-studio-section" class="container" style="margin-top: 20px;">
       <div class="carousel-section">
         <div class="section-header-bar" style="padding: 0 1%;">
           <h2>Your Music Studio</h2>
@@ -186,13 +162,7 @@
     const CITIES = ['Mumbai', 'Delhi', 'Bengaluru', 'Hyderabad', 'Ahmedabad', 'Pune', 'Chennai', 'Kolkata', 'Kochi', 'Bhubaneswar'];
     let selectedCity = localStorage.getItem('selectedCity');
 
-    const LIVE_CATEGORIES = [
-      { name: 'Comedy Shows', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://media.istockphoto.com/id/93376585/photo/comedian-performing.jpg?s=612x612&w=0&k=20&c=c7McqlMCRlpEfa1xm-eghbqM4aUA8k5p2s_6K0zuJtU=")' },
-      { name: 'Theatre Shows', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://media.gettyimages.com/id/545472596/photo/a-general-view-taken-on-june-14-2016-shows-the-bolshoi-theatres-auditorium-in-moscow-afp.jpg?s=612x612&w=0&k=20&c=2sy-qSdLPGzE1Xf2gIPd3acDwJOMT-TljjbfmXZwfd0=")' },
-      { name: 'Kids', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://img.freepik.com/free-photo/group-kids-friends-arm-around-sitting-together_1150-3907.jpg?semt=ais_hybrid&w=740&q=80")' },
-      { name: 'Music Shows', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://media.gettyimages.com/id/1355867882/photo/rear-view-low-angle-view-of-a-microphone-and-spotlights-on-stage-at-a-live-concert-with.jpg?s=612x612&w=0&k=20&c=gc6rHwMoRYHLVLP9LbPKgMxW5edeP-9uifeHh4SAVG8=")' },
-      { name: 'Workshops & More', bg: 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("https://thumbs.dreamstime.com/b/vintage-mechanical-workshops-school-green-blackboard-background-150583210.jpg")' }
-    ];
+
 
     const SAMPLE_MUSIC = [
       { id: 'mus1', name: 'Sunburn Home Festival', date: 'Sat, 20 Apr', venue: 'Digital Event', city: 'Online', tag: 'Music', img: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=600' },
@@ -220,7 +190,6 @@
       if (selectedCity) updateNavCity();
       
       loadMovies(); 
-      renderLiveCategories();
       renderEventSlider('music-list', SAMPLE_MUSIC);
       renderEventSlider('outdoor-list', SAMPLE_OUTDOOR);
     }
@@ -270,14 +239,7 @@
       `;
     }
 
-    function renderLiveCategories() {
-      const list = document.getElementById('category-list');
-      list.innerHTML = LIVE_CATEGORIES.map(cat => `
-        <div class="category-card" style="background-image: ${cat.bg}">
-          <span>${cat.name}</span>
-        </div>
-      `).join('');
-    }
+
 
     function renderEventSlider(id, data) {
       const list = document.getElementById(id);
