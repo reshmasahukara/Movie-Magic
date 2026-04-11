@@ -33,12 +33,14 @@ const POSTER_MAP = {
   "Bajrangi Bhaijaan": "https://upload.wikimedia.org/wikipedia/en/thumb/d/dd/Bajrangi_Bhaijaan_Poster.jpg/250px-Bajrangi_Bhaijaan_Poster.jpg",
   "Animal": "https://image.tmdb.org/t/p/w500/hr9rjR3J0xBBKmlJ4n3gHId9ccx.jpg",
   "PK": "https://image.tmdb.org/t/p/w500/nL2g8oV9yei8NWHKAeP2L9WUfyA.jpg",
-  "Gadar 2": "https://image.tmdb.org/t/p/w500/z6D9zX8K9VfL8OxyW9X2pXfX2X3.jpg",
+  "Gadar 2": "https://m.media-amazon.com/images/I/910Vs55LMZL.jpg",
+  "GADAR2": "https://m.media-amazon.com/images/I/910Vs55LMZL.jpg",
   "Sultan": "https://rukminim2.flixcart.com/image/416/416/xif0q/movie/o/0/z/2016-dvd-yash-raj-films-hindi-sultan-movie-original-imah9nr2xnnsxjb9.jpeg?q=70&crop=false",
 
   // HOLLYWOOD
   "Avatar": "https://image.tmdb.org/t/p/w500/8Y7WrRK1iQHEX7UIftBeBMjPjWD.jpg",
   "Avatar: The Way of Water": "https://lumiere-a.akamaihd.net/v1/images/g_avatar_thewayofwater_characterposters_97_08_41678929.jpeg?region=1,0,1298,730",
+  "Avatar:Way of Water": "https://lumiere-a.akamaihd.net/v1/images/g_avatar_thewayofwater_characterposters_97_08_41678929.jpeg?region=1,0,1298,730",
   "Titanic": "https://image.tmdb.org/t/p/w500/6mtVn4O1gSWGvCXCo8Sv8gc9jL5.jpg",
   "Star Wars: TFA": "https://cdn.wallpapersafari.com/43/44/V4h32g.jpg",
   "Avengers: Infinity War": "https://wallpapercave.com/wp/wp7505954.jpg",
