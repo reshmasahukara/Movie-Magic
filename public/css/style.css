@@ -26,7 +26,7 @@ nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 5%;
+  padding: 1rem 2%;
   background: var(--bg-dark);
   position: sticky;
   top: 0;
@@ -72,9 +72,10 @@ nav .links a:hover {
 
 /* Layout */
 .container {
-  max-width: 1400px;
+  width: 98%;
+  max-width: 1800px; /* High ceiling for ultra-wide but keeping it modern */
   margin: 0 auto;
-  padding: 1.5rem 2%;
+  padding: 1rem 1.5%;
 }
 
 /* Movie Cards */
@@ -312,7 +313,7 @@ nav .links a:hover {
   overflow-x: auto;
   scroll-behavior: smooth;
   gap: 1.5rem;
-  padding: 1rem 5%;
+  padding: 1rem 0;
   scrollbar-width: none; /* Firefox */
 }
 
@@ -343,5 +344,5 @@ nav .links a:hover {
 }
 
 .scroll-btn:hover {  background: var(--primary); border-color: var(--primary); }
-.scroll-btn.left { left: 2%; }
-.scroll-btn.right { right: 2%; }
+.scroll-btn.left { left: 0.5%; }
+.scroll-btn.right { right: 0.5%; }
