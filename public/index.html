@@ -54,22 +54,18 @@
         <button class="city-btn" onclick="selectCity('${city}')">${city}</button>
       `).join('');
 
-      if (!selectedCity) {
-        showCityModal();
-      } else {
+      if (selectedCity) {
         updateNavCity();
-        loadMovies();
       }
+      loadMovies(); // Load all movies by default if no city is selected
     }
 
     function showCityModal() {
       document.getElementById('cityModal').classList.add('active');
     }
 
-    // Failsafe: if user clicks outside modal or we provide a close button
     function closeCityModal() {
       document.getElementById('cityModal').classList.remove('active');
-      if (!selectedCity) selectCity('Ahmedabad');
     }
 
     function selectCity(city) {
