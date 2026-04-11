@@ -109,12 +109,13 @@
       btn.querySelector('span').textContent = "Processing...";
 
       try {
-        // Correctly passing booking_id and amount to fix the reported error
-        const payRes = await API.fetch('/api/payment', {
+        // Accurate Payment Persistence: Using the unified /api/book handler
+        const payRes = await API.fetch('/api/book', {
           method: 'POST',
           body: JSON.stringify({
             booking_id: paymentData.booking_id,
             amount: paymentData.amount,
+            payment_method: 'Credit/Debit Card',
             card_name: document.getElementById('card-name').value
           })
         });

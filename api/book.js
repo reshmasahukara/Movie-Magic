@@ -1,98 +1,91 @@
 import { query } from './db.js';
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
+  }
 
   try {
-    const { userId, showId, seats, amount } = req.body;
+    const { booking_id, amount, payment_method } = req.body;
 
-    if (!userId || !showId || !seats || seats.length === 0) {
-      return res.status(400).json({ error: "Missing required booking data (userId, showId, or seats)" });
+    // 1. Precise Validation
+    const numericAmount = parseFloat(amount);
+    if (!booking_id || isNaN(numericAmount) || numericAmount <= 0) {
+      return res.status(400).json({ error: "Invalid payment details. Booking ID and positive Amount are required." });
     }
 
     try {
-      // 1. Transaction Start
-      await query('BEGIN');
+      await query('BEGIN'); // TRANSACTION START
 
-      // 2. Identity Resolution & Fallback Creation
-      let result = await query("SELECT screen_id, movie_id FROM shows WHERE screen_id = $1 FOR UPDATE", [showId]);
+      // 2. Validate Booking exists and lock it
+      const bookingRes = await query(
+        'SELECT * FROM bookings WHERE id = $1 FOR UPDATE', 
+        [booking_id]
+      );
 
-      if (result.rows.length === 0) {
-        const parts = showId.split('-'); 
-        const date = (parts.length >= 5) ? `${parts[2]}-${parts[3]}-${parts[4]}` : 'CURRENT_DATE';
-        const sNo = parts[1] ? parseInt(parts[1].replace('S', '')) : 1;
-        const { rows: tRows } = await query('SELECT theater_id FROM theater LIMIT 1');
-        const tid = tRows[0]?.theater_id || 1;
-        const mid = req.body.movieId || 'M001';
+      if (bookingRes.rows.length === 0) {
+        await query('ROLLBACK');
+        return res.status(404).json({ error: "Invalid booking. Order does not exist." });
+      }
 
+      const booking = bookingRes.rows[0];
+
+      // 3. Prevent Duplicate Payments (Idempotency)
+      const existingPayRes = await query(
+        "SELECT transaction_id FROM payments WHERE booking_id = $1 AND status = 'SUCCESS'",
+        [booking_id]
+      );
+
+      if (existingPayRes.rows.length > 0) {
+        await query('ROLLBACK');
+        return res.status(200).json({ 
+          success: true, 
+          message: "Already paid", 
+          transaction_id: existingPayRes.rows[0].transaction_id,
+          booking_id: booking_id,
+          status: 'Paid'
+        });
+      }
+
+      // 4. Generate Professional Transaction ID
+      const timestamp = Date.now();
+      const random = Math.floor(1000 + Math.random() * 9000);
+      const txnId = `TXN${timestamp}${random}`;
+
+      // 5. Process "Always Success" Logic for testing
+      const isSuccess = true; 
+
+      // 6. Log Payment
+      await query(
+        'INSERT INTO payments (booking_id, amount, status, transaction_id, payment_method) VALUES ($1, $2, $3, $4, $5)',
+        [booking_id, numericAmount, isSuccess ? 'SUCCESS' : 'FAILURE', txnId, payment_method || 'Digital Gateway']
+      );
+
+      // 7. Update Booking Status (Only if successful and not already paid)
+      if (isSuccess && booking.payment_status !== 'Paid') {
         await query(
-          `INSERT INTO shows (screen_id, movie_id, theater_id, timmings, show_date, screen_no) 
-           VALUES ($1, $2, $3, '10:15:00', $4, $5) 
-           ON CONFLICT (screen_id) DO NOTHING`,
-          [showId, mid, tid, date, sNo]
+          "UPDATE bookings SET payment_status = 'Paid' WHERE id = $1",
+          [booking_id]
         );
-        result = await query("SELECT screen_id, movie_id FROM shows WHERE screen_id = $1 FOR UPDATE", [showId]);
       }
 
-      const showRecord = result.rows[0];
-      if (showRecord && showRecord.movie_id && showRecord.movie_id !== req.body.movieId && req.body.movieId) {
-        await query('ROLLBACK');
-        return res.status(409).json({ error: "Time slot already occupied by another movie screening." });
-      }
-
-      // 3. ATOMIC LOCKING: Insert individual seats into booked_seats
-      // If any seat is already booked, this will fail with a Unique Violation
-      try {
-        for (const seat of seats) {
-          await query(
-            "INSERT INTO booked_seats (screen_id, seat_number) VALUES ($1, $2)",
-            [showId, seat]
-          );
-        }
-      } catch (lockErr) {
-        await query('ROLLBACK');
-        if (lockErr.code === '23505') { // Postgres Unique Violation
-          return res.status(409).json({ error: "One or more selected seats were just booked by another user. Please refresh and try again." });
-        }
-        throw lockErr;
-      }
-
-      // 4. Update aggregate selected_seats in Shows (for easy rendering)
-      await query(
-        "UPDATE shows SET selected_seats = COALESCE(selected_seats, '[]'::jsonb) || $1::jsonb WHERE screen_id = $2",
-        [JSON.stringify(seats), showId]
-      );
-
-      // 5. Create the Booking Record
-      const bookingResult = await query(
-        "INSERT INTO bookings (user_id, screen_id, no_of_seats, selected_seats, price, payment_status, theater_id, theater_name) VALUES ($1, $2, $3, $4, $5, 'Paid', $6, $7) RETURNING id",
-        [userId, showId, seats.length, JSON.stringify(seats), amount, req.body.theaterId, req.body.theaterName]
-      );
-
-      const bookingId = bookingResult.rows[0].id;
-
-      // 6. Link locks to the booking ID for future reference
-      await query(
-        "UPDATE booked_seats SET booking_id = $1 WHERE screen_id = $2 AND seat_number = ANY($3::text[])",
-        [bookingId, showId, seats]
-      );
-
-      await query('COMMIT');
+      await query('COMMIT'); // TRANSACTION COMMIT
 
       return res.status(200).json({ 
         success: true, 
-        message: "Booking successful", 
-        bookingId: bookingId 
+        transaction_id: txnId,
+        booking_id: booking_id,
+        status: 'Paid'
       });
 
-    } catch (dbErr) {
+    } catch (innerErr) {
       await query('ROLLBACK');
-      console.error("Database Operation Failed:", dbErr);
-      return res.status(500).json({ error: `Database Error: ${dbErr.message}` });
+      console.error('Payment Transaction Failed:', innerErr);
+      return res.status(500).json({ error: `Database Error: ${innerErr.message}` });
     }
 
   } catch (err) {
-    console.error("Critical Booking API Error:", err);
-    return res.status(500).json({ error: "Critical server error. Please try again later." });
+    console.error('Payment API Handler Error:', err);
+    return res.status(500).json({ error: "Critical server error during payment processing." });
   }
 }
