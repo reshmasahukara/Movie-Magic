@@ -242,6 +242,7 @@
     const movieId = urlParams.get('id'); // Fix: index.html sends id, not movieId
     let selectedDate = new Date().toISOString().split('T')[0];
     let activeFilter = 'all';
+    let currentMovie = null; // Global reference for goToSeats
 
     function getFallbackMovies() {
       return [
@@ -284,7 +285,6 @@
       setupFilters();
       
       // 1. Fetch Movie Meta with Fallback
-      let currentMovie = null; 
       try {
         const { movies: apiMovies } = await API.fetch(`/api/movies?city=${selectedCity}`);
         const fallbackMovies = getFallbackMovies();
