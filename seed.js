@@ -59,7 +59,7 @@ async function seed() {
 
       // HOLLYWOOD
       ['MH001', 'Avatar', '9.0', 'IMAX 3D', 'Sci-Fi/Action', 'Running', 'A paraplegic Marine dispatched to the moon Pandora.', 'English', 'Hollywood', '162 min', 'https://image.tmdb.org/t/p/w500/8Y7WrRK1iQHEX7UIftBeBMjPjWD.jpg'],
-      ['MH002', 'Avatar: Way of Water', '9.2', 'IMAX 3D', 'Sci-Fi/Action', 'Running', 'Jake Sully lives with his newfound family on Pandora.', 'English', 'Hollywood', '192 min', 'https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmYp.jpg'],
+      ['MH002', 'Avatar: The Way of Water', '9.2', 'IMAX 3D', 'Sci-Fi/Action', 'Running', 'Jake Sully lives with his newfound family on Pandora.', 'English', 'Hollywood', '192 min', 'https://lumiere-a.akamaihd.net/v1/images/g_avatar_thewayofwater_characterposters_97_08_41678929.jpeg?region=1,0,1298,730'],
       ['MH003', 'Titanic', '9.4', 'Standard', 'Romance/Drama', 'Running', 'A seventeen-year-old aristocrat falls in love with a kind but poor artist.', 'English', 'Hollywood', '194 min', 'https://image.tmdb.org/t/p/w500/6mtVn4O1gSWGvCXCo8Sv8gc9jL5.jpg'],
       ['MH004', 'Star Wars: TFA', '8.9', 'IMAX 3D', 'Sci-Fi/Adventure', 'Running', 'A new threat rises in the galaxy.', 'English', 'Hollywood', '138 min', 'https://image.tmdb.org/t/p/w500/6EiRUJp6YvM9C3pX7K3m5W.jpg'],
       ['MH005', 'Avengers: Infinity War', '9.5', 'IMAX 3D', 'Superhero', 'Running', 'The Avengers must stop Thanos from collecting all Infinity Stones.', 'English', 'Hollywood', '149 min', 'https://image.tmdb.org/t/p/w500/7WsyChvgynooYst13uO9unS9m7X.jpg'],

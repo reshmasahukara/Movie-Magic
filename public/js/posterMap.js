@@ -30,20 +30,20 @@ const POSTER_MAP = {
   "Dangal": "https://image.tmdb.org/t/p/w500/1xoavuB5bO92wo3eFQjZN2I9ptV.jpg",
   "Jawan": "https://image.tmdb.org/t/p/w500/bMISXhkBDll6JPsevdJJ1ItnW6S.jpg",
   "Pathaan": "https://image.tmdb.org/t/p/w500/juJ8m4zrZ4xjKjRNapQJjDwNXMz.jpg",
-  "Bajrangi Bhaijaan": "https://image.tmdb.org/t/p/w500/nL2g8oV9yei8NWHKAeP2L9WUfyA.jpg",
+  "Bajrangi Bhaijaan": "https://upload.wikimedia.org/wikipedia/en/thumb/d/dd/Bajrangi_Bhaijaan_Poster.jpg/250px-Bajrangi_Bhaijaan_Poster.jpg",
   "Animal": "https://image.tmdb.org/t/p/w500/hr9rjR3J0xBBKmlJ4n3gHId9ccx.jpg",
   "PK": "https://image.tmdb.org/t/p/w500/nL2g8oV9yei8NWHKAeP2L9WUfyA.jpg",
   "Gadar 2": "https://image.tmdb.org/t/p/w500/z6D9zX8K9VfL8OxyW9X2pXfX2X3.jpg",
-  "Sultan": "https://image.tmdb.org/t/p/w500/6mtVn4O1gSWGvCXCo8Sv8gc9jL5.jpg",
+  "Sultan": "https://rukminim2.flixcart.com/image/416/416/xif0q/movie/o/0/z/2016-dvd-yash-raj-films-hindi-sultan-movie-original-imah9nr2xnnsxjb9.jpeg?q=70&crop=false",
 
   // HOLLYWOOD
   "Avatar": "https://image.tmdb.org/t/p/w500/8Y7WrRK1iQHEX7UIftBeBMjPjWD.jpg",
-  "Avatar: Way of Water": "https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmYp.jpg",
+  "Avatar: The Way of Water": "https://lumiere-a.akamaihd.net/v1/images/g_avatar_thewayofwater_characterposters_97_08_41678929.jpeg?region=1,0,1298,730",
   "Titanic": "https://image.tmdb.org/t/p/w500/6mtVn4O1gSWGvCXCo8Sv8gc9jL5.jpg",
-  "Star Wars: TFA": "https://image.tmdb.org/t/p/w500/6EiRUJp6YvM9C3pX7K3m5W.jpg",
-  "Avengers: Infinity War": "https://image.tmdb.org/t/p/w500/7WsyChvgynooYst13uO9unS9m7X.jpg",
+  "Star Wars: TFA": "https://cdn.wallpapersafari.com/43/44/V4h32g.jpg",
+  "Avengers: Infinity War": "https://wallpapercave.com/wp/wp7505954.jpg",
   "Spider-Man: No Way Home": "https://image.tmdb.org/t/p/w500/uJYYizSuA9Y3DCs0qS4qWvHfZg4.jpg",
-  "Jurassic World": "https://image.tmdb.org/t/p/w500/A0snKWfS66bImsmYFvD96Mps9rR.jpg"
+  "Jurassic World": "https://m.media-amazon.com/images/S/pv-target-images/00844b5a51ee3572b364de2180a34dfa6b841777e134cf57323faa0e390703b6.jpg"
 };
 
 /**
