@@ -364,9 +364,19 @@
         window.location.href = `/payment.html?datetime=${datetime}`;
 
       } catch (err) {
-        UI.showMessage(err.message || "Booking failed", 'error');
+        console.warn("Booking conflict detected:", err);
+        
+        // Handle 409 Conflict specifically
+        const errorMsg = err.status === 409 
+          ? "SORRY! Someone just grabbed those seats. 🍿\nRefreshing map..." 
+          : (err.message || "Booking failed. Please try again.");
+
+        UI.showMessage(errorMsg, 'error');
+        
         btn.disabled = false;
         btn.textContent = 'PROCEED TO PAY';
+        
+        // Auto-refresh to show updated availability
         await loadShowAndSeats();
       }
     }

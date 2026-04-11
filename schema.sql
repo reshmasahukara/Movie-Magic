@@ -70,7 +70,16 @@ CREATE TABLE IF NOT EXISTS bookings (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 8. Payments Table
+-- 8. Booked Seats Table (Atomic Locks)
+CREATE TABLE IF NOT EXISTS booked_seats (
+    id SERIAL PRIMARY KEY,
+    booking_id INTEGER REFERENCES bookings(id) ON DELETE CASCADE,
+    screen_id VARCHAR(255) REFERENCES shows(screen_id) ON DELETE CASCADE,
+    seat_number VARCHAR(50) NOT NULL,
+    UNIQUE(screen_id, seat_number)
+);
+
+-- 9. Payments Table
 CREATE TABLE IF NOT EXISTS payments (
     id SERIAL PRIMARY KEY,
     booking_id INTEGER REFERENCES bookings(id) ON DELETE CASCADE,
