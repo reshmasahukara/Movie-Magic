@@ -190,13 +190,14 @@
   <script src="/js/utils.js"></script>
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const movieId = urlParams.get('movieId');
-    const showId = urlParams.get('showId'); // This is our Smart ID
+    const movieId = urlParams.get('movieId') || urlParams.get('movieid');
+    const showId = urlParams.get('showId') || urlParams.get('showid'); // Support case-insensitivity
     const datetime = urlParams.get('datetime');
     
     let movieName = "Movie Magic";
     let currentShow = null;
     let selectedSeats = [];
+    let validShow = true; // Flag for button safety
 
     const CATEGORIES = {
       VIP: { price: 300, rows: ['A', 'B'], css: 'vip' },
@@ -225,8 +226,8 @@
     }
 
     async function loadShowAndSeats() {
+      const btn = document.getElementById('book-btn');
       try {
-        // TASK: Isolated Show Retrieval
         const selectedBooking = JSON.parse(localStorage.getItem('selectedBooking') || '{}');
         const show_date = selectedBooking.date;
         const show_time = selectedBooking.time;
@@ -234,8 +235,9 @@
         const res = await API.fetch(`/api/shows?id=${showId}`);
         if (res.success && res.show) {
           currentShow = res.show;
+          validShow = true;
           
-          // TASK: Sync with real-time occupancy for THIS specific instance
+          // Sync occupancy
           const seatRes = await API.fetch(`/api/booking?action=getseats&screen_id=${showId}&show_date=${show_date}&show_time=${show_time}`);
           if (seatRes.success) {
             currentShow.selected_seats = seatRes.seats;
@@ -245,18 +247,26 @@
           document.getElementById('movie-meta-summary').textContent = `${currentShow.theater_name || "Theater"} | ${displayTime} | SCREEN ${currentShow.screen_no || 1}`;
           
           renderSeatMap();
+        } else {
+          throw new Error("Show not found");
         }
       } catch (err) {
         console.error("Show data failed:", err);
-        UI.showMessage("Failed to load map. Using standard layout.", "warn");
-        currentShow = { selected_seats: [] };
-        renderSeatMap();
+        validShow = false;
+        document.getElementById('movie-meta-summary').textContent = "SHOW UNAVAILABLE OR EXPIRED";
+        document.getElementById('movie-meta-summary').style.color = "#ff3b3b";
+        
+        btn.disabled = true;
+        btn.style.background = "#222";
+        btn.textContent = "SHOW UNAVAILABLE";
+        
+        UI.showMessage("This show timing is no longer available. Redirecting...", "error");
+        setTimeout(() => window.location.href = `/booking.html?id=${movieId}`, 3000);
       }
     }
 
     function renderSeatMap() {
       const grid = document.getElementById('seats-grid');
-      // Fix: Some DB results might be stringified JSON
       let booked = [];
       try {
         booked = typeof currentShow.selected_seats === 'string' ? JSON.parse(currentShow.selected_seats) : (currentShow.selected_seats || []);
@@ -270,7 +280,6 @@
       const seatsPerRow = 12;
 
       rows.forEach(row => {
-        // Divider
         if (row === 'A' || row === 'C' || row === 'F') {
           const div = document.createElement('div');
           div.className = 'category-divider';
@@ -291,18 +300,17 @@
           const seatId = `${row}${i}`;
           const seatEl = document.createElement('div');
           seatEl.id = seatId;
-          seatEl.setAttribute('data-seat', seatId); // TASK 3 & 8: Data attr for selection
+          seatEl.setAttribute('data-seat', seatId);
           
           let cat = 'REGULAR';
           if (CATEGORIES.VIP.rows.includes(row)) cat = 'VIP';
           else if (CATEGORIES.PREMIUM.rows.includes(row)) cat = 'PREMIUM';
 
-          // TASK 8: Trim and Uppercase Normalization
           const isBooked = booked.some(s => s.toString().trim().toUpperCase() === seatId);
 
           if (isBooked) {
              seatEl.className = `seat ${CATEGORIES[cat].css} booked`;
-             seatEl.innerHTML = "✕"; // TASK 3: Explicit X
+             seatEl.innerHTML = "✕";
              seatEl.title = "Booked";
           } else {
              seatEl.className = `seat ${CATEGORIES[cat].css}`;
@@ -316,6 +324,7 @@
     }
 
     function toggleSeat(el, id, cat) {
+      if (!validShow) return;
       const isSelected = el.classList.toggle('selected');
       const price = CATEGORIES[cat].price;
       
@@ -326,17 +335,22 @@
       }
       updateSummary();
     }
+    
     function updateSummary() {
       const listEl = document.getElementById('selected-list');
       const breakdownEl = document.getElementById('seat-breakdown');
       const totalEl = document.getElementById('total-price');
+      const btn = document.getElementById('book-btn');
 
       if (selectedSeats.length === 0) {
         listEl.innerHTML = 'Selected Seats: <span style="color: white; font-weight: 700;">None</span>';
         breakdownEl.innerHTML = '';
         totalEl.textContent = '0';
+        if (validShow) btn.disabled = true; // Safety
         return;
       }
+
+      if (validShow) btn.disabled = false;
 
       const seatNames = selectedSeats.map(s => s.id).join(', ');
       listEl.innerHTML = `Selected Seats: <span style="color: white; font-weight: 700; border: 1px solid #111; padding: 4px 12px; border-radius: 6px; background: #080808; margin-left: 10px;">${seatNames}</span>`;
@@ -353,6 +367,7 @@
     }
 
     async function confirmBooking() {
+      if (!validShow) return UI.showMessage('This show is no longer available', 'error');
       if (selectedSeats.length === 0) return UI.showMessage('Please select at least one seat', 'error');
       
       const user = API.getSession();
@@ -362,27 +377,33 @@
       btn.disabled = true;
       btn.textContent = 'RESERVING...';
 
+      const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
+      
+      // DEBUG LOGIC
+      console.log("=== PRE-PAYMENT VALIDATION ===");
+      console.log("Show ID:", showId);
+      console.log("Movie ID:", movieId);
+      console.log("Selected Seats:", selectedSeats.map(s => s.id));
+      console.log("Amount:", total);
+      console.log("User ID:", user.user_id);
+
       try {
-        const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
-        
-        // Accurate Theater Persistence: Load exact selected theater
         const selectedBooking = JSON.parse(localStorage.getItem('selectedBooking') || '{}');
-        const theaterId = selectedBooking.theaterId || 1;
         const theaterName = selectedBooking.theaterName || "Movie Magic Cinemas";
 
         const res = await API.fetch('/api/booking', {
           method: 'POST',
           body: JSON.stringify({
             screenid: showId,
-            movie_id: movieId,
             user_id: user.user_id,
-            seats: selectedSeats.map(s => s.id),
             noofseats: selectedSeats.length,
+            seats: selectedSeats.map(s => s.id),
             price: total,
-            theater_name: theaterName,
+            payment_status: 'Pending', // As requested
+            movie_id: movieId,
+             theater_name: theaterName,
             show_date: selectedBooking.date,
-            show_time: selectedBooking.time,
-            payment_status: 'Paid'
+            show_time: selectedBooking.time
           })
         });
 
@@ -397,27 +418,24 @@
           datetime: datetime
         };
 
-        console.log("Saving Payment Data:", paymentDataObj);
         localStorage.setItem('paymentData', JSON.stringify(paymentDataObj));
-
         const encodedDatetime = datetime ? encodeURIComponent(datetime) : '';
         window.location.href = `/payment.html?datetime=${encodedDatetime}`;
 
       } catch (err) {
-        console.warn("Booking conflict detected:", err);
+        console.warn("Booking conflict/failure:", err);
         
-        // Handle 400/409 Conflict specifically
-        const isConflict = err.status === 400 || err.status === 409;
-        const errorMsg = isConflict 
-          ? (err.message || "SORRY! Someone just grabbed those seats. 🍿\nRefreshing map...") 
-          : (err.message || "Booking failed. Please try again.");
+        if (err.status === 404 || err.message.toLowerCase().includes('not found')) {
+           UI.showMessage("Show expired. Please choose another timing.", "error");
+           setTimeout(() => window.location.href = `/booking.html?id=${movieId}`, 2000);
+           return;
+        }
 
-        UI.showMessage(errorMsg, 'error');
+        const isConflict = err.status === 400 || err.status === 409;
+        UI.showMessage(isConflict ? (err.message || "Seats taken!") : (err.message || "Failed"), 'error');
         
         btn.disabled = false;
         btn.textContent = 'PROCEED TO PAY';
-        
-        // Auto-refresh to show updated availability
         await loadShowAndSeats();
       }
     }
