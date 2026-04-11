@@ -43,9 +43,10 @@ const POSTER_MAP = {
   "PUSHPA THE RULE": "https://cdn.sacnilk.com/image/movie/2024/6630.jpg",
   "Pushpa The Rule": "https://cdn.sacnilk.com/image/movie/2024/6630.jpg",
   "Pushpa 2: The Rule": "https://cdn.sacnilk.com/image/movie/2024/6630.jpg",
-  "Pushpa: The Rise": "http://www.impawards.com/intl/india/2021/posters/pushpa_the_rise__part_one_xlg.jpg",
-  "Pushpa The Rise": "http://www.impawards.com/intl/india/2021/posters/pushpa_the_rise__part_one_xlg.jpg",
-  "Pushpa: The Rise Part One": "http://www.impawards.com/intl/india/2021/posters/pushpa_the_rise__part_one_xlg.jpg",
+  "Pushpa: The Rise": "https://cdn.bollywoodmdb.com/movies/largethumb/250x350/2021/pushpa/poster.jpg",
+  "Pushpa The Rise": "https://cdn.bollywoodmdb.com/movies/largethumb/250x350/2021/pushpa/poster.jpg",
+  "Pushpa The Rise Part One": "https://cdn.bollywoodmdb.com/movies/largethumb/250x350/2021/pushpa/poster.jpg",
+  "PUSHPA THE RISE": "https://cdn.bollywoodmdb.com/movies/largethumb/250x350/2021/pushpa/poster.jpg",
 
   // HOLLYWOOD
   "Avatar": "https://image.tmdb.org/t/p/w500/8Y7WrRK1iQHEX7UIftBeBMjPjWD.jpg",

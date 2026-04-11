@@ -77,6 +77,12 @@
     .event-tag { display: inline-block; padding: 3px 8px; background: rgba(255,255,255,0.05); border-radius: 4px; font-size: 0.7rem; color: #999; width: fit-content; }
 
 
+    .poster {
+      width: 100%;
+      height: 260px;
+      object-fit: cover;
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -228,7 +234,7 @@
       const posterUrl = MoviePoster.get(movie.movie_name);
       return `
         <div class="movie-card" onclick="window.location.href='/booking.html?id=${movie.movie_id}'">
-          <img src="${posterUrl}" alt="${movie.movie_name}" class="poster">
+          <img src="${posterUrl}" alt="${movie.movie_name}" class="poster" onerror="this.onerror=null;this.src='/images/default-poster.jpg';">
           <div class="movie-info">
             <h3 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; font-size: 1.1rem;">${movie.movie_name}</h3>
             <div class="meta" style="font-size: 0.8rem; margin: 5px 0; color: #ccc;">⭐ ${movie.movie_rating} • ${movie.language}</div>
