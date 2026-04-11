@@ -12,12 +12,12 @@ export default async function handler(req, res) {
 
     try {
       // PART 1: IDENTITY RESOLUTION (Isolate by Unique Screen Key)
-      // We look for a show matching this unique smart ID. 
-      // This ensures Seat A1 in Screen X is different from Seat A1 in Screen Y.
+      let result = await query("SELECT screen_id, selected_seats, movie_id FROM shows WHERE screen_id = $1", [showId]);
+
       if (result.rows.length === 0) {
         // AUTO-SYNC: Create the show record if it's the first booking for this specific screening
         const parts = showId.split('-'); // e.g., ["CIN", "S1", "2026-05-20", "1015AM"]
-        const mid = req.body.movieId || parts[1] || 'M001'; // Fallback to provided movie ID
+        const mid = req.body.movieId || parts[1] || 'M001'; 
         const date = parts[2] || 'CURRENT_DATE';
         const sNo = showId.includes('-S') ? parseInt(showId.split('-S')[1]) : 1;
         
