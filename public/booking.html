@@ -155,8 +155,9 @@
       border-radius: 12px; 
       padding: 1.5rem; 
       margin-bottom: 1.5rem; 
+      pointer-events: auto;
     }
-    .timing-btn { 
+    .show-time-btn { 
       padding: 8px 18px; 
       border: 1px solid #28a745; 
       border-radius: 4px; 
@@ -164,14 +165,14 @@
       color: #28a745; 
       font-weight: 500; 
       cursor: pointer; 
-      pointer-events: auto;
+      pointer-events: auto !important;
       position: relative;
-      z-index: 5;
+      z-index: 999;
       transition: 0.3s;
       font-size: 0.8rem;
       text-align: center;
     }
-    .timing-btn:hover { background: #28a745; color: white; }
+    .show-time-btn:hover { background: #28a745; color: white; }
     
     .label-tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; border: 1px solid #333; color: #666; margin-left: 10px; text-transform: uppercase; }
   </style>
@@ -467,9 +468,9 @@
             </div>
             <div style="display: flex; gap: 12px; flex-wrap: wrap;">
               ${t.filteredShows.map(s => `
-                <button class="timing-btn" data-show-id="${s.id}" data-theater="${t.name}" data-time="${s.time}">
+                <button class="show-time-btn" data-showid="${s.id}" data-movieid="${movieId}" data-theater="${t.name}" data-time="${s.time}">
                   ${s.time}
-                  <span style="display: block; font-size: 0.6rem; opacity: 0.6; margin-top: 3px;">${s.format} • ₹${s.price}</span>
+                  <small style="display: block; font-size: 0.6rem; opacity: 0.6; margin-top: 3px;">${s.format || '2D'} • ₹${s.price}</small>
                 </button>
               `).join('')}
             </div>
@@ -477,13 +478,6 @@
         `;
       });
       container.innerHTML = html;
-
-      // Re-bind click events after DOM injection
-      document.querySelectorAll('.timing-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          goToSeats(btn.dataset.showId, btn.dataset.theater, btn.dataset.time);
-        });
-      });
     }
 
     function resetFilters() {
@@ -493,21 +487,44 @@
       renderContent();
     }
 
-    function goToSeats(showId, theatreName, time) {
+    // Event Delegation for show timing buttons
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('.show-time-btn');
+      if (!btn) return;
+      
+      e.preventDefault();
+      e.stopPropagation();
+
+      const showId = btn.dataset.showid;
+      const mId = btn.dataset.movieid;
+      const theaterName = btn.dataset.theater;
+      const time = btn.dataset.time;
+
+      if (!showId) {
+        alert('Show ID missing');
+        return;
+      }
+      
+      console.log('clicked', showId, mId);
+      goToSeats(showId, theaterName, time, mId);
+    });
+
+    function goToSeats(showId, theatreName, time, mId) {
       // Professional Datetime Sync
       const dateObj = new Date(`${selectedDate} ${time}`);
       const datetime = dateObj.toISOString();
 
       // Assign logical screen number
-      const screenNo = movieId === 'M001' || movieId === 'M004' ? 1 : 2;
+      const localMovieId = mId || movieId;
+      const screenNo = localMovieId === 'M001' || localMovieId === 'M004' ? 1 : 2;
       const smartShowId = showId; // Use the provided screen_id
 
-      const officialMovieId = currentMovie ? currentMovie.movie_id : movieId;
+      const officialMovieId = currentMovie ? currentMovie.movie_id : localMovieId;
 
       localStorage.setItem('selectedBooking', JSON.stringify({
         movieId: officialMovieId,
         showId: smartShowId,
-        theaterId: theatreData.id || 1,
+        theaterId: 1, // simplified
         theaterName: theatreName,
         screen: screenNo,
         date: selectedDate,
@@ -515,7 +532,7 @@
         seats: []
       }));
 
-      // Legacy support (to avoid breaking other pages immediately)
+      // Legacy support
       localStorage.setItem('booking_context', JSON.stringify({
         showId: smartShowId, 
         theatreName,
