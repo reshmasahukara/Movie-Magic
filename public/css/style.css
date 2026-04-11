@@ -235,3 +235,113 @@ nav .links a:hover {
 .seat:not(.occupied):hover {
   background: #555;
 }
+
+/* Modal Popup */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(5px);
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  background: var(--card-bg);
+  border: 1px solid var(--glass);
+  padding: 2rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  transform: translateY(20px);
+  transition: transform 0.3s;
+}
+
+.modal-overlay.active .modal-content {
+  transform: translateY(0);
+}
+
+.city-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 15px;
+  margin-top: 2rem;
+}
+
+.city-btn {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.city-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+/* Carousel / Horizontal Movie Slider */
+.carousel-section {
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.carousel-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  padding: 0 5%;
+}
+
+.carousel-container {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  gap: 1.5rem;
+  padding: 1rem 5%;
+  scrollbar-width: none; /* Firefox */
+}
+
+.carousel-container::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-container .movie-card {
+  min-width: 250px;
+  max-width: 250px;
+  flex: 0 0 auto;
+}
+
+.scroll-btn {
+  position: absolute;
+  top: 55%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.6);
+  color: white;
+  border: 1px solid var(--glass);
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.scroll-btn:hover {  background: var(--primary); border-color: var(--primary); }
+.scroll-btn.left { left: 2%; }
+.scroll-btn.right { right: 2%; }

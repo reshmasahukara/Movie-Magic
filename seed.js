@@ -20,7 +20,8 @@ async function seed() {
     console.log('Starting Standalone Seed Process...');
 
     // 1. Clear existing data
-    await pool.query('TRUNCATE customer, movie, theater, shows, bookings, payments CASCADE');
+    await pool.query('TRUNCATE customer, movie, theater, shows, bookings, payments RESTART IDENTITY CASCADE');
+    await pool.query('ALTER SEQUENCE shows_screen_id_seq RESTART WITH 1000');
     console.log('Tables truncated.');
 
     // 2. Seed Movies
@@ -28,12 +29,17 @@ async function seed() {
       ['M001', 'RAAKA', '9.2', 'IMAX 3D', 'Action/Thriller', 'Coming Soon', 'A high-octane action epic.', 'Telugu/Hindi'],
       ['M002', 'OG', '9.5', '2D/4DX', 'Gangster Drama', 'Running', 'The original gangster returns to reclaim his throne.', 'Telugu'],
       ['M003', 'SPIRIT', '9.0', '2D', 'Crime/Action', 'In Production', 'A gripping police procedural drama.', 'Multi-Language'],
-      ['M004', 'VARANASI', '8.8', 'Standard', 'Spiritual/Drama', 'Now Showing', 'A journey of self-discovery in the holy city.', 'Hindi']
+      ['M004', 'VARANASI', '8.8', 'Standard', 'Spiritual/Drama', 'Now Showing', 'A journey of self-discovery in the holy city.', 'Hindi'],
+      ['M005', 'DRAGON', '8.5', '3D', 'Fantasy/Action', 'Coming Soon', 'A tale of fire and blood.', 'English'],
+      ['M006', 'PUSHPA THE RULE', '9.8', 'IMAX 2D', 'Action/Drama', 'Running', 'The rule of Pushpa begins.', 'Telugu/Hindi'],
+      ['M007', 'BAHUBALI 2', '9.9', 'IMAX 4K', 'Epic/Action', 'Running', 'The conclusion to the epic saga.', 'Telugu/Hindi'],
+      ['M008', 'STRANGER THINGS S5', '9.7', 'Standard', 'Sci-Fi/Horror', 'Coming Soon', 'The final chapter in Hawkins.', 'English'],
+      ['M009', 'AVENGERS END GAME', '9.6', 'IMAX 3D', 'Superhero', 'Running', 'The grand finale of the infinity saga.', 'English']
     ];
 
     for (const m of movies) {
       await pool.query(
-        'INSERT INTO movie (movie_id, movie_name, movie_rating, movie_dimensions, genre, status, description, language) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+        'INSERT INTO movie (movie_id, movie_name, movie_rating, movie_dimensions, genre, status, description, language) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT(movie_id) DO UPDATE SET movie_name=EXCLUDED.movie_name',
         m
       );
     }
@@ -42,10 +48,23 @@ async function seed() {
     // 3. Seed Professional Theaters
     const theaters = [
       ['Cinepolis Nexus', 'Hyderabad'],
-      ['INOX: DN Regalia Mall', 'Hyderabad'],
-      ['INOX: Symphony Mall', 'Hyderabad'],
-      ['PVR: Utkal Kanika Galleria', 'Hyderabad'],
-      ['PJ Movies (Veena Theatre)', 'Hyderabad']
+      ['INOX GVK', 'Hyderabad'],
+      ['PVR Forum', 'Hyderabad'],
+      ['Cinepolis Ahmedabad One', 'Ahmedabad'],
+      ['PVR Acropolis', 'Ahmedabad'],
+      ['INOX Himalaya Mall', 'Ahmedabad'],
+      ['PVR Phoenix', 'Mumbai'],
+      ['Cinepolis Andheri', 'Mumbai'],
+      ['INOX Nariman Point', 'Mumbai'],
+      ['Cinepolis Nexus Esplanade', 'Bhubaneswar'],
+      ['INOX DN Regalia', 'Bhubaneswar'],
+      ['PVR Utkal Kanika', 'Bhubaneswar'],
+      ['PVR Select Citywalk', 'Delhi'],
+      ['INOX Garuda Mall', 'Bengaluru'],
+      ['Cinepolis Seasons', 'Pune'],
+      ['PVR Express Avenue', 'Chennai'],
+      ['INOX Forum Mall', 'Kolkata'],
+      ['PVR Lulu Mall', 'Kochi']
     ];
 
     const theaterIds = [];

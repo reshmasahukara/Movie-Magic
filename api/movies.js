@@ -7,7 +7,18 @@ export default async function handler(req, res) {
     if (method === 'GET') {
       // 1. Fetch Movies (Catalog)
       if (q.action === 'moviesdash' || !q.action) {
-        const result = await query('SELECT * FROM movie');
+        let result;
+        if (q.city) {
+          result = await query(`
+            SELECT DISTINCT m.* 
+            FROM movie m
+            LEFT JOIN shows s ON m.movie_id = s.movie_id
+            LEFT JOIN theater t ON s.theater_id = t.theater_id
+            WHERE t.city = $1 OR m.status = 'Coming Soon'
+          `, [q.city]);
+        } else {
+          result = await query('SELECT * FROM movie');
+        }
         return res.status(200).json({ success: true, movies: result.rows });
       }
 

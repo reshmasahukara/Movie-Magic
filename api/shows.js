@@ -28,14 +28,17 @@ export default async function handler(req, res) {
   // Support for Movie-Wide Search (NEW)
   if (movieId) {
     try {
-      const result = await query(
-        `SELECT s.screen_id, s.movie_id, s.theater_id, s.timmings, s.show_date, s.screen_no, 
+      let queryStr = `SELECT s.screen_id, s.movie_id, s.theater_id, s.timmings, s.show_date, s.screen_no, 
                 t.theater_name, t.city as location, s.selected_seats
          FROM shows s 
          JOIN theater t ON s.theater_id = t.theater_id 
-         WHERE s.movie_id = $1`,
-        [movieId]
-      );
+         WHERE s.movie_id = $1`;
+      let params = [movieId];
+      if (q.city) {
+        queryStr += ` AND t.city = $2`;
+        params.push(q.city);
+      }
+      const result = await query(queryStr, params);
       return res.status(200).json({ success: true, shows: result.rows });
     } catch (err) {
       console.error('Movie Shows Error:', err);

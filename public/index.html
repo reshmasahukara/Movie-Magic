@@ -7,8 +7,22 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <!-- City Selection Modal -->
+  <div class="modal-overlay" id="cityModal">
+    <div class="modal-content">
+      <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem;">Select Your City</h2>
+      <p style="color: var(--text-muted);">Choose a city to see upcoming movies and shows.</p>
+      <div class="city-grid" id="cityList">
+        <!-- Injected by JS -->
+      </div>
+    </div>
+  </div>
+
   <nav>
-    <a href="/" class="logo">MOVIE MAGIC</a>
+    <div style="display: flex; align-items: center; gap: 1.5rem;">
+      <a href="/" class="logo">MOVIE MAGIC</a>
+      <button id="navCityBtn" style="background: transparent; color: var(--text-muted); border: 1px solid #444; padding: 6px 12px; border-radius: 4px; cursor: pointer;" onclick="showCityModal()">Select City ▾</button>
+    </div>
     <div class="links" id="nav-links">
       <a href="/">Home</a>
       <a href="/login.html">Login</a>
@@ -16,60 +30,158 @@
     </div>
   </nav>
 
-  <header class="container" style="text-align: center; padding: 5rem 5% 2rem;">
-    <h1 style="font-size: 3.5rem; margin-bottom: 1rem;">Experience the <span style="color:var(--primary)">Magic</span> of Cinema</h1>
-    <p style="color:var(--text-muted); font-size: 1.2rem;">Book tickets for the latest blockbusters in seconds.</p>
+  <header class="container" style="text-align: center; padding: 4rem 5% 2rem;">
+    <h1 style="font-size: 3rem; margin-bottom: 1rem;">Experience the <span style="color:var(--primary)">Magic</span> of Cinema</h1>
+    <p style="color:var(--text-muted); font-size: 1.2rem;">Book tickets for the latest blockbusters in your city.</p>
   </header>
 
-  <main class="container">
-    <div class="movie-grid" id="movie-catalog">
-      <!-- Movies will be injected here -->
-      <div class="loading">Loading movies...</div>
+  <main>
+    <div id="carousels-container">
+      <div class="container loading" style="text-align: center;">Loading movies...</div>
     </div>
   </main>
 
   <script src="js/utils.js"></script>
   <script>
+    const CITIES = ['Mumbai', 'Delhi', 'Bengaluru', 'Hyderabad', 'Ahmedabad', 'Pune', 'Chennai', 'Kolkata', 'Kochi', 'Bhubaneswar'];
+    let selectedCity = localStorage.getItem('selectedCity');
+
+    const user = API.getSession();
+
+    function initCity() {
+      // Setup cities in modal
+      document.getElementById('cityList').innerHTML = CITIES.map(city => `
+        <button class="city-btn" onclick="selectCity('${city}')">${city}</button>
+      `).join('');
+
+      if (!selectedCity && user) {
+        showCityModal();
+      } else if (selectedCity) {
+        updateNavCity();
+        loadMovies();
+      } else {
+        // Not logged in and no city
+        loadMovies();
+      }
+    }
+
+    function showCityModal() {
+      document.getElementById('cityModal').classList.add('active');
+    }
+
+    function selectCity(city) {
+      selectedCity = city;
+      localStorage.setItem('selectedCity', city);
+      document.getElementById('cityModal').classList.remove('active');
+      updateNavCity();
+      loadMovies();
+    }
+
+    function updateNavCity() {
+      if(selectedCity) {
+        document.getElementById('navCityBtn').textContent = selectedCity + ' ▾';
+      }
+    }
+
+    function scrollCarousel(id, direction) {
+      const container = document.getElementById(id);
+      const scrollAmount = 300;
+      if (direction === 'left') {
+        container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+      } else {
+        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      }
+    }
+
+    function generateMovieCard(movie) {
+      const placeholderImg = \`https://placehold.co/400x600/1F1F1F/FFF?text=\${encodeURIComponent(movie.movie_name)}\`;
+      return \`
+        <div class="movie-card">
+          <img src="/images/\${movie.movie_id}.jpg" alt="\${movie.movie_name}" onerror="this.src='\${placeholderImg}'">
+          <div class="movie-info">
+            <h3 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">\${movie.movie_name}</h3>
+            <div class="meta" style="font-size: 0.8rem;">⭐ \${movie.movie_rating} • \${movie.language} • \${movie.genre}</div>
+            <button class="btn-primary" style="width: 100%; padding: 0.6rem;" onclick="goToBooking('\${movie.movie_id}')">Book Now</button>
+          </div>
+        </div>
+      \`;
+    }
+
+    function renderCarousel(title, id, movies) {
+      if (!movies || movies.length === 0) return '';
+      return \`
+        <div class="carousel-section">
+          <h2>\${title}</h2>
+          <button class="scroll-btn left" onclick="scrollCarousel('\${id}', 'left')">❮</button>
+          <div class="carousel-container" id="\${id}">
+            \${movies.map(m => generateMovieCard(m)).join('')}
+          </div>
+          <button class="scroll-btn right" onclick="scrollCarousel('\${id}', 'right')">❯</button>
+        </div>
+      \`;
+    }
+
     async function loadMovies() {
       try {
-        const { movies } = await API.fetch('/api/movies');
-        const catalog = document.getElementById('movie-catalog');
+        const url = selectedCity ? \`/api/movies?city=\${selectedCity}\` : '/api/movies';
+        const { movies } = await API.fetch(url);
         
-        catalog.innerHTML = movies.map(movie => `
-          <div class="movie-card">
-            <img src="/images/${movie.movie_id}.jpg" alt="${movie.movie_name}" onerror="this.src='https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=800&q=80'">
-            <div class="movie-info">
-              <h3>${movie.movie_name}</h3>
-              <div class="meta">⭐ ${movie.movie_rating} • ${movie.language} • ${movie.genre}</div>
-              <button class="btn-primary" onclick="goToBooking('${movie.movie_id}')">Book Now</button>
-            </div>
-          </div>
-        `).join('');
+        let recommended = [];
+        let trending = [];
+        let comingSoon = [];
+        let topRated = [];
+
+        // Simple categorization for demo
+        movies.forEach((m, idx) => {
+          if (m.status === 'Coming Soon') {
+            comingSoon.push(m);
+          } else {
+            if (parseFloat(m.movie_rating) >= 9.5) topRated.push(m);
+            if (idx % 2 === 0) recommended.push(m);
+            if (idx % 3 === 0 || idx % 2 !== 0) trending.push(m);
+          }
+        });
+
+        const container = document.getElementById('carousels-container');
+        if (movies.length === 0) {
+            container.innerHTML = '<div class="container" style="text-align:center;"><h2>No movies available for this city.</h2></div>';
+            return;
+        }
+
+        container.innerHTML = 
+          renderCarousel('Recommended Movies', 'c-rec', recommended) +
+          renderCarousel('Trending Now', 'c-trend', trending) +
+          renderCarousel('Coming Soon', 'c-coming', comingSoon) +
+          renderCarousel('Top Rated', 'c-top', topRated);
+
       } catch (err) {
-        UI.showMessage(err.message);
+        UI.showMessage(err.message, 'error');
       }
     }
 
     function goToBooking(id) {
-      if (!API.getSession()) {
+      if (!user) {
         UI.showMessage('Please login to book tickets', 'error');
         setTimeout(() => window.location.href = '/login.html', 1500);
         return;
       }
-      window.location.href = `/booking.html?movieId=${id}`;
+      if (!selectedCity) {
+        showCityModal();
+        return;
+      }
+      window.location.href = \`/booking.html?movieId=\${id}\`;
     }
 
     // Auth check
-    const user = API.getSession();
     if (user) {
-      document.getElementById('nav-links').innerHTML = `
+      document.getElementById('nav-links').innerHTML = \`
         <a href="/">Home</a>
         <a href="/dashboard.html">Dashboard</a>
         <a href="#" onclick="API.logout()">Logout</a>
-      `;
+      \`;
     }
 
-    loadMovies();
+    initCity();
   </script>
 </body>
 </html>
