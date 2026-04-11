@@ -48,8 +48,12 @@ const UI = {
     const user = API.getSession();
     const isAdmin = user && (user.name === 'admin' || user.email === 'admin@movie.com');
     
+    const selectedCity = localStorage.getItem('selectedCity') || 'Select City';
     nav.innerHTML = `
-      <a href="/" class="logo">MOVIE MAGIC</a>
+      <div style="display: flex; align-items: center; gap: 1.5rem;">
+        <a href="/" class="logo">MOVIE MAGIC</a>
+        <button id="navCityBtn" style="background: transparent; color: var(--text-muted); border: 1px solid #444; padding: 6px 12px; border-radius: 4px; cursor: pointer;" onclick="if(typeof showCityModal === 'function') showCityModal(); else window.location.href='/';">${selectedCity} ▾</button>
+      </div>
       <div class="search-bar">
         <input type="text" id="movie-search" placeholder="Search movies, genres..." onkeyup="handleSearch(this.value)">
       </div>

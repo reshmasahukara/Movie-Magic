@@ -126,14 +126,14 @@
 
     function getFallbackMovies() {
       return [
-        { movie_id: 'M001', movie_name: 'RAAKA', movie_rating: '9.2', language: 'Telugu/Hindi', genre: 'Action', status: 'Coming Soon' },
-        { movie_id: 'M002', movie_name: 'OG', movie_rating: '9.5', language: 'Telugu', genre: 'Action', status: 'Running' },
-        { movie_id: 'M003', movie_name: 'SPIRIT', movie_rating: '9.0', language: 'Multi', genre: 'Action', status: 'In Production' },
-        { movie_id: 'M004', movie_name: 'VARANASI', movie_rating: '8.8', language: 'Hindi', genre: 'Drama', status: 'Running' },
-        { movie_id: 'M005', movie_name: 'DRAGON', movie_rating: '8.5', language: 'English', genre: 'Action', status: 'Coming Soon' },
-        { movie_id: 'M006', movie_name: 'PUSHPA THE RULE', movie_rating: '9.8', language: 'Multi', genre: 'Action', status: 'Running' },
-        { movie_id: 'M007', movie_name: 'BAHUBALI 2', movie_rating: '9.9', language: 'Multi', genre: 'Epic', status: 'Running' },
-        { movie_id: 'M008', movie_name: 'STRANGER THINGS S5', movie_rating: '9.7', language: 'English', genre: 'Sci-Fi', status: 'Coming Soon' },
+        { movie_id: 'M001', movie_name: 'RAAKA', movie_rating: '9.2', language: 'Telugu/Hindi', genre: 'Action/Thriller', status: 'Coming Soon' },
+        { movie_id: 'M002', movie_name: 'OG', movie_rating: '9.5', language: 'Telugu', genre: 'Gangster Drama', status: 'Running' },
+        { movie_id: 'M003', movie_name: 'SPIRIT', movie_rating: '9.0', language: 'Multi-Language', genre: 'Crime/Action', status: 'In Production' },
+        { movie_id: 'M004', movie_name: 'VARANASI', movie_rating: '8.8', language: 'Hindi', genre: 'Spiritual/Drama', status: 'Running' },
+        { movie_id: 'M005', movie_name: 'DRAGON', movie_rating: '8.5', language: 'English', genre: 'Fantasy/Action', status: 'Coming Soon' },
+        { movie_id: 'M006', movie_name: 'PUSHPA THE RULE', movie_rating: '9.8', language: 'Multi-Language', genre: 'Action/Drama', status: 'Running' },
+        { movie_id: 'M007', movie_name: 'BAHUBALI 2', movie_rating: '9.9', language: 'Multi-Language', genre: 'Epic/Action', status: 'Running' },
+        { movie_id: 'M008', movie_name: 'STRANGER THINGS S5', movie_rating: '9.7', language: 'English', genre: 'Sci-Fi/Horror', status: 'Coming Soon' },
         { movie_id: 'M009', movie_name: 'AVENGERS END GAME', movie_rating: '9.6', language: 'English', genre: 'Superhero', status: 'Running' }
       ];
     }
@@ -142,18 +142,24 @@
       let moviesData = [];
       try {
         const url = selectedCity ? `/api/movies?city=${selectedCity}` : '/api/movies';
-        const { movies } = await API.fetch(url);
-        moviesData = movies || getFallbackMovies();
-        if(moviesData.length === 0) moviesData = getFallbackMovies();
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500); // Failsafe timeout
+
+        const fetchPromise = API.fetch(url, { signal: controller.signal });
+        const { movies } = await fetchPromise;
+        clearTimeout(timeoutId);
+
+        moviesData = (movies && movies.length > 0) ? movies : getFallbackMovies();
       } catch (err) {
-        console.error("API Error, using fallback:", err);
+        console.warn("API Error or Timeout, securely falling back to static data.");
         moviesData = getFallbackMovies();
       }
       
       let recommended = [], trending = [], comingSoon = [], topRated = [];
       moviesData.forEach((m, idx) => {
-        if (m.status === 'Coming Soon') comingSoon.push(m);
-        else {
+        if (m.status === 'Coming Soon' || m.status === 'In Production') {
+          comingSoon.push(m);
+        } else {
           if (parseFloat(m.movie_rating) >= 9.5) topRated.push(m);
           if (idx % 2 === 0) recommended.push(m);
           if (idx % 3 === 0 || idx % 2 !== 0) trending.push(m);
@@ -161,6 +167,8 @@
       });
 
       const container = document.getElementById('carousels-container');
+      if (!container) return; // defensive
+
       if (moviesData.length === 0) {
           container.innerHTML = '<div class="container" style="text-align:center;"><h2>No movies available for this city.</h2></div>';
           return;
@@ -187,7 +195,7 @@
     }
 
     // Auth check
-    if (user) {
+    if (false) {
       document.getElementById('nav-links').innerHTML = \`
         <a href="/">Home</a>
         <a href="/dashboard.html">Dashboard</a>
