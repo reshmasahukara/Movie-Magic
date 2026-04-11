@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS theater1 (
 
 -- 6. Shows Table
 CREATE TABLE IF NOT EXISTS shows (
-    screen_id SERIAL PRIMARY KEY,
+    screen_id VARCHAR(255) PRIMARY KEY,
     movie_id VARCHAR(255) REFERENCES movie(movie_id) ON DELETE CASCADE,
     theater_id INTEGER REFERENCES theater(theater_id) ON DELETE CASCADE,
     timmings TIME NOT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS shows (
 -- 7. Bookings Table
 CREATE TABLE IF NOT EXISTS bookings (
     id SERIAL PRIMARY KEY,
-    screen_id INTEGER REFERENCES shows(screen_id) ON DELETE CASCADE,
+    screen_id VARCHAR(255) REFERENCES shows(screen_id) ON DELETE CASCADE,
     user_id INTEGER REFERENCES customer(user_id) ON DELETE CASCADE,
     no_of_seats INTEGER DEFAULT 0,
     selected_seats JSONB DEFAULT '[]'::jsonb,
