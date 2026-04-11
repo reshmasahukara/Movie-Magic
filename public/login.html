@@ -47,7 +47,7 @@
           method: 'POST',
           body: JSON.stringify({ email, password })
         });
-        API.setSession(user);
+        API.saveSession(user);
         UI.showMessage('Login successful!', 'success');
         setTimeout(() => window.location.href = '/', 1000);
       } catch (err) {
