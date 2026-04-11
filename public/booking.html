@@ -24,6 +24,7 @@
       filter: blur(50px) brightness(0.4);
       transform: scale(1.1);
       z-index: 1;
+      pointer-events: none;
     }
     .hero-overlay {
       position: absolute;
@@ -31,6 +32,7 @@
       background: linear-gradient(to right, #000 0%, transparent 60%, transparent 80%, #000 100%),
                   linear-gradient(to top, #000 0%, transparent 50%);
       z-index: 2;
+      pointer-events: none;
     }
     .hero-content {
       position: relative; 
@@ -149,6 +151,7 @@
     }
     .filter-chip.active { background: var(--primary); border-color: var(--primary); color: white; }
 
+    .show-times-container, .show-row,
     .theater-card { 
       background: var(--card-bg); 
       border: 1px solid var(--glass); 
@@ -156,6 +159,8 @@
       padding: 1.5rem; 
       margin-bottom: 1.5rem; 
       pointer-events: auto;
+      position: relative;
+      z-index: 10;
     }
     .show-time-btn { 
       padding: 8px 18px; 
