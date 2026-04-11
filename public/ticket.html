@@ -77,6 +77,13 @@
         
         if (!data) throw new Error("Ticket not found in your account.");
 
+        // Priority Logic for Theatre Name
+        const theatreName = 
+          data.theater_name || 
+          JSON.parse(localStorage.getItem("paymentData") || "{}")?.theater_name || 
+          localStorage.getItem("selectedTheater") || 
+          "Movie Magic Cinemas";
+
         // Defensive Render
         const template = `
           <div id="ticket-element" class="ticket-card animate-fade-in" style="margin-bottom: 2.5rem;">
@@ -90,7 +97,7 @@
               <div class="ticket-info">
                 <div>
                   <p class="info-label">Cinema Venue</p>
-                  <p class="info-val">${data.theater_name || "Movie Magic Cinemas"}</p>
+                  <p class="info-val">${theatreName}</p>
                 </div>
                 <div style="text-align: right;">
                   <p class="info-label">Show Time</p>

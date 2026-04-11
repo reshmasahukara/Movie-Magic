@@ -141,6 +141,13 @@
         return;
       }
 
+      // Dynamic Theatre Name Logic
+      const theatreName = 
+        data.theater_name || 
+        JSON.parse(localStorage.getItem("paymentData") || "{}")?.theater_name || 
+        localStorage.getItem("selectedTheater") || 
+        "Movie Magic Cinemas";
+
       // 2. Render Premium Ticket
       const template = `
         <div style="background: rgba(40, 167, 69, 0.1); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; border: 1px solid #28a745;">
@@ -160,7 +167,7 @@
             <div class="ticket-info">
               <div>
                 <p class="info-label">Cinema</p>
-                <p class="info-val">${data.theater_name}</p>
+                <p class="info-val">${theatreName}</p>
               </div>
               <div style="text-align: right;">
                 <p class="info-label">Time</p>
