@@ -141,7 +141,6 @@
   </nav>
 
   <main class="container">
-    <button onclick="window.history.back()" class="btn-primary" style="margin: 2rem 0; background: #1a1a1a; border: 1px solid #333;">← Back to Shows</button>
 
   <header class="show-header">
     <div class="hero-bg" id="hero-bg"></div>
@@ -153,7 +152,6 @@
   </header>
 
   <main class="container">
-    <button onclick="window.history.back()" class="btn-primary" style="margin: 0 0 2rem; background: #1a1a1a; border: 1px solid #333;">← Back to Shows</button>
 
     <div class="legend">
       <div class="legend-item"><div class="seat"></div> Available</div>
@@ -350,6 +348,11 @@
       try {
         const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
         
+        // Accurate Theater Persistence: Load exact selected theater
+        const selectedBooking = JSON.parse(localStorage.getItem('selectedBooking') || '{}');
+        const theaterId = selectedBooking.theaterId || 1;
+        const theaterName = selectedBooking.theaterName || "Movie Magic Cinemas";
+
         const res = await API.fetch('/api/book', {
           method: 'POST',
           body: JSON.stringify({
@@ -357,11 +360,12 @@
             movieId: movieId,
             userId: user.user_id,
             seats: selectedSeats.map(s => s.id),
-            amount: total
+            amount: total,
+            theaterId: theaterId,
+            theaterName: theaterName
           })
         });
 
-        const theaterName = currentShow?.theater_name || "Movie Magic Cinemas";
         localStorage.setItem('paymentData', JSON.stringify({
           booking_id: res.bookingId,
           amount: total,

@@ -93,12 +93,15 @@
         
         if (!data) throw new Error("Ticket not found in your account.");
 
-        // Priority Logic for Theatre Name
-        const theatreName = 
-          data.theater_name || 
-          JSON.parse(localStorage.getItem("paymentData") || "{}")?.theater_name || 
-          localStorage.getItem("selectedTheater") || 
-          "Movie Magic Cinemas";
+        const booking = data;
+        const selectedBooking = JSON.parse(localStorage.getItem('selectedBooking') || '{}');
+
+        // TASK: Strict Theater Priority Resolution
+        const theaterName = 
+            booking?.theater_name || 
+            booking?.theatre_name || 
+            selectedBooking.theaterName || 
+            "Cinema Venue";
 
         // Defensive Render
         const template = `
@@ -113,7 +116,7 @@
               <div class="ticket-info">
                 <div>
                   <p class="info-label">Cinema Venue</p>
-                  <p class="info-val">${theatreName}</p>
+                  <p class="info-val" id="ticket-theatre">${theaterName}</p>
                 </div>
                 <div style="text-align: right;">
                   <p class="info-label">Show Time</p>
@@ -153,7 +156,7 @@
 
           <div style="display: flex; gap: 1rem;">
             <button onclick="downloadPDF()" class="btn-primary" style="background: transparent; border: 1px solid var(--primary);">Save to Device (PDF)</button>
-            <button onclick="window.history.back()" class="btn-primary">Back to History</button>
+            <button onclick="window.location.href='/history.html'" class="btn-primary">Back to History</button>
           </div>
         `;
 

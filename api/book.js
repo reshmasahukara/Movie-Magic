@@ -65,8 +65,8 @@ export default async function handler(req, res) {
 
       // 5. Create the Booking Record
       const bookingResult = await query(
-        "INSERT INTO bookings (user_id, screen_id, no_of_seats, selected_seats, price, payment_status) VALUES ($1, $2, $3, $4, $5, 'Paid') RETURNING id",
-        [userId, showId, seats.length, JSON.stringify(seats), amount]
+        "INSERT INTO bookings (user_id, screen_id, no_of_seats, selected_seats, price, payment_status, theater_id, theater_name) VALUES ($1, $2, $3, $4, $5, 'Paid', $6, $7) RETURNING id",
+        [userId, showId, seats.length, JSON.stringify(seats), amount, req.body.theaterId, req.body.theaterName]
       );
 
       const bookingId = bookingResult.rows[0].id;

@@ -481,14 +481,25 @@
       const dateObj = new Date(`${selectedDate} ${time}`);
       const datetime = dateObj.toISOString();
 
-      // PART 1: Generate Slot-Based Smart ID (Theater-Screen-Date-Time)
-      // Different movies in the SAME screen at the SAME time will now be blocked.
-      const timeClean = time.replace(/[:\s]/g, '');
-      
-      // Assign logical screen number (Mock: Screen 1 for first half of movies, Screen 2 for others)
+      // Assign logical screen number
       const screenNo = movieId === 'M001' || movieId === 'M004' ? 1 : 2;
-      const smartShowId = `${theatreName.substring(0,3).toUpperCase()}-S${screenNo}-${selectedDate}-${timeClean}`;
+      const smartShowId = showId; // Use the provided screen_id
 
+      // TASK: Accurate Theater Persistence
+      const theatreData = theatresData.find(t => t.name === theatreName) || {};
+
+      localStorage.setItem('selectedBooking', JSON.stringify({
+        movieId,
+        showId: smartShowId,
+        theaterId: theatreData.id || 1,
+        theaterName: theatreName,
+        screen: screenNo,
+        date: selectedDate,
+        time: time,
+        seats: []
+      }));
+
+      // Legacy support (to avoid breaking other pages immediately)
       localStorage.setItem('booking_context', JSON.stringify({
         showId: smartShowId, 
         theatreName,
@@ -498,6 +509,7 @@
         datetime,
         screenNo
       }));
+
       window.location.href = `/seats.html?showId=${smartShowId}&movieId=${movieId}&datetime=${datetime}`;
     }
 

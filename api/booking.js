@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     if (method === 'GET' && q.action === 'success') {
       const { userid, screenid } = q;
       const result = await query(
-        'SELECT b.*, s.timmings, s.show_date, m.movie_name, t.theater_name FROM bookings b JOIN shows s ON b.screen_id = s.screen_id JOIN movie m ON s.movie_id = m.movie_id JOIN theater t ON s.theater_id = t.theater_id WHERE b.user_id = $1 AND b.screen_id = $2 ORDER BY b.created_at DESC LIMIT 1',
+        'SELECT b.*, s.timmings, s.show_date, m.movie_name, COALESCE(b.theater_name, t.theater_name) as theater_name FROM bookings b JOIN shows s ON b.screen_id = s.screen_id JOIN movie m ON s.movie_id = m.movie_id JOIN theater t ON s.theater_id = t.theater_id WHERE b.user_id = $1 AND b.screen_id = $2 ORDER BY b.created_at DESC LIMIT 1',
         [userid, screenid]
       );
       return res.status(200).json({ success: true, bookings: result.rows });
@@ -27,7 +27,7 @@ export default async function handler(req, res) {
       const { userid } = q;
       if (!userid) return res.status(400).json({ error: "userid is required" });
       const result = await query(
-        'SELECT b.*, s.timmings, s.show_date, m.movie_name, t.theater_name FROM bookings b JOIN shows s ON b.screen_id = s.screen_id JOIN movie m ON s.movie_id = m.movie_id JOIN theater t ON s.theater_id = t.theater_id WHERE b.user_id = $1 ORDER BY b.created_at DESC',
+        'SELECT b.*, s.timmings, s.show_date, m.movie_name, COALESCE(b.theater_name, t.theater_name) as theater_name FROM bookings b JOIN shows s ON b.screen_id = s.screen_id JOIN movie m ON s.movie_id = m.movie_id JOIN theater t ON s.theater_id = t.theater_id WHERE b.user_id = $1 ORDER BY b.created_at DESC',
         [userid]
       );
       return res.status(200).json({ success: true, bookings: result.rows });
