@@ -17,7 +17,7 @@
       justify-content: center;
       background: #000;
       border-bottom: 1px solid rgba(255,255,255,0.05);
-      margin-bottom: 1rem;
+      margin-bottom: 0.5rem;
     }
     .hero-bg {
       position: absolute;
@@ -35,80 +35,85 @@
       z-index: 2;
     }
 
-    .screen-header { margin: 1rem 0; width: 100%; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 3; }
+    .screen-header { margin: 0.8rem 0; width: 100%; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 3; }
     .screen-line { width: 60%; height: 3px; background: #e50914; border-radius: 50%; box-shadow: 0 4px 20px #e50914; margin-bottom: 8px; }
-    .screen-text { color: #555; font-size: 0.55rem; letter-spacing: 8px; text-transform: uppercase; }
+    .screen-text { color: #555; font-size: 0.5rem; letter-spacing: 8px; text-transform: uppercase; }
     
-    .seats-grid-wrapper { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 0.5rem 0; padding: 0.5rem; }
-    .seat-row { display: flex; align-items: center; gap: 4px; justify-content: center; width: 100%; }
-    .row-label { width: 30px; text-align: right; color: #333; font-weight: 800; font-size: 0.7rem; margin-right: 10px; }
+    .seats-grid-wrapper { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 0; padding: 0.5rem; }
+    .seat-row { display: flex; align-items: center; gap: 4px; justify-content: center; width: 100%; height: 32px; }
+    .row-label { width: 30px; text-align: right; color: #888; font-weight: 800; font-size: 0.75rem; margin-right: 12px; }
     
     .seat { 
-      width: 26px; 
-      height: 26px; 
-      margin: 2px; 
-      border-radius: 4px; 
+      width: 28px; 
+      height: 28px; 
+      margin: 1px; 
+      border-radius: 6px; 
       cursor: pointer; 
       transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-      background: #222; 
+      background: #2a2a2a; 
       position: relative; 
-      border: 1px solid rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
       display: flex;
       align-items: center;
       justify-content: center;
     }
+    .seat:hover:not(.booked) { background: #444; border-color: rgba(255,255,255,0.3); }
     
     /* CATEGORIES */
-    .seat.vip { border-color: #FFD700; border-width: 2px; }
-    .seat.premium { border-color: #007bff; border-width: 2px; }
-    .seat.regular { border-color: #6c757d; border-width: 2px; }
+    .seat.vip { border-color: #FFD700; border-width: 1.5px; }
+    .seat.premium { border-color: #007bff; border-width: 1.5px; }
+    .seat.regular { border-color: #888; border-width: 1.5px; }
 
     /* STATES */
     .seat.selected { 
       background: #e50914 !important; 
-      box-shadow: 0 0 10px #e50914; 
+      box-shadow: 0 0 12px #e50914; 
       transform: scale(1.1); 
       border: 2px solid white !important;
       animation: pulsate 1.5s infinite;
     }
     @keyframes pulsate {
       0% { transform: scale(1.1); }
-      50% { transform: scale(1.2); }
+      50% { transform: scale(1.15); }
       100% { transform: scale(1.1); }
     }
     
-    .seat.booked { background: #080808 !important; cursor: not-allowed; opacity: 1 !important; border: 1px solid #1a1a1a !important; }
-    .seat.booked::after { content: '×'; color: #222; font-size: 0.9rem; font-weight: 300; }
+    .seat.booked { background: #111 !important; cursor: not-allowed; opacity: 0.6 !important; border: 1px solid #222 !important; }
+    .seat.booked::after { 
+        content: '×'; 
+        color: #777; 
+        font-size: 1.2rem; 
+        font-weight: 300; 
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+    }
 
-    .seat-num { font-size: 0.5rem; color: #444; opacity: 0; pointer-events: none; }
+    .seat-num { font-size: 0.6rem; color: #777; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .seat:hover:not(.booked) .seat-num { opacity: 1; color: white; }
 
     .category-divider { 
-      width: fit-content;
-      margin: 1rem 0 0.3rem; 
-      color: #555; 
-      font-size: 0.55rem; 
+      width: 100%;
+      max-width: 500px;
+      margin: 1rem auto 0.5rem; 
+      color: #999; 
+      font-size: 0.65rem; 
       text-transform: uppercase; 
-      letter-spacing: 2px; 
-      border-bottom: 1px solid #111; 
-      padding-bottom: 4px;
-      font-weight: 800;
+      letter-spacing: 3px; 
+      border-bottom: 2px solid #1a1a1a; 
+      padding-bottom: 6px;
+      font-weight: 900;
+      text-align: center;
     }
     
-    .legend { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; background: rgba(255,255,255,0.01); padding: 12px; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #0a0a0a; }
-    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.65rem; color: #666; }
-    .legend-item .seat { cursor: default; width: 14px; height: 14px; margin: 0; }
+    .legend { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #111; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: #888; }
+    .legend-item .seat { cursor: default; width: 16px; height: 16px; margin: 0; border-radius: 3px; }
 
     @media (max-width: 1024px) {
-      .seat { width: 22px; height: 22px; }
-      .seat-row { gap: 2px; }
+      .seat { width: 24px; height: 24px; }
+      .seat-row { height: 28px; }
     }
-
-
-    .seat-num { font-size: 0.65rem; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
-    .seat:hover .seat-num { opacity: 1; }
-
-    .category-divider { width: 100%; margin: 1.5rem 0 0.5rem; color: #333; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; text-align: left; padding-left: 45px; border-bottom: 1px solid #1a1a1a; padding-bottom: 8px; }
     
     @media (max-width: 768px) {
       .seat-row { flex-wrap: wrap; }
