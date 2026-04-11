@@ -510,14 +510,20 @@
         return;
       }
       
-      console.log('clicked', showId, mId);
-      goToSeats(showId, theaterName, time, mId);
+      console.log('Timing button clicked => showId:', showId, 'mId:', mId, 'time:', time);
+      try {
+        goToSeats(showId, theaterName, time, mId);
+      } catch (err) {
+        console.error("Navigation error:", err);
+        alert("Could not load the seats page. Please try another timing.");
+      }
     });
 
     function goToSeats(showId, theatreName, time, mId) {
-      // Professional Datetime Sync
-      const dateObj = new Date(`${selectedDate} ${time}`);
-      const datetime = dateObj.toISOString();
+      // Professional Datetime Sync (Safe for all browsers)
+      // Avoid new Date("YYYY-MM-DD HH:MM:SS") as it crashes in Safari
+      const safeTime = time.includes(':') && time.split(':').length === 2 ? time + ':00' : time;
+      const datetime = `${selectedDate}T${safeTime}`;
 
       // Assign logical screen number
       const localMovieId = mId || movieId;
