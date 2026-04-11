@@ -57,12 +57,28 @@
     .category-card span { position: relative; z-index: 2; font-weight: 800; font-size: 1.2rem; color: white; letter-spacing: 0.5px; }
 
     /* EVENT CARDS (Music & Outdoor) */
-    .event-card { 
+    .event-card, .music-card, .outdoor-card { 
       min-width: 320px; border-radius: 12px; overflow: hidden; background: #111; border: 1px solid #222;
       transition: all 0.3s ease; scroll-snap-align: start; margin-right: 2rem; display: flex; flex-direction: column;
     }
     .event-card:hover { border-color: var(--primary); transform: translateY(-5px); }
-    .event-card img { width: 100%; aspect-ratio: 16/10; object-fit: cover; border-bottom: 2px solid var(--primary); }
+
+    .event-card img, .music-card img, .outdoor-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      border-radius: 14px;
+    }
+
+    .event-card .image-box, .music-card .image-box, .outdoor-card .image-box {
+      width: 100%;
+      height: 220px;
+      overflow: hidden;
+      background: #111;
+      border-radius: 14px;
+    }
+
     .event-card-content { padding: 1.2rem; display: flex; flex-direction: column; flex: 1; }
     .event-date { color: var(--primary); font-size: 0.75rem; font-weight: 800; margin-bottom: 5px; text-transform: uppercase; }
     .event-name { font-weight: 800; font-size: 1.1rem; margin-bottom: 10px; line-height: 1.2; color: #eee; }
@@ -267,7 +283,9 @@
       const list = document.getElementById(id);
       list.innerHTML = data.map(ev => `
         <div class="event-card">
-          <img src="${ev.img}" alt="${ev.name}">
+          <div class="image-box">
+            <img src="${ev.img}" alt="${ev.name}">
+          </div>
           <div class="event-card-content">
             <span class="event-date">${ev.date}</span>
             <span class="event-name">${ev.name}</span>
