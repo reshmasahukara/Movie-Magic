@@ -9,7 +9,8 @@
 <body>
   <!-- City Selection Modal -->
   <div class="modal-overlay" id="cityModal">
-    <div class="modal-content">
+    <div class="modal-content" style="position: relative;">
+      <button onclick="closeCityModal()" style="position: absolute; top: 10px; right: 15px; background: transparent; color: var(--text-muted); border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
       <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem;">Select Your City</h2>
       <p style="color: var(--text-muted);">Choose a city to see upcoming movies and shows.</p>
       <div class="city-grid" id="cityList">
@@ -49,24 +50,26 @@
     const user = API.getSession();
 
     function initCity() {
-      // Setup cities in modal
       document.getElementById('cityList').innerHTML = CITIES.map(city => `
         <button class="city-btn" onclick="selectCity('${city}')">${city}</button>
       `).join('');
 
-      if (!selectedCity && user) {
+      if (!selectedCity) {
         showCityModal();
-      } else if (selectedCity) {
-        updateNavCity();
-        loadMovies();
       } else {
-        // Not logged in and no city
+        updateNavCity();
         loadMovies();
       }
     }
 
     function showCityModal() {
       document.getElementById('cityModal').classList.add('active');
+    }
+
+    // Failsafe: if user clicks outside modal or we provide a close button
+    function closeCityModal() {
+      document.getElementById('cityModal').classList.remove('active');
+      if (!selectedCity) selectCity('Ahmedabad');
     }
 
     function selectCity(city) {
@@ -94,69 +97,80 @@
     }
 
     function generateMovieCard(movie) {
-      const placeholderImg = \`https://placehold.co/400x600/1F1F1F/FFF?text=\${encodeURIComponent(movie.movie_name)}\`;
-      return \`
+      const placeholderImg = `https://placehold.co/400x600/1F1F1F/FFF?text=${encodeURIComponent(movie.movie_name)}`;
+      return `
         <div class="movie-card">
-          <img src="/images/\${movie.movie_id}.jpg" alt="\${movie.movie_name}" onerror="this.src='\${placeholderImg}'">
+          <img src="/images/${movie.movie_id}.jpg" alt="${movie.movie_name}" onerror="this.src='${placeholderImg}'">
           <div class="movie-info">
-            <h3 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">\${movie.movie_name}</h3>
-            <div class="meta" style="font-size: 0.8rem;">⭐ \${movie.movie_rating} • \${movie.language} • \${movie.genre}</div>
-            <button class="btn-primary" style="width: 100%; padding: 0.6rem;" onclick="goToBooking('\${movie.movie_id}')">Book Now</button>
+            <h3 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${movie.movie_name}</h3>
+            <div class="meta" style="font-size: 0.8rem;">⭐ ${movie.movie_rating} • ${movie.language} • ${movie.genre}</div>
+            <button class="btn-primary" style="width: 100%; padding: 0.6rem;" onclick="goToBooking('${movie.movie_id}')">Book Now</button>
           </div>
         </div>
-      \`;
+      `;
     }
 
     function renderCarousel(title, id, movies) {
       if (!movies || movies.length === 0) return '';
-      return \`
+      return `
         <div class="carousel-section">
-          <h2>\${title}</h2>
-          <button class="scroll-btn left" onclick="scrollCarousel('\${id}', 'left')">❮</button>
-          <div class="carousel-container" id="\${id}">
-            \${movies.map(m => generateMovieCard(m)).join('')}
+          <h2>${title}</h2>
+          <button class="scroll-btn left" onclick="scrollCarousel('${id}', 'left')">❮</button>
+          <div class="carousel-container" id="${id}">
+            ${movies.map(m => generateMovieCard(m)).join('')}
           </div>
-          <button class="scroll-btn right" onclick="scrollCarousel('\${id}', 'right')">❯</button>
+          <button class="scroll-btn right" onclick="scrollCarousel('${id}', 'right')">❯</button>
         </div>
-      \`;
+      `;
+    }
+
+    function getFallbackMovies() {
+      return [
+        { movie_id: 'M001', movie_name: 'RAAKA', movie_rating: '9.2', language: 'Telugu/Hindi', genre: 'Action', status: 'Coming Soon' },
+        { movie_id: 'M002', movie_name: 'OG', movie_rating: '9.5', language: 'Telugu', genre: 'Action', status: 'Running' },
+        { movie_id: 'M003', movie_name: 'SPIRIT', movie_rating: '9.0', language: 'Multi', genre: 'Action', status: 'In Production' },
+        { movie_id: 'M004', movie_name: 'VARANASI', movie_rating: '8.8', language: 'Hindi', genre: 'Drama', status: 'Running' },
+        { movie_id: 'M005', movie_name: 'DRAGON', movie_rating: '8.5', language: 'English', genre: 'Action', status: 'Coming Soon' },
+        { movie_id: 'M006', movie_name: 'PUSHPA THE RULE', movie_rating: '9.8', language: 'Multi', genre: 'Action', status: 'Running' },
+        { movie_id: 'M007', movie_name: 'BAHUBALI 2', movie_rating: '9.9', language: 'Multi', genre: 'Epic', status: 'Running' },
+        { movie_id: 'M008', movie_name: 'STRANGER THINGS S5', movie_rating: '9.7', language: 'English', genre: 'Sci-Fi', status: 'Coming Soon' },
+        { movie_id: 'M009', movie_name: 'AVENGERS END GAME', movie_rating: '9.6', language: 'English', genre: 'Superhero', status: 'Running' }
+      ];
     }
 
     async function loadMovies() {
+      let moviesData = [];
       try {
-        const url = selectedCity ? \`/api/movies?city=\${selectedCity}\` : '/api/movies';
+        const url = selectedCity ? `/api/movies?city=${selectedCity}` : '/api/movies';
         const { movies } = await API.fetch(url);
-        
-        let recommended = [];
-        let trending = [];
-        let comingSoon = [];
-        let topRated = [];
-
-        // Simple categorization for demo
-        movies.forEach((m, idx) => {
-          if (m.status === 'Coming Soon') {
-            comingSoon.push(m);
-          } else {
-            if (parseFloat(m.movie_rating) >= 9.5) topRated.push(m);
-            if (idx % 2 === 0) recommended.push(m);
-            if (idx % 3 === 0 || idx % 2 !== 0) trending.push(m);
-          }
-        });
-
-        const container = document.getElementById('carousels-container');
-        if (movies.length === 0) {
-            container.innerHTML = '<div class="container" style="text-align:center;"><h2>No movies available for this city.</h2></div>';
-            return;
-        }
-
-        container.innerHTML = 
-          renderCarousel('Recommended Movies', 'c-rec', recommended) +
-          renderCarousel('Trending Now', 'c-trend', trending) +
-          renderCarousel('Coming Soon', 'c-coming', comingSoon) +
-          renderCarousel('Top Rated', 'c-top', topRated);
-
+        moviesData = movies || getFallbackMovies();
+        if(moviesData.length === 0) moviesData = getFallbackMovies();
       } catch (err) {
-        UI.showMessage(err.message, 'error');
+        console.error("API Error, using fallback:", err);
+        moviesData = getFallbackMovies();
       }
+      
+      let recommended = [], trending = [], comingSoon = [], topRated = [];
+      moviesData.forEach((m, idx) => {
+        if (m.status === 'Coming Soon') comingSoon.push(m);
+        else {
+          if (parseFloat(m.movie_rating) >= 9.5) topRated.push(m);
+          if (idx % 2 === 0) recommended.push(m);
+          if (idx % 3 === 0 || idx % 2 !== 0) trending.push(m);
+        }
+      });
+
+      const container = document.getElementById('carousels-container');
+      if (moviesData.length === 0) {
+          container.innerHTML = '<div class="container" style="text-align:center;"><h2>No movies available for this city.</h2></div>';
+          return;
+      }
+
+      container.innerHTML = 
+        renderCarousel('Recommended Movies', 'c-rec', recommended) +
+        renderCarousel('Trending Now', 'c-trend', trending) +
+        renderCarousel('Coming Soon', 'c-coming', comingSoon) +
+        renderCarousel('Top Rated', 'c-top', topRated);
     }
 
     function goToBooking(id) {
