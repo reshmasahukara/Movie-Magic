@@ -79,12 +79,14 @@
     }
     
     .seat.booked { 
-      background: #111 !important; 
-      border: 1px solid #333 !important; 
-      color: #666 !important;
+      background: #2b2b2b !important; 
+      color: #ff3b3b !important;
+      border: 1px solid #ff3b3b !important;
       cursor: not-allowed; 
       position: relative;
-      opacity: 1 !important;
+      opacity: 0.9 !important;
+      font-weight: bold;
+      font-size: 14px;
     }
     .seat.booked::after { 
         content: "✕"; 
@@ -156,7 +158,7 @@
     <div class="legend">
       <div class="legend-item"><div class="seat"></div> Available</div>
       <div class="legend-item"><div class="seat selected"></div> Selected</div>
-      <div class="legend-item"><div class="seat booked"></div> Booked</div>
+      <div class="legend-item"><div class="seat booked"></div> Booked (red X seat)</div>
       <div class="legend-item"><div class="seat vip"></div> VIP (₹300)</div>
       <div class="legend-item"><div class="seat premium"></div> Premium (₹200)</div>
       <div class="legend-item"><div class="seat regular"></div> Regular (₹100)</div>
@@ -289,20 +291,23 @@
           const seatId = `${row}${i}`;
           const seatEl = document.createElement('div');
           seatEl.id = seatId;
+          seatEl.setAttribute('data-seat', seatId); // TASK 3 & 8: Data attr for selection
           
           let cat = 'REGULAR';
           if (CATEGORIES.VIP.rows.includes(row)) cat = 'VIP';
           else if (CATEGORIES.PREMIUM.rows.includes(row)) cat = 'PREMIUM';
 
-          seatEl.className = `seat ${CATEGORIES[cat].css} ${booked.includes(seatId) ? 'booked' : ''}`;
-          seatEl.innerHTML = `<span class="seat-num">${i}</span>`;
-          
-          if (booked.includes(seatId)) {
-            seatEl.className = `seat ${CATEGORIES[cat].css} booked`;
-            seatEl.title = "Booked";
+          // TASK 8: Trim and Uppercase Normalization
+          const isBooked = booked.some(s => s.toString().trim().toUpperCase() === seatId);
+
+          if (isBooked) {
+             seatEl.className = `seat ${CATEGORIES[cat].css} booked`;
+             seatEl.innerHTML = "✕"; // TASK 3: Explicit X
+             seatEl.title = "Booked";
           } else {
-            seatEl.className = `seat ${CATEGORIES[cat].css}`;
-            seatEl.onclick = () => toggleSeat(seatEl, seatId, cat);
+             seatEl.className = `seat ${CATEGORIES[cat].css}`;
+             seatEl.innerHTML = `<span class="seat-num">${i}</span>`;
+             seatEl.onclick = () => toggleSeat(seatEl, seatId, cat);
           }
           rowDiv.appendChild(seatEl);
         }
