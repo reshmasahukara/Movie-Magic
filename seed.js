@@ -26,16 +26,16 @@ async function seed() {
 
     // 2. Seed Movies
     const movies = [
-      // Format: [id, name, rating, dimensions, genre, status, description, language, category, duration, poster_url]
-      // Existing / Original list
-      ['M001', 'RAAKA', '9.2', 'IMAX 3D', 'Action/Thriller', 'Coming Soon', 'A high-octane action epic.', 'Telugu/Hindi', 'Tollywood', '155 min', 'https://image.tmdb.org/t/p/w500/y6L88X9Z6K5hKscX9r6pX7K3m5W.jpg'],
-      ['M002', 'OG', '9.5', '2D/4DX', 'Gangster Drama', 'Running', 'The original gangster returns to reclaim his throne.', 'Telugu', 'Tollywood', '165 min', 'https://image.tmdb.org/t/p/w500/xqByjvldxtC1v5bF7acUpt0gOc3.jpg'],
-      ['M003', 'SPIRIT', '9.0', '2D', 'Crime/Action', 'In Production', 'A gripping police procedural drama.', 'Multi-Language', 'Tollywood', '170 min', 'https://image.tmdb.org/t/p/w500/nkWAw6mDVWh3w7QA3eg0hKcMXWo.jpg'],
+      // Format: [id, name, rating, dimensions, genre, status, description, language, category, duration, poster]
+      // Project Specific Manual URLs
+      ['M001', 'RAAKA', '9.2', 'IMAX 3D', 'Action/Thriller', 'Coming Soon', 'A high-octane action epic.', 'Telugu/Hindi', 'Tollywood', '155 min', 'https://media5.bollywoodhungama.in/wp-content/uploads/2026/04/Raaka-322x483.jpg'],
+      ['M002', 'OG', '9.5', '2D/4DX', 'Gangster Drama', 'Running', 'The original gangster returns to reclaim his throne.', 'Telugu', 'Tollywood', '165 min', 'https://fullyfilmy.in/cdn/shop/files/COLLECTION_PHONE.png?v=1756819764&width=800'],
+      ['M003', 'SPIRIT', '9.0', '2D', 'Crime/Action', 'In Production', 'A gripping police procedural drama.', 'Multi-Language', 'Tollywood', '170 min', 'https://cdn.district.in/movies-assets/images/cinema/1Spirit_Gallery-af2129a0-16d4-11f1-8a94-b3907dd8fb01.jpg'],
       ['M004', 'VARANASI', '8.8', 'Standard', 'Spiritual/Drama', 'Now Showing', 'A journey of self-discovery in the holy city.', 'Hindi', 'Bollywood', '140 min', 'https://image.tmdb.org/t/p/w500/nL2g8oV9yei8NWHKAeP2L9WUfyA.jpg'],
-      ['M005', 'DRAGON', '8.5', '3D', 'Fantasy/Action', 'Coming Soon', 'A tale of fire and blood.', 'English', 'Hollywood', '135 min', 'https://image.tmdb.org/t/p/w500/6y9Z6K5hKscX9r6pX7K3m5W.jpg'],
+      ['M005', 'DRAGON', '8.5', '3D', 'Fantasy/Action', 'Coming Soon', 'A tale of fire and blood.', 'English', 'Hollywood', '135 min', 'https://images.filmibeat.com/img/280x383/popcorn/movie_posters/ntr31-20220520120944-19909.jpg'],
       ['M006', 'PUSHPA THE RULE', '9.8', 'IMAX 2D', 'Action/Drama', 'Running', 'The rule of Pushpa begins.', 'Telugu/Hindi', 'Tollywood', '180 min', 'https://image.tmdb.org/t/p/w500/u9b4v6DxGiETJkxTntEzAprq3t9.jpg'],
       ['M007', 'BAHUBALI 2', '9.9', 'IMAX 4K', 'Epic/Action', 'Running', 'The conclusion to the epic saga.', 'Telugu/Hindi', 'Tollywood', '167 min', 'https://image.tmdb.org/t/p/w500/xqByjvldxtC1v5bF7acUpt0gOc3.jpg'],
-      ['M008', 'STRANGER THINGS S5', '9.7', 'Standard', 'Sci-Fi/Horror', 'Coming Soon', 'The final chapter in Hawkins.', 'English', 'Hollywood', '150 min', 'https://image.tmdb.org/t/p/w500/49WJfev0mU3IP9RSTfzs9u696vV.jpg'],
+      ['M008', 'STRANGER THINGS S5', '9.7', 'Standard', 'Sci-Fi/Horror', 'Coming Soon', 'The final chapter in Hawkins.', 'English', 'Hollywood', '150 min', 'https://wallpapercave.com/wp/wp11785191.jpg'],
       ['M009', 'AVENGERS END GAME', '9.6', 'IMAX 3D', 'Superhero', 'Running', 'The grand finale of the infinity saga.', 'English', 'Hollywood', '181 min', 'https://image.tmdb.org/t/p/w500/2rrLBRKlVJJS0zQ1WVazgNCl4TE.jpg'],
       
       // TOLLYWOOD
@@ -69,7 +69,7 @@ async function seed() {
 
     for (const m of movies) {
       await pool.query(
-        'INSERT INTO movie (movie_id, movie_name, movie_rating, movie_dimensions, genre, status, description, language, category, duration, poster_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT(movie_id) DO UPDATE SET movie_name=EXCLUDED.movie_name, category=EXCLUDED.category, duration=EXCLUDED.duration, poster_url=EXCLUDED.poster_url',
+        'INSERT INTO movie (movie_id, movie_name, movie_rating, movie_dimensions, genre, status, description, language, category, duration, poster) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT(movie_id) DO UPDATE SET movie_name=EXCLUDED.movie_name, category=EXCLUDED.category, duration=EXCLUDED.duration, poster=EXCLUDED.poster',
         m
       );
     }

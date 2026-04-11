@@ -98,15 +98,17 @@
   <main>
     <div id="carousels-container">
       <div class="container loading" style="text-align: center;">Loading movies...</div>
-    </div>
-  </main>
+    </div  </main>
 
+  <script src="js/posterMap.js"></script>
   <script src="js/utils.js"></script>
   <script>
     const CITIES = ['Mumbai', 'Delhi', 'Bengaluru', 'Hyderabad', 'Ahmedabad', 'Pune', 'Chennai', 'Kolkata', 'Kochi', 'Bhubaneswar'];
     let selectedCity = localStorage.getItem('selectedCity');
 
-    const user = API.getSession();    function initCity() {
+    const user = API.getSession();
+
+    function initCity() {
       // Inject cities into grid
       const cityList = document.getElementById('cityList');
       if (cityList) {
@@ -160,12 +162,11 @@
     }
 
     function generateMovieCard(movie) {
-      const fallbackPoster = `https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=400&q=80`;
-      const posterUrl = movie.poster_url || `https://placehold.co/400x600/1F1F1F/FFF?text=${encodeURIComponent(movie.movie_name)}`;
+      const posterUrl = MoviePoster.get(movie.movie_name);
       
       return `
         <div class="movie-card" onclick="window.location.href='/booking.html?id=${movie.movie_id}'">
-          <img src="${posterUrl}" alt="${movie.movie_name}" onerror="this.src='${fallbackPoster}'">
+          <img src="${posterUrl}" alt="${movie.movie_name}" class="poster">
           <div class="movie-info">
             <h3 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; font-size: 1.1rem;">${movie.movie_name}</h3>
             <div class="meta" style="font-size: 0.8rem; margin: 5px 0; color: #ccc;">⭐ ${movie.movie_rating} • ${movie.language}</div>
@@ -191,27 +192,28 @@
     }
 
     function getFallbackMovies() {
-      return [
-        { movie_id: 'M001', movie_name: 'RAAKA', movie_rating: '9.2', language: 'Telugu/Hindi', genre: 'Action/Thriller', poster_url: 'https://image.tmdb.org/t/p/w500/y6L88X9Z6K5hKscX9r6pX7K3m5W.jpg' },
-        { movie_id: 'M002', movie_name: 'OG', movie_rating: '9.5', language: 'Telugu', genre: 'Gangster Drama', poster_url: 'https://image.tmdb.org/t/p/w500/xqByjvldxtC1v5bF7acUpt0gOc3.jpg' },
-        { movie_id: 'M003', movie_name: 'SPIRIT', movie_rating: '9.0', language: 'Multi-Language', genre: 'Crime/Action', poster_url: 'https://image.tmdb.org/t/p/w500/nkWAw6mDVWh3w7QA3eg0hKcMXWo.jpg' },
-        { movie_id: 'M004', movie_name: 'VARANASI', movie_rating: '8.8', language: 'Hindi', genre: 'Spiritual/Drama', poster_url: 'https://image.tmdb.org/t/p/w500/nL2g8oV9yei8NWHKAeP2L9WUfyA.jpg' },
-        { movie_id: 'M005', movie_name: 'DRAGON', movie_rating: '8.5', language: 'English', genre: 'Fantasy/Action', poster_url: 'https://image.tmdb.org/t/p/w500/6y9Z6K5hKscX9r6pX7K3m5W.jpg' },
-        { movie_id: 'M006', movie_name: 'PUSHPA THE RULE', movie_rating: '9.8', language: 'Multi-Language', genre: 'Action/Drama', poster_url: 'https://image.tmdb.org/t/p/w500/u9b4v6DxGiETJkxTntEzAprq3t9.jpg' },
-        { movie_id: 'M007', movie_name: 'BAHUBALI 2', movie_rating: '9.9', language: 'Multi-Language', genre: 'Epic/Action', poster_url: 'https://image.tmdb.org/t/p/w500/xqByjvldxtC1v5bF7acUpt0gOc3.jpg' },
-        { movie_id: 'M008', movie_name: 'STRANGER THINGS S5', movie_rating: '9.7', language: 'English', genre: 'Sci-Fi/Horror', poster_url: 'https://image.tmdb.org/t/p/w500/49WJfev0mU3IP9RSTfzs9u696vV.jpg' },
-        { movie_id: 'M009', movie_name: 'AVENGERS END GAME', movie_rating: '9.6', language: 'English', genre: 'Superhero', poster_url: 'https://image.tmdb.org/t/p/w500/2rrLBRKlVJJS0zQ1WVazgNCl4TE.jpg' },
-        { movie_id: 'MT002', movie_name: 'RRR', movie_rating: '9.7', language: 'Telugu/Hindi', genre: 'Action/Drama', poster_url: 'https://image.tmdb.org/t/p/w500/ljHw5eIMnki3HekwkKwCCHsRSbH.jpg' },
-        { movie_id: 'MT003', movie_name: 'Kalki 2898 AD', movie_rating: '9.2', language: 'Telugu/Hindi', genre: 'Sci-Fi/Epic', poster_url: 'https://image.tmdb.org/t/p/w500/9r0QqBQsD3G5D7P0YMxg3hkkGpz.jpg' },
-        { movie_id: 'MH002', movie_name: 'Avatar: Way of Water', movie_rating: '9.2', language: 'English', genre: 'Sci-Fi/Action', poster_url: 'https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmYp.jpg' },
-        { movie_id: 'MH003', movie_name: 'Titanic', movie_rating: '9.4', language: 'English', genre: 'Romance/Drama', poster_url: 'https://image.tmdb.org/t/p/w500/6mtVn4O1gSWGvCXCo8Sv8gc9jL5.jpg' },
-        { movie_id: 'MH005', movie_name: 'Avengers: Infinity War', movie_rating: '9.5', language: 'English', genre: 'Superhero', poster_url: 'https://image.tmdb.org/t/p/w500/7WsyChvgynooYst13uO9unS9m7X.jpg' },
-        { movie_id: 'MH006', movie_name: 'Spider-Man: No Way Home', movie_rating: '9.3', language: 'English', genre: 'Superhero', poster_url: 'https://image.tmdb.org/t/p/w500/uJYYizSuA9Y3DCs0qS4qWvHfZg4.jpg' },
-        { movie_id: 'MH007', movie_name: 'Jurassic World', movie_rating: '8.7', language: 'English', genre: 'Sci-Fi/Adventure', poster_url: 'https://image.tmdb.org/t/p/w500/A0snKWfS66bImsmYFvD96Mps9rR.jpg' },
-        { movie_id: 'MB002', movie_name: 'Jawan', movie_rating: '9.3', language: 'Hindi', genre: 'Action/Thriller', poster_url: 'https://image.tmdb.org/t/p/w500/bMISXhkBDll6JPsevdJJ1ItnW6S.jpg' },
-        { movie_id: 'MB007', movie_name: 'Gadar 2', movie_rating: '8.5', language: 'Hindi', genre: 'Action/Drama', poster_url: 'https://image.tmdb.org/t/p/w500/z6D9zX8K9VfL8OxyW9X2pXfX2X3.jpg' },
-        { movie_id: 'MB008', movie_name: 'Sultan', movie_rating: '8.9', language: 'Hindi', genre: 'Sports/Drama', poster_url: 'https://image.tmdb.org/t/p/w500/6mtVn4O1gSWGvCXCo8Sv8gc9jL5.jpg' }
+      const movies = [
+        { movie_id: 'M001', movie_name: 'RAAKA', movie_rating: '9.2', language: 'Telugu/Hindi', genre: 'Action/Thriller' },
+        { movie_id: 'M002', movie_name: 'OG', movie_rating: '9.5', language: 'Telugu', genre: 'Gangster Drama' },
+        { movie_id: 'M003', movie_name: 'SPIRIT', movie_rating: '9.0', language: 'Multi-Language', genre: 'Crime/Action' },
+        { movie_id: 'M004', movie_name: 'VARANASI', movie_rating: '8.8', language: 'Hindi', genre: 'Spiritual/Drama' },
+        { movie_id: 'M005', movie_name: 'DRAGON', movie_rating: '8.5', language: 'English', genre: 'Fantasy/Action' },
+        { movie_id: 'M006', movie_name: 'PUSHPA THE RULE', movie_rating: '9.8', language: 'Multi-Language', genre: 'Action/Drama' },
+        { movie_id: 'M007', movie_name: 'BAHUBALI 2', movie_rating: '9.9', language: 'Multi-Language', genre: 'Epic/Action' },
+        { movie_id: 'M008', movie_name: 'STRANGER THINGS S5', movie_rating: '9.7', language: 'English', genre: 'Sci-Fi/Horror' },
+        { movie_id: 'M009', movie_name: 'AVENGERS END GAME', movie_rating: '9.6', language: 'English', genre: 'Superhero' },
+        { movie_id: 'MT002', movie_name: 'RRR', movie_rating: '9.7', language: 'Telugu/Hindi', genre: 'Action/Drama' },
+        { movie_id: 'MT003', movie_name: 'Kalki 2898 AD', movie_rating: '9.2', language: 'Telugu/Hindi', genre: 'Sci-Fi/Epic' },
+        { movie_id: 'MH002', movie_name: 'Avatar: Way of Water', movie_rating: '9.2', language: 'English', genre: 'Sci-Fi/Action' },
+        { movie_id: 'MH003', movie_name: 'Titanic', movie_rating: '9.4', language: 'English', genre: 'Romance/Drama' },
+        { movie_id: 'MH005', movie_name: 'Avengers: Infinity War', movie_rating: '9.5', language: 'English', genre: 'Superhero' },
+        { movie_id: 'MH006', movie_name: 'Spider-Man: No Way Home', movie_rating: '9.3', language: 'English', genre: 'Superhero' },
+        { movie_id: 'MH007', movie_name: 'Jurassic World', movie_rating: '8.7', language: 'English', genre: 'Sci-Fi/Adventure' },
+        { movie_id: 'MB002', movie_name: 'Jawan', movie_rating: '9.3', language: 'Hindi', genre: 'Action/Thriller' },
+        { movie_id: 'MB007', movie_name: 'Gadar 2', movie_rating: '8.5', language: 'Hindi', genre: 'Action/Drama' },
+        { movie_id: 'MB008', movie_name: 'Sultan', movie_rating: '8.9', language: 'Hindi', genre: 'Sports/Drama' }
       ];
+      return movies;
     }
 
     async function loadMovies() {

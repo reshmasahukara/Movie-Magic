@@ -100,10 +100,11 @@
     </div>
   </main>
 
+  <script src="js/posterMap.js"></script>
   <script src="js/utils.js"></script>
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const movieId = urlParams.get('movieId');
+    const movieId = urlParams.get('id'); // Fix: index.html sends id, not movieId
     let selectedDate = new Date().toISOString().split('T')[0];
     let activeFilter = 'all';
 
@@ -134,12 +135,12 @@
           document.getElementById('movie-title').textContent = movie.movie_name;
           document.getElementById('movie-meta').textContent = `${movie.movie_rating} • ${movie.genre} • ${movie.language} • ${movie.duration || '2h 30m'}`;
           
-          if (movie.poster_url) {
-            const posterEl = document.getElementById('movie-poster');
-            posterEl.src = movie.poster_url;
-            posterEl.style.display = 'block';
-            posterEl.alt = movie.movie_name;
-          }
+          // Use Code-Based Poster
+          const posterUrl = MoviePoster.get(movie.movie_name);
+          const posterEl = document.getElementById('movie-poster');
+          posterEl.src = posterUrl;
+          posterEl.style.display = 'block';
+          posterEl.alt = movie.movie_name;
         }
       } catch (e) { console.warn("Meta fetch failed"); }
 
