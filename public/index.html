@@ -224,14 +224,11 @@
       container.scrollBy({ left: direction === 'left' ? -400 : 400, behavior: 'smooth' });
     }
 
+    function generateMovieCard(movie) {
+      const posterUrl = MoviePoster.get(movie.movie_name);
+      return `
         <div class="movie-card" onclick="window.location.href='/booking.html?id=${movie.movie_id}'">
-          <div class="poster-wrap">
-            <img src="${posterUrl}" 
-                 alt="${movie.movie_name}" 
-                 class="poster" 
-                 loading="lazy" 
-                 onerror="this.src='https://via.placeholder.com/300x450?text=Movie+Magic'">
-          </div>
+          <img src="${posterUrl}" alt="${movie.movie_name}" class="poster">
           <div class="movie-info">
             <h3 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; font-size: 1.1rem;">${movie.movie_name}</h3>
             <div class="meta" style="font-size: 0.8rem; margin: 5px 0; color: #ccc;">⭐ ${movie.movie_rating} • ${movie.language}</div>
@@ -249,10 +246,7 @@
       list.innerHTML = data.map(ev => `
         <div class="event-card">
           <div class="image-box">
-            <img src="${ev.img}" 
-                 alt="${ev.name}" 
-                 loading="lazy" 
-                 onerror="this.src='https://via.placeholder.com/300x200?text=Entertainment+Live'">
+            <img src="${ev.img}" alt="${ev.name}">
           </div>
           <div class="event-card-content">
             <span class="event-date">${ev.date}</span>
