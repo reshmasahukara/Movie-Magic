@@ -25,7 +25,9 @@ CREATE TABLE IF NOT EXISTS movie (
     genre VARCHAR(255),
     status VARCHAR(50),
     description TEXT,
-    language VARCHAR(100)
+    language VARCHAR(100),
+    category VARCHAR(100),
+    duration VARCHAR(50)
 );
 
 -- 4. Theater Table

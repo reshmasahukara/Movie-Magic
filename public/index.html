@@ -130,15 +130,37 @@
 
     function getFallbackMovies() {
       return [
-        { movie_id: 'M001', movie_name: 'RAAKA', movie_rating: '9.2', language: 'Telugu/Hindi', genre: 'Action/Thriller', status: 'Coming Soon' },
-        { movie_id: 'M002', movie_name: 'OG', movie_rating: '9.5', language: 'Telugu', genre: 'Gangster Drama', status: 'Running' },
-        { movie_id: 'M003', movie_name: 'SPIRIT', movie_rating: '9.0', language: 'Multi-Language', genre: 'Crime/Action', status: 'In Production' },
-        { movie_id: 'M004', movie_name: 'VARANASI', movie_rating: '8.8', language: 'Hindi', genre: 'Spiritual/Drama', status: 'Running' },
-        { movie_id: 'M005', movie_name: 'DRAGON', movie_rating: '8.5', language: 'English', genre: 'Fantasy/Action', status: 'Coming Soon' },
-        { movie_id: 'M006', movie_name: 'PUSHPA THE RULE', movie_rating: '9.8', language: 'Multi-Language', genre: 'Action/Drama', status: 'Running' },
-        { movie_id: 'M007', movie_name: 'BAHUBALI 2', movie_rating: '9.9', language: 'Multi-Language', genre: 'Epic/Action', status: 'Running' },
-        { movie_id: 'M008', movie_name: 'STRANGER THINGS S5', movie_rating: '9.7', language: 'English', genre: 'Sci-Fi/Horror', status: 'Coming Soon' },
-        { movie_id: 'M009', movie_name: 'AVENGERS END GAME', movie_rating: '9.6', language: 'English', genre: 'Superhero', status: 'Running' }
+        { movie_id: 'M001', movie_name: 'RAAKA', movie_rating: '9.2', language: 'Telugu/Hindi', genre: 'Action/Thriller', status: 'Coming Soon', category: 'Tollywood', duration: '155 min' },
+        { movie_id: 'M002', movie_name: 'OG', movie_rating: '9.5', language: 'Telugu', genre: 'Gangster Drama', status: 'Running', category: 'Tollywood', duration: '165 min' },
+        { movie_id: 'M003', movie_name: 'SPIRIT', movie_rating: '9.0', language: 'Multi-Language', genre: 'Crime/Action', status: 'In Production', category: 'Tollywood', duration: '170 min' },
+        { movie_id: 'M004', movie_name: 'VARANASI', movie_rating: '8.8', language: 'Hindi', genre: 'Spiritual/Drama', status: 'Running', category: 'Bollywood', duration: '140 min' },
+        { movie_id: 'M005', movie_name: 'DRAGON', movie_rating: '8.5', language: 'English', genre: 'Fantasy/Action', status: 'Coming Soon', category: 'Hollywood', duration: '135 min' },
+        { movie_id: 'M006', movie_name: 'PUSHPA THE RULE', movie_rating: '9.8', language: 'Multi-Language', genre: 'Action/Drama', status: 'Running', category: 'Tollywood', duration: '180 min' },
+        { movie_id: 'M007', movie_name: 'BAHUBALI 2', movie_rating: '9.9', language: 'Multi-Language', genre: 'Epic/Action', status: 'Running', category: 'Tollywood', duration: '167 min' },
+        { movie_id: 'M008', movie_name: 'STRANGER THINGS S5', movie_rating: '9.7', language: 'English', genre: 'Sci-Fi/Horror', status: 'Coming Soon', category: 'Hollywood', duration: '150 min' },
+        { movie_id: 'M009', movie_name: 'AVENGERS END GAME', movie_rating: '9.6', language: 'English', genre: 'Superhero', status: 'Running', category: 'Hollywood', duration: '181 min' },
+        { movie_id: 'MT001', movie_name: 'Baahubali: The Beginning', movie_rating: '9.5', language: 'Telugu/Hindi', genre: 'Epic/Action', status: 'Running', category: 'Tollywood', duration: '159 min' },
+        { movie_id: 'MT002', movie_name: 'RRR', movie_rating: '9.7', language: 'Telugu/Hindi', genre: 'Action/Drama', status: 'Running', category: 'Tollywood', duration: '187 min' },
+        { movie_id: 'MT003', movie_name: 'Kalki 2898 AD', movie_rating: '9.2', language: 'Telugu/Hindi', genre: 'Sci-Fi/Epic', status: 'Running', category: 'Tollywood', duration: '181 min' },
+        { movie_id: 'MT004', movie_name: 'Salaar: Part 1', movie_rating: '8.9', language: 'Telugu/Hindi', genre: 'Action/Crime', status: 'Running', category: 'Tollywood', duration: '175 min' },
+        { movie_id: 'MT005', movie_name: 'Saaho', movie_rating: '8.2', language: 'Telugu/Hindi', genre: 'Action/Thriller', status: 'Running', category: 'Tollywood', duration: '170 min' },
+        { movie_id: 'MT006', movie_name: 'Devara: Part 1', movie_rating: '9.1', language: 'Telugu', genre: 'Action/Drama', status: 'Running', category: 'Tollywood', duration: '178 min' },
+        { movie_id: 'MT007', movie_name: 'Pushpa: The Rise', movie_rating: '9.4', language: 'Telugu/Hindi', genre: 'Action/Thriller', status: 'Running', category: 'Tollywood', duration: '179 min' },
+        { movie_id: 'MB001', movie_name: 'Dangal', movie_rating: '9.4', language: 'Hindi', genre: 'Sports/Drama', status: 'Running', category: 'Bollywood', duration: '161 min' },
+        { movie_id: 'MB002', movie_name: 'Jawan', movie_rating: '9.3', language: 'Hindi', genre: 'Action/Thriller', status: 'Running', category: 'Bollywood', duration: '169 min' },
+        { movie_id: 'MB003', movie_name: 'Pathaan', movie_rating: '9.1', language: 'Hindi', genre: 'Action/Thriller', status: 'Running', category: 'Bollywood', duration: '146 min' },
+        { movie_id: 'MB004', movie_name: 'Bajrangi Bhaijaan', movie_rating: '9.2', language: 'Hindi', genre: 'Comedy/Drama', status: 'Running', category: 'Bollywood', duration: '163 min' },
+        { movie_id: 'MB005', movie_name: 'Animal', movie_rating: '8.8', language: 'Hindi', genre: 'Action/Drama', status: 'Running', category: 'Bollywood', duration: '201 min' },
+        { movie_id: 'MB006', movie_name: 'PK', movie_rating: '9.3', language: 'Hindi', genre: 'Comedy/Sci-Fi', status: 'Running', category: 'Bollywood', duration: '153 min' },
+        { movie_id: 'MB007', movie_name: 'Gadar 2', movie_rating: '8.5', language: 'Hindi', genre: 'Action/Drama', status: 'Running', category: 'Bollywood', duration: '170 min' },
+        { movie_id: 'MB008', movie_name: 'Sultan', movie_rating: '8.9', language: 'Hindi', genre: 'Sports/Drama', status: 'Running', category: 'Bollywood', duration: '170 min' },
+        { movie_id: 'MH001', movie_name: 'Avatar', movie_rating: '9.0', language: 'English', genre: 'Sci-Fi/Action', status: 'Running', category: 'Hollywood', duration: '162 min' },
+        { movie_id: 'MH002', movie_name: 'Avatar: Way of Water', movie_rating: '9.2', language: 'English', genre: 'Sci-Fi/Action', status: 'Running', category: 'Hollywood', duration: '192 min' },
+        { movie_id: 'MH003', movie_name: 'Titanic', movie_rating: '9.4', language: 'English', genre: 'Romance/Drama', status: 'Running', category: 'Hollywood', duration: '194 min' },
+        { movie_id: 'MH004', movie_name: 'Star Wars: TFA', movie_rating: '8.9', language: 'English', genre: 'Sci-Fi/Adventure', status: 'Running', category: 'Hollywood', duration: '138 min' },
+        { movie_id: 'MH005', movie_name: 'Avengers: Infinity War', movie_rating: '9.5', language: 'English', genre: 'Superhero', status: 'Running', category: 'Hollywood', duration: '149 min' },
+        { movie_id: 'MH006', movie_name: 'Spider-Man: No Way Home', movie_rating: '9.3', language: 'English', genre: 'Superhero', status: 'Running', category: 'Hollywood', duration: '148 min' },
+        { movie_id: 'MH007', movie_name: 'Jurassic World', movie_rating: '8.7', language: 'English', genre: 'Sci-Fi/Adventure', status: 'Running', category: 'Hollywood', duration: '124 min' }
       ];
     }
 
@@ -150,36 +172,41 @@
       try {
         const url = selectedCity ? `/api/movies?city=${selectedCity}` : '/api/movies';
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000); // Shorter failsafe (2s)
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
 
-        const fetchPromise = API.fetch(url, { signal: controller.signal });
-        const { movies } = await fetchPromise;
+        const { movies } = await API.fetch(url, { signal: controller.signal });
         clearTimeout(timeoutId);
-
         moviesData = (movies && movies.length > 0) ? movies : getFallbackMovies();
       } catch (err) {
-        console.warn("API Error or Timeout, securely falling back to static data.");
         moviesData = getFallbackMovies();
       }
       
       let recommended = [], trending = [], comingSoon = [], topRated = [];
+      let tollywood = [], bollywood = [], hollywood = [];
+
       moviesData.forEach((m, idx) => {
+        const rating = parseFloat(m.movie_rating);
+        
+        // Industry Categorization
+        if (m.category === 'Tollywood') tollywood.push(m);
+        else if (m.category === 'Bollywood') bollywood.push(m);
+        else if (m.category === 'Hollywood') hollywood.push(m);
+
+        // General Categorization
         if (m.status === 'Coming Soon' || m.status === 'In Production') {
           comingSoon.push(m);
         } else {
-          if (parseFloat(m.movie_rating) >= 9.5) topRated.push(m);
-          if (idx % 2 === 0) recommended.push(m);
+          if (rating >= 9.5) topRated.push(m);
+          if (idx % 2 === 0 || rating > 9.0) recommended.push(m);
           if (idx % 3 === 0 || idx % 2 !== 0) trending.push(m);
         }
       });
 
-      if (moviesData.length === 0) {
-          container.innerHTML = '<div class="container" style="text-align:center;"><h2>No movies available.</h2></div>';
-          return;
-      }
-
       container.innerHTML = 
         renderCarousel('Recommended Movies', 'c-rec', recommended) +
+        renderCarousel('Tollywood Blockbusters', 'c-tolly', tollywood) +
+        renderCarousel('Bollywood Hits', 'c-bolly', bollywood) +
+        renderCarousel('Hollywood Specials', 'c-holly', hollywood) +
         renderCarousel('Trending Now', 'c-trend', trending) +
         renderCarousel('Coming Soon', 'c-coming', comingSoon) +
         renderCarousel('Top Rated', 'c-top', topRated);
