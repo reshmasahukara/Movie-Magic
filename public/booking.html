@@ -224,8 +224,29 @@
     let selectedDate = new Date().toISOString().split('T')[0];
     let activeFilter = 'all';
 
-    // 1. Professional Static Data Format (Fallback & Default)
-    let theatresData = []; // Now dynamic
+    function getFallbackMovies() {
+      return [
+        { movie_id: 'M001', movie_name: 'RAAKA', movie_rating: '9.2', language: 'Telugu/Hindi', genre: 'Action/Thriller', status: 'Coming Soon', duration: '155 min', description: 'A high-octane action epic.' },
+        { movie_id: 'M002', movie_name: 'OG', movie_rating: '9.5', language: 'Telugu', genre: 'Gangster Drama', status: 'Running', duration: '165 min', description: 'The original gangster returns to reclaim his throne.' },
+        { movie_id: 'M003', movie_name: 'SPIRIT', movie_rating: '9.0', language: 'Multi-Language', genre: 'Crime/Action', status: 'In Production', duration: '170 min', description: 'A gripping police procedural drama.' },
+        { movie_id: 'M004', movie_name: 'VARANASI', movie_rating: '8.8', language: 'Hindi', genre: 'Spiritual/Drama', status: 'Now Showing', duration: '140 min', description: 'A journey of self-discovery in the holy city.' },
+        { movie_id: 'M005', movie_name: 'DRAGON', movie_rating: '8.5', language: 'English', genre: 'Fantasy/Action', status: 'Coming Soon', duration: '135 min', description: 'A tale of fire and blood.' },
+        { movie_id: 'M006', movie_name: 'PUSHPA THE RULE', movie_rating: '9.8', language: 'Multi-Language', genre: 'Action/Drama', status: 'Running', duration: '180 min', description: 'The rule of Pushpa begins.' },
+        { movie_id: 'M007', movie_name: 'BAHUBALI 2', movie_rating: '9.9', language: 'Multi-Language', genre: 'Epic/Action', status: 'Running', duration: '167 min', description: 'The conclusion to the epic saga.' },
+        { movie_id: 'M008', movie_name: 'STRANGER THINGS S5', movie_rating: '9.7', language: 'English', genre: 'Sci-Fi/Horror', status: 'Coming Soon', duration: '150 min', description: 'The final chapter in Hawkins.' },
+        { movie_id: 'M009', movie_name: 'AVENGERS END GAME', movie_rating: '9.6', language: 'English', genre: 'Superhero', status: 'Running', duration: '181 min', description: 'The grand finale of the infinity saga.' },
+        { movie_id: 'MT002', movie_name: 'RRR', movie_rating: '9.7', language: 'Telugu/Hindi', genre: 'Action/Drama', status: 'Running', duration: '187 min', description: 'A tale of two legendary revolutionaries.' },
+        { movie_id: 'MT003', movie_name: 'Kalki 2898 AD', movie_rating: '9.2', language: 'Telugu/Hindi', genre: 'Sci-Fi/Epic', status: 'Now Showing', duration: '181 min', description: 'A modern avatar of Vishnu descends to earth.' },
+        { movie_id: 'MH001', movie_name: 'Avatar', movie_rating: '9.0', language: 'English', genre: 'Sci-Fi/Action', status: 'Running', duration: '162 min', description: 'A paraplegic Marine dispatched to the moon Pandora.' },
+        { movie_id: 'MH003', movie_name: 'Titanic', movie_rating: '9.4', language: 'English', genre: 'Romance/Drama', status: 'Running', duration: '194 min', description: 'A seventeen-year-old aristocrat falls in love with a kind but poor artist.' },
+        { movie_id: 'MH005', movie_name: 'Avengers: Infinity War', movie_rating: '9.5', language: 'English', genre: 'Superhero', status: 'Running', duration: '149 min', description: 'The Avengers must stop Thanos.' },
+        { movie_id: 'MH006', movie_name: 'Spider-Man: No Way Home', movie_rating: '9.3', language: 'English', genre: 'Superhero', status: 'Running', duration: '148 min', description: 'Peter Parker seeks the help of Doctor Strange.' },
+        { movie_id: 'MH007', movie_name: 'Jurassic World', movie_rating: '8.7', language: 'English', genre: 'Sci-Fi/Adventure', status: 'Running', duration: '124 min', description: 'A new theme park built on the original site.' },
+        { movie_id: 'MB002', movie_name: 'Jawan', movie_rating: '9.3', language: 'Hindi', genre: 'Action/Thriller', status: 'Running', duration: '169 min' },
+        { movie_id: 'MB007', movie_name: 'Gadar 2', movie_rating: '8.5', language: 'Hindi', genre: 'Action/Drama', status: 'Running', duration: '170 min' },
+        { movie_id: 'MB008', movie_name: 'Sultan', movie_rating: '8.9', language: 'Hindi', genre: 'Sports/Drama', status: 'Running', duration: '170 min' }
+      ];
+    }
 
     async function init() {
       // Basic Auth Check
@@ -243,10 +264,24 @@
       renderDates();
       setupFilters();
       
-      // 1. Fetch Movie Meta
+      // 1. Fetch Movie Meta with Fallback
+      let movie = null;
       try {
-        const { movies } = await API.fetch(`/api/movies?city=${selectedCity}`);
-        const movie = movies.find(m => m.movie_id === movieId);
+        const { movies: apiMovies } = await API.fetch(`/api/movies?city=${selectedCity}`);
+        const fallbackMovies = getFallbackMovies();
+        
+        // Merge API data with fallbacks (API wins)
+        const allMovies = [...fallbackMovies];
+        if (apiMovies && apiMovies.length > 0) {
+          apiMovies.forEach(am => {
+            const idx = allMovies.findIndex(fm => fm.movie_id === am.movie_id);
+            if (idx !== -1) allMovies[idx] = { ...allMovies[idx], ...am };
+            else allMovies.push(am);
+          });
+        }
+
+        movie = allMovies.find(m => m.movie_id === movieId);
+        
         if(movie) {
           // Poster Logic
           const posterUrl = MoviePoster.get(movie.movie_name);
@@ -266,13 +301,32 @@
           document.getElementById('movie-language').textContent = movie.language;
           document.getElementById('movie-tagline').textContent = movie.description || 'Experience the magic of cinema on the big screen.';
 
-          // Chips Logic
+          // Chips Logic (Genre + Language)
           const chipsContainer = document.getElementById('movie-chips');
           const genreChips = (movie.genre || '').split('/').map(g => `<span class="chip-item">${g.trim()}</span>`).join('');
           const langChips = (movie.language || '').split('/').map(l => `<span class="chip-item">${l.trim()}</span>`).join('');
           chipsContainer.innerHTML = genreChips + langChips;
         }
-      } catch (e) { console.warn("Meta fetch failed"); }
+      } catch (e) { 
+        console.warn("Meta loading failed, checking local fallbacks...", e); 
+        movie = getFallbackMovies().find(m => m.movie_id === movieId);
+        if (movie) {
+           // Re-apply binding for fallback only case
+           const posterUrl = MoviePoster.get(movie.movie_name);
+           document.getElementById('movie-poster').src = posterUrl;
+           document.getElementById('movie-poster').style.display = 'block';
+           document.getElementById('hero-bg').style.backgroundImage = `url('${posterUrl}')`;
+           document.getElementById('movie-title').textContent = movie.movie_name;
+           document.getElementById('movie-rating').textContent = movie.movie_rating;
+           document.getElementById('movie-status').textContent = movie.status || 'Now Showing';
+           document.getElementById('movie-duration').textContent = movie.duration || '2h 30m';
+           document.getElementById('movie-language').textContent = movie.language;
+           document.getElementById('movie-tagline').textContent = movie.description || '';
+           const chipsContainer = document.getElementById('movie-chips');
+           const genreChips = (movie.genre || '').split('/').map(g => `<span class="chip-item">${g.trim()}</span>`).join('');
+           chipsContainer.innerHTML = genreChips;
+        }
+      }
 
       // 2. Fetch LIVE Shows & Group (Task 1, 3, 5)
       try {
