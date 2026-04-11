@@ -69,6 +69,9 @@ CREATE TABLE IF NOT EXISTS bookings (
     payment_status VARCHAR(50) DEFAULT 'Paid',
     theater_id INTEGER,
     theater_name VARCHAR(255),
+    movie_id VARCHAR(255),
+    show_date DATE,
+    show_time TIME,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
