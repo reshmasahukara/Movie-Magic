@@ -402,9 +402,10 @@
       } catch (err) {
         console.warn("Booking conflict detected:", err);
         
-        // Handle 409 Conflict specifically
-        const errorMsg = err.status === 409 
-          ? "SORRY! Someone just grabbed those seats. 🍿\nRefreshing map..." 
+        // Handle 400/409 Conflict specifically
+        const isConflict = err.status === 400 || err.status === 409;
+        const errorMsg = isConflict 
+          ? (err.message || "SORRY! Someone just grabbed those seats. 🍿\nRefreshing map...") 
           : (err.message || "Booking failed. Please try again.");
 
         UI.showMessage(errorMsg, 'error');

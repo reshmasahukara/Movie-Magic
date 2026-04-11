@@ -67,18 +67,21 @@ export default async function handler(req, res) {
     // 4. POST: TRANSACTIONAL BOOKING
     if (method === 'POST') {
       const { 
-        screenid, user_id, noofseats, seats, price, 
+        screenid, user_id, noofseats, seats: rawSeats, price, 
         payment_status, movie_id, show_date, show_time, theater_name 
       } = body;
 
-      if (!screenid || !user_id || !seats || !show_date || !show_time) {
+      if (!screenid || !user_id || !rawSeats || !show_date || !show_time) {
         return res.status(400).json({ error: "Missing critical booking details (screenid, user_id, seats, date, or time)" });
       }
+
+      // EXTRA SAFETY: Normalization (Trim + Upper) and Deduplication
+      const seats = [...new Set(rawSeats.map(s => s.toString().trim().toUpperCase()))];
 
       try {
         await query('BEGIN'); // TRANSACTION START
 
-        // 1. Validate show existence and lock the row
+        // 1. Validate show existence and lock the row (FOR UPDATE)
         const showRes = await query(
           'SELECT selected_seats FROM shows WHERE screen_id = $1 AND show_date = $2 AND timmings = $3 FOR UPDATE',
           [screenid, show_date, show_time]
@@ -89,13 +92,18 @@ export default async function handler(req, res) {
           return res.status(404).json({ error: "Show not found. Reservations can only be made for existing screenings." });
         }
 
-        const existingSeats = showRes.rows[0].selected_seats || [];
+        const rawOccupied = showRes.rows[0].selected_seats || [];
+        const existingSeats = rawOccupied.map(s => s.toString().trim().toUpperCase());
         
         // 2. Conflict Check (Overlap)
         const overlap = seats.filter(s => existingSeats.includes(s));
         if (overlap.length > 0) {
           await query('ROLLBACK');
-          return res.status(409).json({ success: false, message: "Seat already booked" });
+          return res.status(400).json({ 
+            success: false, 
+            message: `Seat ${overlap[0]} already booked`,
+            conflicts: overlap 
+          });
         }
 
         // 3. Update Shows Table
@@ -111,14 +119,14 @@ export default async function handler(req, res) {
             price, payment_status, show_date, show_time, theater_name
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
           [
-            screenid, user_id, movie_id, noofseats, JSON.stringify(seats), 
+            screenid, user_id, movie_id, seats.length, JSON.stringify(seats), 
             price, payment_status || 'Paid', show_date, show_time, theater_name
           ]
         );
 
         const bookingId = bookingRes.rows[0].id;
 
-        // 5. Secure individual seat locks
+        // 5. Secure individual seat locks (Hardware-level safety)
         for (const seat of seats) {
           await query(
             "INSERT INTO booked_seats (booking_id, screen_id, seat_number) VALUES ($1, $2, $3)",
@@ -132,9 +140,9 @@ export default async function handler(req, res) {
       } catch (innerErr) {
         await query('ROLLBACK');
         console.error('Transactional Booking Error:', innerErr);
-        // Special case for race condition caught by DB constraint if transaction overlap is narrow
+        // Catch concurrent unique violations (the final line of defense)
         if (innerErr.code === '23505') {
-          return res.status(409).json({ success: false, message: "Seat already booked" });
+          return res.status(400).json({ success: false, message: "Seat already booked" });
         }
         throw innerErr;
       }
