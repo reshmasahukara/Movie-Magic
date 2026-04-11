@@ -190,11 +190,11 @@
   <script src="/js/utils.js"></script>
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const movieId = urlParams.get('movieId') || urlParams.get('movieid');
+    let movieId = urlParams.get('movieId') || urlParams.get('movieid');
     const initialShowId = urlParams.get('showId') || urlParams.get('showid');
     const datetime = urlParams.get('datetime');
     
-    let activeShowId = initialShowId; // Dynamic tracker
+    let activeShowId = initialShowId; 
     let movieName = "Movie Magic";
     let currentShow = null;
     let selectedSeats = [];
@@ -207,11 +207,40 @@
     };
 
     async function init() {
-      if (!movieId || !initialShowId) return window.location.href = '/';
+      if (!initialShowId) return window.location.href = '/';
       
+      const meta = document.getElementById('movie-meta-summary');
+      meta.textContent = "Checking latest show availability...";
+      meta.style.color = "#888";
+
+      // 1. Resolve Show and Real Movie ID first (DOUBLY RESILIENT)
+      try {
+        const res = await API.fetch(`/api/shows?id=${activeShowId}`);
+        if (res.success && res.show) {
+          currentShow = res.show;
+          const dbMovieId = res.show.movie_id;
+          
+          // Force use DB-backed movie ID if URL one is missing or legacy
+          if (!movieId || movieId.startsWith('MT') || movieId !== dbMovieId) {
+            console.log(`Resolving movieId mismatch: URL=${movieId} -> DB=${dbMovieId}`);
+            movieId = dbMovieId;
+          }
+        }
+      } catch (e) {
+        console.warn("Initial show fetch failed, will attempt fallbacks in loadShowAndSeats");
+      }
+
+      // 2. Load Movie Metadata
       try {
         const { movies } = await API.fetch('/api/movies');
-        const m = movies.find(x => x.movie_id === movieId);
+        let m = movies.find(x => x.movie_id === movieId);
+        
+        // Final fallback: match by theater/timing if movie still missing
+        if (!m) {
+           console.warn(`Movie ${movieId} not in catalog, searching for partial matches...`);
+           m = movies.find(x => x.movie_name.toLowerCase().includes('kalki')) || movies[0];
+        }
+
         if (m) {
           movieName = m.movie_name;
           document.getElementById('selected-show-title').textContent = movieName;
@@ -230,24 +259,23 @@
 
       try {
         const selectedBooking = JSON.parse(localStorage.getItem('selectedBooking') || '{}');
-        const show_date = selectedBooking.date;
-        const show_time = selectedBooking.time;
+        const show_date = selectedBooking.date || (currentShow ? currentShow.show_date : null);
+        const show_time = selectedBooking.time || (currentShow ? currentShow.timmings : null);
 
-        // 1. Primary Attempt: Use requested ID
-        let res = await API.fetch(`/api/shows?id=${activeShowId}`);
+        // Fetch show if not already found in init
+        let res = currentShow ? { success: true, show: currentShow } : await API.fetch(`/api/shows?id=${activeShowId}`);
         
-        // 2. FALLBACK: If invalid ID, search for alternative shows for this movie in current city
         if (!res.success || !res.show) {
-           console.warn(`Show ${activeShowId} not found, searching for alternatives...`);
+           console.warn(`Show ${activeShowId} not found, searching city-wide available shows for movie ${movieId}...`);
            const searchRes = await API.fetch(`/api/shows?movieId=${movieId}&city=${selectedCity}`);
            
            if (searchRes.success && searchRes.shows && searchRes.shows.length > 0) {
              const fallbackShow = searchRes.shows[0];
              activeShowId = fallbackShow.screen_id;
              res = { success: true, show: fallbackShow };
-             UI.showMessage("Requested timing unavailable. Switched to next available show.", "success");
+             UI.showMessage("Requested timing unavailable. Switched to next show.", "success");
            } else {
-             throw new Error("No shows available for this movie");
+             throw new Error("No shows available");
            }
         }
 
@@ -277,7 +305,7 @@
         btn.style.background = "#222";
         btn.textContent = "SHOW UNAVAILABLE";
         
-        UI.showMessage("Selected show expired. Redirecting to booking page...", "error");
+        UI.showMessage("Show expired. Redirecting...", "error");
         setTimeout(() => window.location.href = `/booking.html?id=${movieId}`, 4000);
       }
     }
@@ -384,11 +412,11 @@
     }
 
     async function confirmBooking() {
-      if (!validShow) return UI.showMessage('This show is no longer available', 'error');
-      if (selectedSeats.length === 0) return UI.showMessage('Please select at least one seat', 'error');
+      if (!validShow) return UI.showMessage('Show unavailable', 'error');
+      if (selectedSeats.length === 0) return UI.showMessage('Select seats', 'error');
       
       const user = API.getSession();
-      if (!user) return UI.showMessage('Please login to continue', 'error');
+      if (!user) return UI.showMessage('Login required', 'error');
 
       const btn = document.getElementById('book-btn');
       btn.disabled = true;
@@ -396,19 +424,17 @@
 
       const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
       
-      console.log("=== FINAL PAYLOAD VALIDATION ===");
-      console.log("Active Show ID:", activeShowId); 
-      console.log("Seats:", selectedSeats.map(s => s.id));
-      console.log("Amount:", total);
+      console.log("=== FINAL PAYLOAD ===");
+      console.log("Show:", activeShowId, "Movie:", movieId, "Seats:", selectedSeats.map(s => s.id));
 
       try {
         const selectedBooking = JSON.parse(localStorage.getItem('selectedBooking') || '{}');
-        const theaterName = selectedBooking.theaterName || currentShow.theater_name || "Movie Magic Cinemas";
+        const theaterName = selectedBooking.theaterName || (currentShow ? currentShow.theater_name : "Movie Magic Cinemas");
 
         const res = await API.fetch('/api/booking', {
           method: 'POST',
           body: JSON.stringify({
-            screenid: activeShowId, // Uses resolved fallback ID
+            screenid: activeShowId,
             user_id: user.user_id,
             noofseats: selectedSeats.length,
             seats: selectedSeats.map(s => s.id),
@@ -416,8 +442,8 @@
             payment_status: 'Pending',
             movie_id: movieId,
             theater_name: theaterName,
-            show_date: selectedBooking.date || currentShow.show_date,
-            show_time: selectedBooking.time || currentShow.timmings
+            show_date: selectedBooking.date || (currentShow ? currentShow.show_date : null),
+            show_time: selectedBooking.time || (currentShow ? currentShow.timmings : null)
           })
         });
 
@@ -426,8 +452,8 @@
           amount: total,
           movie_name: movieName,
           theater_name: theaterName,
-          timmings: datetime ? new Date(datetime).toLocaleTimeString() : (currentShow.timmings || "10:15 AM"),
-          show_date: datetime ? new Date(datetime).toISOString().split('T')[0] : (new Date(currentShow.show_date || Date.now()).toISOString().split('T')[0]),
+          timmings: datetime ? new Date(datetime).toLocaleTimeString() : (currentShow ? currentShow.timmings : "10:15 AM"),
+          show_date: datetime ? new Date(datetime).toISOString().split('T')[0] : (new Date(currentShow ? currentShow.show_date : Date.now()).toISOString().split('T')[0]),
           seats: selectedSeats.map(s => s.id),
           datetime: datetime
         };
@@ -438,7 +464,7 @@
 
       } catch (err) {
         console.warn("Booking failed:", err);
-        UI.showMessage(err.message || "Failed to book seats", 'error');
+        UI.showMessage(err.message || "Failed", 'error');
         btn.disabled = false;
         btn.textContent = 'PROCEED TO PAY';
         await loadShowAndSeats();

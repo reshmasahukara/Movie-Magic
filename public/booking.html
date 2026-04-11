@@ -275,7 +275,7 @@
       setupFilters();
       
       // 1. Fetch Movie Meta with Fallback
-      let movie = null;
+      let currentMovie = null; 
       try {
         const { movies: apiMovies } = await API.fetch(`/api/movies?city=${selectedCity}`);
         const fallbackMovies = getFallbackMovies();
@@ -320,25 +320,28 @@
           const genreChips = (movie.genre || '').split('/').map(g => `<span class="chip-item">${g.trim()}</span>`).join('');
           const langChips = (movie.language || '').split('/').map(l => `<span class="chip-item">${l.trim()}</span>`).join('');
           chipsContainer.innerHTML = genreChips + langChips;
+          currentMovie = movie; // Save official movie object
         }
       } catch (e) { 
         console.warn("Meta loading failed, checking local fallbacks...", e); 
-        movie = getFallbackMovies().find(m => m.movie_id === movieId);
-        if (movie) {
+        const fallbackMovie = getFallbackMovies().find(m => m.movie_id === movieId);
+        if (fallbackMovie) {
            // Re-apply binding for fallback only case
-           const posterUrl = MoviePoster.get(movie.movie_name);
+           const posterUrl = MoviePoster.get(fallbackMovie.movie_name);
            document.getElementById('movie-poster').src = posterUrl;
            document.getElementById('movie-poster').style.display = 'block';
            document.getElementById('hero-bg').style.backgroundImage = `url('${posterUrl}')`;
-           document.getElementById('movie-title').textContent = movie.movie_name;
-           document.getElementById('movie-rating').textContent = movie.movie_rating;
-           document.getElementById('movie-status').textContent = movie.status || 'Now Showing';
-           document.getElementById('movie-duration').textContent = movie.duration || '2h 30m';
-           document.getElementById('movie-language').textContent = movie.language;
-           document.getElementById('movie-tagline').textContent = movie.description || '';
+           document.getElementById('movie-title').textContent = fallbackMovie.movie_name;
+           document.getElementById('movie-rating').textContent = fallbackMovie.rating || fallbackMovie.movie_rating;
+           document.getElementById('movie-status').textContent = fallbackMovie.status || 'Now Showing';
+           document.getElementById('movie-duration').textContent = fallbackMovie.duration || '2h 30m';
+           document.getElementById('movie-language').textContent = fallbackMovie.language;
+           document.getElementById('movie-tagline').textContent = fallbackMovie.description || '';
            const chipsContainer = document.getElementById('movie-chips');
-           const genreChips = (movie.genre || '').split('/').map(g => `<span class="chip-item">${g.trim()}</span>`).join('');
-           chipsContainer.innerHTML = genreChips;
+           const genreChips = (fallbackMovie.genre || '').split('/').map(g => `<span class="chip-item">${g.trim()}</span>`).join('');
+           const langChips = (fallbackMovie.language || '').split('/').map(l => `<span class="chip-item">${l.trim()}</span>`).join('');
+           chipsContainer.innerHTML = genreChips + langChips;
+           currentMovie = fallbackMovie;
         }
       }
 
@@ -489,11 +492,10 @@
       const screenNo = movieId === 'M001' || movieId === 'M004' ? 1 : 2;
       const smartShowId = showId; // Use the provided screen_id
 
-      // TASK: Accurate Theater Persistence
-      const theatreData = theatresData.find(t => t.name === theatreName) || {};
+      const officialMovieId = currentMovie ? currentMovie.movie_id : movieId;
 
       localStorage.setItem('selectedBooking', JSON.stringify({
-        movieId,
+        movieId: officialMovieId,
         showId: smartShowId,
         theaterId: theatreData.id || 1,
         theaterName: theatreName,
@@ -509,12 +511,12 @@
         theatreName,
         time,
         date: selectedDate,
-        movieId,
+        movieId: officialMovieId,
         datetime,
         screenNo
       }));
 
-      window.location.href = `/seats.html?showId=${smartShowId}&movieId=${movieId}&datetime=${datetime}`;
+      window.location.href = `/seats.html?showId=${smartShowId}&movieId=${officialMovieId}&datetime=${datetime}`;
     }
 
     // Initial Execution
