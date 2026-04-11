@@ -22,7 +22,8 @@ const POSTER_MAP = {
   "RRR": "https://image.tmdb.org/t/p/w500/ljHw5eIMnki3HekwkKwCCHsRSbH.jpg",
   "Kalki 2898 AD": "https://image.tmdb.org/t/p/w500/9r0QqBQsD3G5D7P0YMxg3hkkGpz.jpg",
   "Salaar: Part 1": "https://image.tmdb.org/t/p/w500/mNHdClul57prczb5O0krrzyonnn.jpg",
-  "Saaho": "https://image.tmdb.org/t/p/w500/nkWAw6mDVWh3w7QA3eg0hKcMXWo.jpg",
+  "Saaho": "https://i.redd.it/015f28mt9kdd1.jpeg",
+  "SAHOO": "https://i.redd.it/015f28mt9kdd1.jpeg",
   "Devara: Part 1": "https://image.tmdb.org/t/p/w500/nkWAw6mDVWh3w7QA3eg0hKcMXWo.jpg",
   "Pushpa: The Rise": "https://image.tmdb.org/t/p/w500/u9b4v6DxGiETJkxTntEzAprq3t9.jpg",
 
@@ -39,8 +40,6 @@ const POSTER_MAP = {
 
   // HOLLYWOOD
   "Avatar": "https://image.tmdb.org/t/p/w500/8Y7WrRK1iQHEX7UIftBeBMjPjWD.jpg",
-  "Avatar: The Way of Water": "https://lumiere-a.akamaihd.net/v1/images/g_avatar_thewayofwater_characterposters_97_08_41678929.jpeg?region=1,0,1298,730",
-  "Avatar:Way of Water": "https://lumiere-a.akamaihd.net/v1/images/g_avatar_thewayofwater_characterposters_97_08_41678929.jpeg?region=1,0,1298,730",
   "Titanic": "https://image.tmdb.org/t/p/w500/6mtVn4O1gSWGvCXCo8Sv8gc9jL5.jpg",
   "Star Wars: TFA": "https://cdn.wallpapersafari.com/43/44/V4h32g.jpg",
   "Avengers: Infinity War": "https://wallpapercave.com/wp/wp7505954.jpg",

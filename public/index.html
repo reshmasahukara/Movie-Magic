@@ -204,7 +204,6 @@
         { movie_id: 'M009', movie_name: 'AVENGERS END GAME', movie_rating: '9.6', language: 'English', genre: 'Superhero' },
         { movie_id: 'MT002', movie_name: 'RRR', movie_rating: '9.7', language: 'Telugu/Hindi', genre: 'Action/Drama' },
         { movie_id: 'MT003', movie_name: 'Kalki 2898 AD', movie_rating: '9.2', language: 'Telugu/Hindi', genre: 'Sci-Fi/Epic' },
-        { movie_id: 'MH002', movie_name: 'Avatar: Way of Water', movie_rating: '9.2', language: 'English', genre: 'Sci-Fi/Action' },
         { movie_id: 'MH003', movie_name: 'Titanic', movie_rating: '9.4', language: 'English', genre: 'Romance/Drama' },
         { movie_id: 'MH005', movie_name: 'Avengers: Infinity War', movie_rating: '9.5', language: 'English', genre: 'Superhero' },
         { movie_id: 'MH006', movie_name: 'Spider-Man: No Way Home', movie_rating: '9.3', language: 'English', genre: 'Superhero' },
@@ -232,6 +231,12 @@
       } catch (err) {
         moviesData = getFallbackMovies();
       }
+
+      // Global Exclusions (Avatar 2 Removal)
+      moviesData = moviesData.filter(m => 
+        m.movie_name !== "Avatar: The Way of Water" && 
+        m.movie_name !== "Avatar:Way of Water"
+      );
       
       let recommended = [], trending = [], comingSoon = [], topRated = [];
       let tollywood = [], bollywood = [], hollywood = [];

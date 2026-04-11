@@ -43,7 +43,7 @@ async function seed() {
       ['MT002', 'RRR', '9.7', 'IMAX 3D', 'Action/Drama', 'Running', 'A tale of two legendary revolutionaries.', 'Telugu/Hindi', 'Tollywood', '187 min', 'https://image.tmdb.org/t/p/w500/ljHw5eIMnki3HekwkKwCCHsRSbH.jpg'],
       ['MT003', 'Kalki 2898 AD', '9.2', 'IMAX 3D', 'Sci-Fi/Epic', 'Now Showing', 'A modern avatar of Vishnu descends to earth.', 'Telugu/Hindi', 'Tollywood', '181 min', 'https://image.tmdb.org/t/p/w500/9r0QqBQsD3G5D7P0YMxg3hkkGpz.jpg'],
       ['MT004', 'Salaar: Part 1', '8.9', '2D/4DX', 'Action/Crime', 'Running', 'A gang leader makes a promise to a dying friend.', 'Telugu/Hindi', 'Tollywood', '175 min', 'https://image.tmdb.org/t/p/w500/mNHdClul57prczb5O0krrzyonnn.jpg'],
-      ['MT005', 'Saaho', '8.2', 'IMAX 2D', 'Action/Thriller', 'Running', 'An undercover cop gets embroiled in a battle of criminals.', 'Telugu/Hindi', 'Tollywood', '170 min', 'https://image.tmdb.org/t/p/w500/nkWAw6mDVWh3w7QA3eg0hKcMXWo.jpg'],
+      ['MT005', 'Saaho', '8.2', 'IMAX 2D', 'Action/Thriller', 'Running', 'An undercover cop gets embroiled in a battle of criminals.', 'Telugu/Hindi', 'Tollywood', '170 min', 'https://i.redd.it/015f28mt9kdd1.jpeg'],
       ['MT006', 'Devara: Part 1', '9.1', '2D/IMAX', 'Action/Drama', 'Running', 'A man from a coastal area journeys to eliminate evil.', 'Telugu', 'Tollywood', '178 min', 'https://image.tmdb.org/t/p/w500/nkWAw6mDVWh3w7QA3eg0hKcMXWo.jpg'],
       ['MT007', 'Pushpa: The Rise', '9.4', '2D', 'Action/Thriller', 'Running', 'A laborer rises through the ranks of a red sandal smuggling syndicate.', 'Telugu/Hindi', 'Tollywood', '179 min', 'https://image.tmdb.org/t/p/w500/u9b4v6DxGiETJkxTntEzAprq3t9.jpg'],
       
@@ -59,7 +59,6 @@ async function seed() {
 
       // HOLLYWOOD
       ['MH001', 'Avatar', '9.0', 'IMAX 3D', 'Sci-Fi/Action', 'Running', 'A paraplegic Marine dispatched to the moon Pandora.', 'English', 'Hollywood', '162 min', 'https://image.tmdb.org/t/p/w500/8Y7WrRK1iQHEX7UIftBeBMjPjWD.jpg'],
-      ['MH002', 'Avatar: The Way of Water', '9.2', 'IMAX 3D', 'Sci-Fi/Action', 'Running', 'Jake Sully lives with his newfound family on Pandora.', 'English', 'Hollywood', '192 min', 'https://lumiere-a.akamaihd.net/v1/images/g_avatar_thewayofwater_characterposters_97_08_41678929.jpeg?region=1,0,1298,730'],
       ['MH003', 'Titanic', '9.4', 'Standard', 'Romance/Drama', 'Running', 'A seventeen-year-old aristocrat falls in love with a kind but poor artist.', 'English', 'Hollywood', '194 min', 'https://image.tmdb.org/t/p/w500/6mtVn4O1gSWGvCXCo8Sv8gc9jL5.jpg'],
       ['MH004', 'Star Wars: TFA', '8.9', 'IMAX 3D', 'Sci-Fi/Adventure', 'Running', 'A new threat rises in the galaxy.', 'English', 'Hollywood', '138 min', 'https://image.tmdb.org/t/p/w500/6EiRUJp6YvM9C3pX7K3m5W.jpg'],
       ['MH005', 'Avengers: Infinity War', '9.5', 'IMAX 3D', 'Superhero', 'Running', 'The Avengers must stop Thanos from collecting all Infinity Stones.', 'English', 'Hollywood', '149 min', 'https://image.tmdb.org/t/p/w500/7WsyChvgynooYst13uO9unS9m7X.jpg'],
