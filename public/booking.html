@@ -72,9 +72,12 @@
   <nav></nav>
 
   <header class="show-header">
-    <div class="container">
-      <h1 id="movie-title" style="font-size: 2.2rem; margin-bottom: 0.5rem; font-weight: 800;">Movie Title</h1>
-      <p id="movie-meta" style="color: var(--text-muted); font-weight: 500;">UA • Action • 2h 45m</p>
+    <div class="container" style="display: flex; gap: 2rem; align-items: flex-start;">
+      <img id="movie-poster" src="" alt="" style="width: 120px; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; border: 1px solid #444; background: #222; display: none;">
+      <div>
+        <h1 id="movie-title" style="font-size: 2.2rem; margin-bottom: 0.5rem; font-weight: 800;">Movie Title</h1>
+        <p id="movie-meta" style="color: var(--text-muted); font-weight: 500;">UA • Action • 2h 45m</p>
+      </div>
     </div>
   </header>
 
@@ -129,7 +132,14 @@
         const movie = movies.find(m => m.movie_id === movieId);
         if(movie) {
           document.getElementById('movie-title').textContent = movie.movie_name;
-          document.getElementById('movie-meta').textContent = `${movie.movie_rating} • ${movie.genre} • ${movie.language} • 2h 30m`;
+          document.getElementById('movie-meta').textContent = `${movie.movie_rating} • ${movie.genre} • ${movie.language} • ${movie.duration || '2h 30m'}`;
+          
+          if (movie.poster_url) {
+            const posterEl = document.getElementById('movie-poster');
+            posterEl.src = movie.poster_url;
+            posterEl.style.display = 'block';
+            posterEl.alt = movie.movie_name;
+          }
         }
       } catch (e) { console.warn("Meta fetch failed"); }
 
