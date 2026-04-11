@@ -19,11 +19,11 @@ const POSTER_MAP = {
   "AVENGERS END GAME": "https://image.tmdb.org/t/p/w500/2rrLBRKlVJJS0zQ1WVazgNCl4TE.jpg",
 
   // TOLLYWOOD
-  "Baahubali: The Beginning": "https://wallpapercave.com/wp/wp8015348.jpg",
-  "Bahubali: The Beginning": "https://wallpapercave.com/wp/wp8015348.jpg",
-  "Baahubali The Beginning": "https://wallpapercave.com/wp/wp8015348.jpg",
-  "Bahubali The Beginning": "https://wallpapercave.com/wp/wp8015348.jpg",
-  "BAAHUBALI: THE BEGINNING": "https://wallpapercave.com/wp/wp8015348.jpg",
+  "Baahubali: The Beginning": "https://wallpapercave.com/wp/wp3989441.jpg",
+  "Bahubali: The Beginning": "https://wallpapercave.com/wp/wp3989441.jpg",
+  "Baahubali The Beginning": "https://wallpapercave.com/wp/wp3989441.jpg",
+  "Bahubali The Beginning": "https://wallpapercave.com/wp/wp3989441.jpg",
+  "BAAHUBALI: THE BEGINNING": "https://wallpapercave.com/wp/wp3989441.jpg",
   "RRR": "https://image.tmdb.org/t/p/w500/ljHw5eIMnki3HekwkKwCCHsRSbH.jpg",
   "Kalki 2898 AD": "https://image.tmdb.org/t/p/w500/9r0QqBQsD3G5D7P0YMxg3hkkGpz.jpg",
   "Salaar: Part 1": "https://image.tmdb.org/t/p/w500/mNHdClul57prczb5O0krrzyonnn.jpg",
@@ -77,8 +77,14 @@ window.MoviePoster = {
     // Logic Priority: movie_name -> title -> local fallback -> global fallback
     const poster = POSTER_MAP[movie.movie_name] || POSTER_MAP[movie.title];
     
-    if (!poster && (movie.movie_name || '').toLowerCase().includes('pushpa')) {
-        return "/images/movies/pushpa-rise.jpg"; // Local safety fallback for Pushpa
+    if (!poster) {
+        const title = (movie.movie_name || '').toLowerCase();
+        if (title.includes('baahubali') || title.includes('bahubali')) {
+             return "/images/movies/baahubali-beginning.jpg";
+        }
+        if (title.includes('pushpa')) {
+            return "/images/movies/pushpa-rise.jpg";
+        }
     }
     
     return poster || FALLBACK_POSTER;

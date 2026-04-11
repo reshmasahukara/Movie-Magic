@@ -297,6 +297,10 @@
           const posterUrl = MoviePoster.get(movie.movie_name);
           const posterEl = document.getElementById('movie-poster');
           posterEl.src = posterUrl;
+          posterEl.onerror = function() {
+              this.onerror = null;
+              this.src = (movie.movie_name.toLowerCase().includes('baahubali') || movie.movie_name.toLowerCase().includes('bahubali')) ? '/images/movies/baahubali-beginning.jpg' : '/images/default-poster.jpg';
+          };
           posterEl.style.display = 'block';
           posterEl.alt = movie.movie_name;
 
