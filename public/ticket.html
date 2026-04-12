@@ -75,6 +75,15 @@
 
   <script src="js/utils.js"></script>
   <script>
+    function formatSafeDate(d) {
+      if (!d) return "N/A";
+      const raw = d.split('T')[0];
+      const parts = raw.split('-');
+      if (parts.length !== 3) return d;
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      return `${months[parseInt(parts[1], 10)-1]} ${parseInt(parts[2], 10)}, ${parts[0]}`;
+    }
+
     async function init() {
       const urlParams = new URLSearchParams(window.location.search);
       const bookingId = urlParams.get('bookingId');
@@ -127,7 +136,7 @@
               <div class="ticket-info">
                 <div>
                   <p class="info-label">Date</p>
-                  <p class="info-val">${new Date(data.show_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}</p>
+                  <p class="info-val">${formatSafeDate(data.show_date).toUpperCase()}</p>
                 </div>
                 <div style="text-align: right;">
                   <p class="info-label">Seats</p>

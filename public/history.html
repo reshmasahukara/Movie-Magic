@@ -59,6 +59,15 @@
       const user = API.getSession();
       if (!user) { window.location.href = '/login.html'; return; }
 
+      function formatSafeDate(d) {
+        if (!d) return "N/A";
+        const raw = d.split('T')[0];
+        const parts = raw.split('-');
+        if (parts.length !== 3) return d;
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return `${months[parseInt(parts[1], 10)-1]} ${parseInt(parts[2], 10)}, ${parts[0]}`;
+      }
+
       try {
         const { bookings } = await API.fetch(`/api/booking?action=history&userid=${user.user_id}`);
         
@@ -74,7 +83,7 @@
 
         const html = bookings.map(b => {
           const status = (b.payment_status || "Pending").toLowerCase();
-          const date = new Date(b.show_date || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          const date = formatSafeDate(b.show_date);
           const created = new Date(b.created_at || Date.now()).toLocaleString();
           
           return `
