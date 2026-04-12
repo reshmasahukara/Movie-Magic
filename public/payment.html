@@ -59,29 +59,59 @@
     let paymentData = null;
 
     async function init() {
-      const stored = localStorage.getItem('paymentData');
-      if (!stored) {
-        UI.showMessage('Transaction data missing. Redirecting...');
-        setTimeout(() => window.location.href = '/', 1500);
-        return;
+      const urlParams = new URLSearchParams(window.location.search);
+      const type = urlParams.get('type');
+      const eventId = urlParams.get('id');
+      const qty = parseInt(urlParams.get('qty')) || 1;
+
+      // 1. Resolve Data (Event vs Movie)
+      if (type === 'event' && eventId) {
+        try {
+          const res = await API.fetch(`/api/events?action=details&id=${eventId}`);
+          if (!res.success) throw new Error('Event not found');
+          
+          paymentData = {
+            type: 'event',
+            booking_id: `EV-${Date.now()}`,
+            movie_name: res.event.event_name,
+            amount: res.event.price * qty,
+            qty: qty,
+            event_id: eventId,
+            event_details: res.event
+          };
+        } catch (e) {
+          UI.showMessage('Error loading event details');
+          return;
+        }
+      } else {
+        const stored = localStorage.getItem('paymentData');
+        if (!stored) {
+          UI.showMessage('Transaction data missing. Redirecting...');
+          setTimeout(() => window.location.href = '/', 1500);
+          return;
+        }
+        paymentData = JSON.parse(stored);
+        paymentData.type = 'movie';
       }
 
-      paymentData = JSON.parse(stored);
+      // 2. Populate UI
       document.getElementById('display-id').textContent = `#${paymentData.booking_id}`;
-
-      // Professional Datetime Parsing & Formatting
-      const urlParams = new URLSearchParams(window.location.search);
-      const datetimeParam = urlParams.get('datetime');
-      console.log("Received datetime:", datetimeParam);
 
       let dateString = "Date Pending";
       let timeString = "00:00";
 
-      if (datetimeParam) {
-        const dateObj = new Date(datetimeParam);
-        if (!isNaN(dateObj.getTime())) {
-          dateString = dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-          timeString = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      if (paymentData.type === 'event') {
+        const d = new Date(paymentData.event_details.event_date);
+        dateString = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        timeString = paymentData.event_details.event_time || "TBA";
+      } else {
+        const datetimeParam = urlParams.get('datetime');
+        if (datetimeParam) {
+          const dateObj = new Date(datetimeParam);
+          if (!isNaN(dateObj.getTime())) {
+            dateString = dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+            timeString = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+          }
         }
       }
 
@@ -90,8 +120,8 @@
           <h4 style="color: white; font-size: 1.2rem; margin-bottom: 0.5rem;">${paymentData.movie_name}</h4>
           <p style="font-size: 0.9rem; color: var(--text-muted);">${timeString} • ${dateString}</p>
           <div style="margin: 1rem 0; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between;">
-            <span style="color: var(--text-muted)">Seats</span>
-            <span style="color: white; font-weight: bold;">${paymentData.seats.join(', ')}</span>
+            <span style="color: var(--text-muted)">${paymentData.type === 'event' ? 'Quantity' : 'Seats'}</span>
+            <span style="color: white; font-weight: bold;">${paymentData.type === 'event' ? paymentData.qty : paymentData.seats.join(', ')}</span>
           </div>
           <div style="display: flex; justify-content: space-between; font-size: 1.25rem;">
             <span style="color: white;">Amount Due</span>
@@ -109,7 +139,29 @@
       btn.querySelector('span').textContent = "Processing...";
 
       try {
-        // Accurate Payment Persistence: Using the unified /api/book handler
+        if (paymentData.type === 'event') {
+          const user = API.getUser();
+          const res = await API.fetch('/api/events?action=book', {
+            method: 'POST',
+            body: JSON.stringify({
+              event_id: paymentData.event_id,
+              user_id: user.user_id,
+              user_name: user.name,
+              email: user.email,
+              phone: user.contact_no || 'Not Set',
+              tickets_count: paymentData.qty,
+              amount: paymentData.amount
+            })
+          });
+
+          if (!res.success) throw new Error(res.error || 'Payment failed');
+          
+          UI.showMessage('Event Booking Successful!', 'success');
+          setTimeout(() => window.location.href = '/event-success.html', 1500);
+          return;
+        }
+
+        // Movie Payment Flow
         const payRes = await API.fetch('/api/payment', {
           method: 'POST',
           body: JSON.stringify({
@@ -121,13 +173,8 @@
         });
 
         UI.showMessage('Payment Successful!', 'success');
-        
-        // Save ID for ticket generation
         localStorage.setItem('last_booking_id', paymentData.booking_id);
-        
-        setTimeout(() => {
-          window.location.href = '/success.html';
-        }, 1000);
+        setTimeout(() => { window.location.href = '/success.html'; }, 1000);
 
       } catch (err) {
         UI.showMessage(err.message);
