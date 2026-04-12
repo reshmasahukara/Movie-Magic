@@ -150,7 +150,7 @@ async function handleGoogleLogin(req, res) {
   } else {
     const newUser = await query(
       'INSERT INTO customer (name, email, provider, profile_pic, city, contact_no) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [name, email, 'google', profile_pic, 'Not Set', 'Not Set']
+      [name, email, 'google', profile_pic, 'Not Set', req.body.contact_no || null]
     );
     const { password: _, ...userData } = newUser.rows[0];
     return res.status(201).json({ success: true, user: userData });
