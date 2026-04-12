@@ -5,6 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login | Movie Magic</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .forgot-wrap {
+      text-align: right;
+      margin-top: 10px;
+      margin-bottom: 15px;
+    }
+    #forgotPasswordBtn {
+      color: #ccc;
+      font-size: 14px;
+      text-decoration: none;
+      transition: .3s;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    #forgotPasswordBtn:hover {
+      color: #ff0000;
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body style="background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1920&q=80'); background-size: cover;">
   <nav>
@@ -27,11 +49,11 @@
           <label>Password</label>
           <input type="password" id="password" required placeholder="••••••••">
         </div>
+        <div class="forgot-wrap">
+           <a href="#" id="forgotPasswordBtn">Forgot Password?</a>
+        </div>
         <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Sign In</button>
       </form>
-      <div style="text-align: right; margin-top: 1rem;">
-        <button id="forgot-link" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; transition: color 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">Forgot Password?</button>
-      </div>
       <p style="text-align: center; margin-top: 1.5rem; color: var(--text-muted);">
         New to Movie Magic? <a href="/signup.html" style="color: var(--primary); text-decoration: none;">Join now</a>
       </p>
@@ -110,8 +132,10 @@
     
     let resetEmail = '';
     let resetOtp = '';
-
-    document.getElementById('forgot-link').onclick = () => {
+    
+    // Fixed: Connect to the new button ID
+    document.getElementById('forgotPasswordBtn').onclick = (e) => {
+        e.preventDefault();
         document.getElementById('forgotModal').style.display = 'flex';
         showStep(1);
     };
