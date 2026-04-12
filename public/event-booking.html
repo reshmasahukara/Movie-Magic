@@ -76,6 +76,12 @@
     .summary-card { background: var(--card-bg); border-radius: 12px; padding: 2rem; border: 1px solid var(--glass); height: fit-content; position: sticky; top: 2rem; z-index: 9999 !important; pointer-events: auto !important; }
     .summary-card::before, .summary-card::after { pointer-events: none !important; }
     .screen-indicator { width: 80%; height: 4px; background: var(--primary); margin: 0 auto 2rem; border-radius: 2px; box-shadow: 0 4px 10px var(--primary); }
+    
+    /* Emergency Pointer Fix */
+    button, .proceed-btn, #proceedBtn, #proceed-btn {
+      pointer-events: auto !important;
+      cursor: pointer !important;
+    }
   </style>
 </head>
 <body>
@@ -326,39 +332,79 @@
       }
     }
 
-    function proceedToPayment() {
-      console.log('Proceed clicked');
+    UI.initNavbar();
+    loadEvent();
+  </script>
+
+  <!-- EMERGENCY PAYMENT FIX: Aggressive Force-Click Logic -->
+  <script>
+  (function () {
+    function initEventPayButton() {
+      console.log("[Emergency Fix] Searching for Proceed button...");
       
-      const user = API.getUser();
-      if (!user) {
-        UI.showMessage('Please login to book tickets');
-        setTimeout(() => window.location.href = '/login.html', 1500);
+      const btn =
+        document.getElementById("proceed-btn") ||
+        document.getElementById("proceedBtn") ||
+        document.getElementById("payBtn") ||
+        document.querySelector(".proceed-btn") ||
+        [...document.querySelectorAll("button")]
+          .find(b => b.textContent.trim().toUpperCase().includes("PROCEED"));
+
+      if (!btn) {
+        console.log("[Emergency Fix] Button not found, retrying in 800ms...");
+        setTimeout(initEventPayButton, 800);
         return;
       }
 
-      const count = currentEvent.has_seat_map ? selectedSeats.length : ticketQty;
-      if (count === 0) return UI.showMessage('Please select at least one ticket');
+      // Cleanup and Force Styles
+      btn.type = "button";
+      btn.style.pointerEvents = "auto";
+      btn.style.zIndex = "99999";
+      btn.style.position = "relative";
+      btn.style.cursor = "pointer";
+      btn.setAttribute('data-fixed', 'yes');
 
-      const btn = document.getElementById('proceed-btn');
-      btn.disabled = true;
-      btn.textContent = 'Redirecting to Payment...';
+      btn.onclick = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
 
-      // Direct Redirect Flow (as requested for absolute fix)
-      const eventId = currentEvent.id;
-      const url = `payment.html?type=event&id=${eventId}&qty=${count}`;
-      console.log('Redirecting to:', url);
-      window.location.href = url;
+        console.log("[Emergency Fix] Click intercepted!");
+
+        const params = new URLSearchParams(window.location.search);
+        const eventId = params.get("id") || "1";
+
+        let qty = 1;
+        const qtyEl =
+          document.getElementById("qty-display") ||
+          document.getElementById("ticketQty") ||
+          document.querySelector(".qty-value") ||
+          document.querySelector(".quantity-value");
+
+        if (qtyEl) {
+          qty = parseInt(qtyEl.textContent.trim()) || 1;
+        }
+
+        console.log("[Emergency Fix] Redirecting to payment...", { eventId, qty });
+        window.location.href = `payment.html?type=event&id=${eventId}&qty=${qty}`;
+      };
+
+      console.log("[Emergency Fix] Proceed button successfully hijacked and fixed.");
     }
 
-    // Global Click Delegation (Absolute Reliability)
-    document.addEventListener('click', function(e) {
-      if (e.target && (e.target.id === 'proceed-btn' || e.target.closest('#proceed-btn'))) {
-         proceedToPayment();
-      }
-    });
+    // Initialize with redundancy
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initEventPayButton);
+    } else {
+      initEventPayButton();
+    }
+    
+    // Safety check: Re-verify every 2 seconds in case of dynamic UI refreshes
+    setInterval(() => {
+      const btn = document.querySelector('[data-fixed="yes"]');
+      if (!btn) initEventPayButton();
+    }, 2000);
 
-    UI.initNavbar();
-    loadEvent();
+  })();
   </script>
 </body>
 </html>
