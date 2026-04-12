@@ -16,8 +16,9 @@ export default async function handler(req, res) {
         [screen_id, show_date, show_time]
       );
       
-      if (result.rows.length === 0) return res.status(404).json({ error: "Show instance not found" });
-      
+      if (result.rows.length === 0) {
+        return res.status(200).json({ success: true, seats: [], dynamic: true });
+      }
       return res.status(200).json({ success: true, seats: result.rows[0].selected_seats || [] });
     }
 
@@ -88,30 +89,36 @@ export default async function handler(req, res) {
         );
 
         if (showRes.rows.length === 0) {
-          await query('ROLLBACK');
-          return res.status(404).json({ error: "Show not found. Reservations can only be made for existing screenings." });
+          // Dynamic Show Creation
+          try {
+            await query(
+              'INSERT INTO shows (screen_id, movie_id, show_date, timmings, theater_name, selected_seats) VALUES ($1, $2, $3, $4, $5, $6)',
+              [screenid, movie_id || 'M001', show_date, show_time, theater_name || 'Dynamic Theater', JSON.stringify(seats)]
+            );
+          } catch(e) {
+            console.error("Dynamic show creation skipped / failed:", e);
+          }
+        } else {
+          const rawOccupied = showRes.rows[0].selected_seats || [];
+          const existingSeats = rawOccupied.map(s => s.toString().trim().toUpperCase());
+          
+          // 2. Conflict Check (Overlap)
+          const overlap = seats.filter(s => existingSeats.includes(s));
+          if (overlap.length > 0) {
+            await query('ROLLBACK');
+            return res.status(400).json({ 
+              success: false, 
+              message: `Seat ${overlap[0]} already booked`,
+              conflicts: overlap 
+            });
+          }
+
+          // 3. Update Shows Table
+          await query(
+            'UPDATE shows SET selected_seats = COALESCE(selected_seats, \'[]\'::jsonb) || $1::jsonb WHERE screen_id = $2 AND show_date = $3 AND timmings = $4',
+            [JSON.stringify(seats), screenid, show_date, show_time]
+          );
         }
-
-        const rawOccupied = showRes.rows[0].selected_seats || [];
-        const existingSeats = rawOccupied.map(s => s.toString().trim().toUpperCase());
-        
-        // 2. Conflict Check (Overlap)
-        const overlap = seats.filter(s => existingSeats.includes(s));
-        if (overlap.length > 0) {
-          await query('ROLLBACK');
-          return res.status(400).json({ 
-            success: false, 
-            message: `Seat ${overlap[0]} already booked`,
-            conflicts: overlap 
-          });
-        }
-
-        // 3. Update Shows Table
-        await query(
-          'UPDATE shows SET selected_seats = COALESCE(selected_seats, \'[]\'::jsonb) || $1::jsonb WHERE screen_id = $2 AND show_date = $3 AND timmings = $4',
-          [JSON.stringify(seats), screenid, show_date, show_time]
-        );
-
         // 4. Create Booking Record with complete context
         const bookingRes = await query(
           `INSERT INTO bookings (
