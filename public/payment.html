@@ -63,6 +63,21 @@
   <script>
     let checkoutData = null;
 
+    async function getLoggedUser() {
+      try {
+        // Source 1: Standard API Helper
+        if (typeof API.getSession === 'function') return API.getSession();
+        
+        // Source 2: Direct Local Storage (Multiple potential keys)
+        const local = 
+          JSON.parse(localStorage.getItem('movie_magic_user')) || 
+          JSON.parse(localStorage.getItem('movieMagicUser')) ||
+          JSON.parse(sessionStorage.getItem('movie_magic_user'));
+          
+        return local || null;
+      } catch (e) { return null; }
+    }
+
     async function init() {
       const params = new URLSearchParams(window.location.search);
       const type = params.get("type");
@@ -128,16 +143,17 @@
       btn.querySelector('span').textContent = "Processing...";
 
       try {
+        const user = await getLoggedUser();
+
         if (checkoutData.type === "event") {
-          const user = API.getUser();
           const res = await API.fetch('/api/events?action=book', {
             method: 'POST',
             body: JSON.stringify({
               event_id: checkoutData.eventId,
-              user_id: user.user_id,
-              user_name: user.name,
-              email: user.email,
-              phone: user.contact_no || 'Not Set',
+              user_id: user?.user_id || user?.id || 'GUEST',
+              user_name: user?.name || user?.username || 'Guest User',
+              email: user?.email || 'guest@example.com',
+              phone: user?.contact_no || user?.phone || 'Not Set',
               tickets_count: checkoutData.qty,
               amount: checkoutData.total
             })
