@@ -11,8 +11,8 @@
       margin-top: 10px;
       margin-bottom: 15px;
     }
-    #forgotPasswordBtn {
-      color: #ccc;
+     #forgotPasswordBtn {
+      color: var(--primary); /* Force it to be visible RED like 'Join now' */
       font-size: 14px;
       text-decoration: none;
       transition: .3s;
@@ -21,9 +21,10 @@
       padding: 0;
       cursor: pointer;
       font-family: inherit;
+      font-weight: 500;
     }
     #forgotPasswordBtn:hover {
-      color: #ff0000;
+      color: white; /* Flip colors on hover */
       text-decoration: underline;
     }
   </style>
@@ -41,21 +42,21 @@
     <div class="auth-container">
       <h2 style="font-size: 2rem; margin-bottom: 2rem; text-align: center;">Welcome Back</h2>
       <form id="login-form">
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 1rem;">
           <label>Email Address</label>
           <input type="email" id="email" required placeholder="name@example.com">
         </div>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 0.5rem;">
           <label>Password</label>
           <input type="password" id="password" required placeholder="••••••••">
         </div>
-        <div class="forgot-wrap">
-           <a href="#" id="forgotPasswordBtn">Forgot Password?</a>
+        <div style="text-align: right; margin-bottom: 1.5rem;">
+           <a href="#" id="forgotPasswordBtn" style="color: #ff0000; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer !important; display: inline-block !important; visibility: visible !important;">Forgot Password?</a>
         </div>
-        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Sign In</button>
+        <button type="submit" class="btn-primary" style="width: 100%;">Sign In</button>
       </form>
-      <p style="text-align: center; margin-top: 1.5rem; color: var(--text-muted);">
-        New to Movie Magic? <a href="/signup.html" style="color: var(--primary); text-decoration: none;">Join now</a>
+      <p style="text-align: center; margin-top: 2rem; color: var(--text-muted); font-size: 0.9rem;">
+        New to Movie Magic? <a href="/signup.html" style="color: var(--primary); text-decoration: none; font-weight: bold;">Join now</a>
       </p>
     </div>
   </div>
