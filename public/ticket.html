@@ -97,7 +97,7 @@
       if(!user) return window.location.href = '/login.html';
 
       try {
-        const { bookings } = await API.fetch(`/api/booking?action=history&userid=${user.user_id}`);
+        const { bookings } = await API.fetch(`/api/user?action=history&userid=${user.user_id}`);
         const data = bookings.find(b => b.id == bookingId);
         
         if (!data) throw new Error("Ticket not found in your account.");

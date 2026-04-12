@@ -215,7 +215,7 @@
 
       // 1. Resolve Show and Real Movie ID first (DOUBLY RESILIENT)
       try {
-        const res = await API.fetch(`/api/shows?id=${activeShowId}`);
+        const res = await API.fetch(`/api/movies?action=shows&id=${activeShowId}`);
         if (res.success && res.show) {
           currentShow = res.show;
           const dbMovieId = res.show.movie_id;
@@ -232,7 +232,7 @@
 
       // 2. Load Movie Metadata
       try {
-        const { movies } = await API.fetch('/api/movies');
+        const { movies } = await API.fetch('/api/movies?action=moviesdash');
         let m = movies.find(x => x.movie_id === movieId);
         
         // Final fallback: match by theater/timing if movie still missing
@@ -271,11 +271,11 @@
         }
 
         // Fetch show if not already found in init
-        let res = currentShow ? { success: true, show: currentShow } : await API.fetch(`/api/shows?id=${activeShowId}`).catch(() => ({ success: false }));
+        let res = currentShow ? { success: true, show: currentShow } : await API.fetch(`/api/movies?action=shows&id=${activeShowId}`).catch(() => ({ success: false }));
         
         if (!res.success || !res.show) {
            console.warn(`Show ${activeShowId} not found, searching city-wide available shows for movie ${movieId}...`);
-           const searchRes = await API.fetch(`/api/shows?movieId=${movieId}&city=${selectedCity}`).catch(() => ({ success: false }));
+           const searchRes = await API.fetch(`/api/movies?action=shows&movieId=${movieId}&city=${selectedCity}`).catch(() => ({ success: false }));
            
            if (searchRes.success && searchRes.shows && searchRes.shows.length > 0) {
              const fallbackShow = searchRes.shows[0];
@@ -303,7 +303,7 @@
           
           // Sync occupancy
           try {
-            const seatRes = await API.fetch(`/api/booking?action=getseats&screen_id=${activeShowId}&show_date=${show_date || currentShow.show_date}&show_time=${show_time || currentShow.timmings}`);
+            const seatRes = await API.fetch(`/api/movies?action=getseats&screen_id=${activeShowId}&show_date=${show_date || currentShow.show_date}&show_time=${show_time || currentShow.timmings}`);
             if (seatRes.success) {
               currentShow.selected_seats = seatRes.seats;
             }
@@ -471,7 +471,7 @@
           finalDisplayTime = new Date(datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        const res = await API.fetch('/api/booking', {
+        const res = await API.fetch('/api/movies', {
           method: 'POST',
           body: JSON.stringify({
             screenid: activeShowId,

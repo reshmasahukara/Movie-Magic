@@ -487,3 +487,34 @@ nav .links a:hover {
     display: none; /* Hide scroll buttons on mobile, use touch scroll */
   }
 }
+
+/* Forgot Password Visibility & Styling */
+.forgot-force {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  text-align: right;
+  margin-top: 5px;
+  margin-bottom: 20px;
+  width: 100%;
+  position: relative;
+  z-index: 9999;
+}
+
+#forgotPasswordBtn {
+  color: #ff3333 !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  display: inline-block !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  transition: color 0.3s ease;
+}
+
+#forgotPasswordBtn:hover {
+  color: #ffffff !important;
+  text-decoration: underline !important;
+}

@@ -110,7 +110,7 @@
 
       try {
         // Accurate Payment Persistence: Using the unified /api/book handler
-        const payRes = await API.fetch('/api/book', {
+        const payRes = await API.fetch('/api/payment', {
           method: 'POST',
           body: JSON.stringify({
             booking_id: paymentData.booking_id,

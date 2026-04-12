@@ -122,7 +122,7 @@
         try {
           const user = API.getSession();
           if (user) {
-            const history = await API.fetch(`/api/booking?action=history&userid=${user.user_id}`);
+            const history = await API.fetch(`/api/user?action=history&userid=${user.user_id}`);
             const latest = history.bookings.find(b => b.id == lastBookingId);
             if (latest) {
                data = {

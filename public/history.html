@@ -77,7 +77,7 @@
       }
 
       try {
-        const { bookings } = await API.fetch(`/api/booking?action=history&userid=${user.user_id}`);
+        const { bookings } = await API.fetch(`/api/user?action=history&userid=${user.user_id}`);
         
         if (!bookings || bookings.length === 0) {
           UI.safeRender('history-list', `
@@ -155,7 +155,7 @@
       
       const user = API.getSession();
       try {
-        const res = await API.fetch('/api/booking?action=cancel', {
+        const res = await API.fetch('/api/movies?action=cancel', {
            method: 'DELETE',
            body: JSON.stringify({ booking_id: bookingId, user_id: user.user_id })
         });

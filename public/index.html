@@ -308,7 +308,7 @@
 
       let moviesData = [];
       try {
-        const url = selectedCity ? `/api/movies?city=${selectedCity}` : '/api/movies';
+        const url = selectedCity ? `/api/movies?action=moviesdash&city=${selectedCity}` : '/api/movies?action=moviesdash';
         const { movies } = await API.fetch(url);
         moviesData = (movies && movies.length > 0) ? movies : getFallbackMovies();
       } catch (err) {
