@@ -239,8 +239,8 @@
           <div class="movie-info">
             <h3 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; font-size: 1.1rem;">${movie.movie_name}</h3>
             <div class="meta" style="font-size: 0.8rem; margin: 5px 0; color: #ccc;">⭐ ${movie.movie_rating} • ${movie.language}</div>
-            <div class="meta" style="font-size: 0.75rem; color: #aaa;">${movie.genre}</div>
-            <a href="/booking.html?id=${movie.movie_id}" class="btn-book">Book Now</a>
+            <div class="meta" style="font-size: 0.75rem; color: #aaa; margin-bottom: 1.2rem;">${movie.genre}</div>
+            <a href="/booking.html?id=${movie.movie_id}" class="btn-book" onclick="event.stopPropagation()">Book Now</a>
           </div>
         </div>
       `;
@@ -260,7 +260,10 @@
             <span class="event-name">${ev.name}</span>
             <div class="event-meta">📍 ${ev.venue}</div>
             <div class="event-meta">🏢 ${ev.city}</div>
-            <div style="margin-top: 15px;"><span class="event-tag">${ev.tag}</span></div>
+            <div style="margin-top: 15px; display: flex; align-items: center; justify-content: space-between;">
+              <span class="event-tag">${ev.tag}</span>
+              <button class="btn-book" style="padding: 6px 14px; font-size: 0.7rem;" onclick="UI.showMessage('Ticket booking for events coming soon! 🎫', 'success')">Book Now</button>
+            </div>
           </div>
         </div>
       `).join('');
