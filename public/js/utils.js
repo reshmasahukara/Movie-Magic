@@ -51,7 +51,7 @@ const UI = {
     
     nav.innerHTML = `
       <div style="display: flex; align-items: center; gap: 1.5rem;">
-        <a href="/" class="logo">MOVIE MAGIC</a>
+        <a href="/" class="logo"><i>🎬</i> MOVIE MAGIC</a>
         <button id="navCityBtn" style="background: transparent; color: var(--text-muted); border: 1px solid #444; padding: 6px 12px; border-radius: 4px; cursor: pointer;" 
           onclick="if(window.showCityModal) { showCityModal(); } else { window.location.href = '/?showModal=true'; }">
           ${selectedCity} ▾

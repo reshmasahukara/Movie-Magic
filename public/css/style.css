@@ -35,11 +35,31 @@ nav {
 }
 
 nav .logo {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #FFFFFF;
   text-decoration: none;
-  letter-spacing: -1px;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+}
+
+nav .logo i {
+  color: var(--primary);
+  font-style: normal;
+  text-shadow: 0 0 10px rgba(229, 9, 20, 0.3);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+nav .logo:hover i {
+  transform: rotate(-15deg) scale(1.2);
+  text-shadow: 0 0 15px var(--primary);
+}
+
+nav .logo:hover {
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
 nav .links a {

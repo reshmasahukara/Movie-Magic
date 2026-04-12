@@ -100,11 +100,18 @@
   </div>
 
   <nav>
-    <div style="display: flex; align-items: center; gap: 1.5rem;">
-      <a href="/" class="logo">MOVIE MAGIC</a>
+    <div style="display: flex; align-items: center; gap: 1.5rem; flex: 1;">
+      <a href="/" class="logo"><i>🎬</i> MOVIE MAGIC</a>
       <button id="navCityBtn" style="background: transparent; color: var(--text-muted); border: 1px solid #444; padding: 6px 12px; border-radius: 4px; cursor: pointer;" onclick="showCityModal()">Select City ▾</button>
     </div>
-    <div class="links" id="nav-links">
+
+    <!-- Search Bar (Requirement 9: Search/Filter) -->
+    <div style="flex: 2; max-width: 600px; position: relative; margin: 0 2rem;" class="no-mobile">
+      <input type="text" id="movie-search" placeholder="Search for Movies, Events, Plays and Sports" style="width: 100%; background: #222; border: 1px solid #333; padding: 0.8rem 1rem 0.8rem 3rem; border-radius: 8px; color: white; font-size: 0.9rem; transition: border-color 0.3s;">
+      <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); opacity: 0.4;">🔍</span>
+    </div>
+
+    <div class="links" id="nav-links" style="flex: 1; display: flex; justify-content: flex-end; gap: 2rem;">
       <a href="/">Home</a>
       <a href="/login.html">Login</a>
       <a href="/signup.html">Signup</a>
@@ -225,6 +232,19 @@
       if(btn && selectedCity) btn.textContent = selectedCity + ' ▾';
     }
 
+    function setupSearch() {
+      const input = document.getElementById('movie-search');
+      if (!input) return;
+      input.oninput = () => {
+        const q = input.value.toLowerCase();
+        const cards = document.querySelectorAll('#movies-list .movie-card');
+        cards.forEach(card => {
+          const title = card.querySelector('h3').textContent.toLowerCase();
+          card.style.display = title.includes(q) ? 'block' : 'none';
+        });
+      };
+    }
+
     function scrollCarousel(id, direction) {
       const container = document.getElementById(id);
       if (!container) return;
@@ -299,6 +319,7 @@
       moviesData = moviesData.filter(m => m.movie_name !== "Avatar: The Way of Water" && m.movie_name !== "Avatar:Way of Water");
       
       list.innerHTML = moviesData.map(m => generateMovieCard(m)).join('');
+      setupSearch();
     }
 
     initCity();
