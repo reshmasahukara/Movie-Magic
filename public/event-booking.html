@@ -106,6 +106,33 @@
     let selectedSeats = [];
     let ticketQty = 1;
 
+    // Redundant Image System
+    function getCategoryFallback(cat) {
+      const fallbacks = {
+        'Music': 'https://images.unsplash.com/photo-1514525253361-bee048425260?auto=format&fit=crop&w=1200',
+        'Sports': 'https://images.unsplash.com/photo-1461896756913-647ee9910c2b?auto=format&fit=crop&w=1200',
+        'Comedy': 'https://images.unsplash.com/photo-1527224857813-f8e1374528ca?auto=format&fit=crop&w=1200',
+        'Festival': 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=1200',
+        'Outdoor': 'https://images.unsplash.com/photo-1544551763-8a405c1d8569?auto=format&fit=crop&w=1200',
+        'Workshops': 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1200'
+      };
+      return fallbacks[cat] || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1200';
+    }
+
+    function getEventImage(ev) {
+      if (!ev) return '';
+      return ev.image_url || ev.image || ev.poster || ev.banner_url || getCategoryFallback(ev.category);
+    }
+
+    window.handleImageError = function(el) {
+      if (!currentEvent) return;
+      const fallback = getCategoryFallback(currentEvent.category);
+      if (el.src !== fallback) {
+        console.warn(`[Image System] Primary image failed for ${currentEvent.event_name}. Falling back to ${currentEvent.category} library.`);
+        el.src = fallback;
+      }
+    };
+
     async function loadEvent() {
       const urlParams = new URLSearchParams(window.location.search);
       const id = urlParams.get('id');
@@ -125,7 +152,10 @@
       document.getElementById('event-loading').style.display = 'none';
       document.getElementById('booking-content').style.display = 'grid';
       
-      document.getElementById('event-banner').src = currentEvent.image_url;
+      const banner = document.getElementById('event-banner');
+      banner.onerror = function() { window.handleImageError(this); };
+      banner.src = getEventImage(currentEvent);
+      
       document.getElementById('event-name').textContent = currentEvent.event_name;
       document.getElementById('event-category').textContent = currentEvent.category;
       
