@@ -711,7 +711,13 @@ nav .links a:hover {
 }
 
 /* --- Hardened Event Card Styles --- */
-.carousel-container .event-card { min-width: 250px; max-width: 250px; flex: 0 0 auto; }
+.carousel-container .movie-card,
+.carousel-container .event-card { 
+  min-width: 250px; 
+  max-width: 250px; 
+  flex: 0 0 250px; 
+  height: 100%;
+}
 .event-card { background: var(--card-bg); border: 1px solid var(--glass); border-radius: 16px; overflow: hidden; transition: transform 0.3s, border-color 0.3s; cursor: pointer; height: 100%; }
 .event-card:hover { transform: translateY(-10px); border-color: var(--primary); }
 .event-card .image-box { height: 250px; width: 100%; overflow: hidden; background: #111; }
