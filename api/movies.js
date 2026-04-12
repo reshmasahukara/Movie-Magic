@@ -131,11 +131,18 @@ async function handleGetMovieDetails(req, res) {
 }
 
 async function handleCreateBooking(req, res) {
-  const { screenid, user_id, seats: rawSeats, price, movie_id, show_date, show_time, theater_name } = req.body;
+  const { screenid, user_id, seats: rawSeats, price, movie_id, show_date, show_time, theater_name, screen_no } = req.body;
   const seats = [...new Set(rawSeats.map(s => s.toString().trim().toUpperCase()))];
+  const normalizedScreenNo = screen_no || 1;
+
   try {
     await query('BEGIN');
-    await query(`INSERT INTO shows (screen_id, movie_id, theater_id, timmings, show_date) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (screen_id) DO NOTHING`, [screenid, movie_id || 'M001', 1, show_time, show_date]);
+    await query(
+      `INSERT INTO shows (screen_id, movie_id, theater_id, timmings, show_date, screen_no) 
+       VALUES ($1, $2, $3, $4, $5, $6) 
+       ON CONFLICT (screen_id) DO NOTHING`, 
+      [screenid, movie_id || 'M001', 1, show_time, show_date, normalizedScreenNo]
+    );
     const resB = await query(`INSERT INTO bookings (screen_id, user_id, movie_id, no_of_seats, selected_seats, price, payment_status, show_date, show_time, theater_name) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`, [screenid, user_id, movie_id, seats.length, JSON.stringify(seats), price, 'Paid', show_date, show_time, theater_name]);
     const bId = resB.rows[0].id;
     for (const seat of seats) { await query("INSERT INTO booked_seats (booking_id, screen_id, seat_number) VALUES ($1, $2, $3)", [bId, screenid, seat]); }

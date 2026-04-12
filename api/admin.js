@@ -81,9 +81,10 @@ export default async function handler(req, res) {
       const { action } = q;
       if (action === 'addMovie') {
         const { movieId, movieName, movieRating, movieDimensions, movieGenre, movieStatus, movieDescription, movieLanguage, theaterId, Timmings, showdate, screenno, screendimensions, noofseats, selectedseats } = body;
+        const normalizedScreen = screenno || 1;
         await query('INSERT INTO movie (movie_id, movie_name, movie_rating, movie_dimensions, genre, status, description, language) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (movie_id) DO NOTHING', [movieId, movieName, movieRating, movieDimensions, movieGenre, movieStatus, movieDescription, movieLanguage]);
         await query('INSERT INTO theater1 (theater_id, movie_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [theaterId, movieId]);
-        await query('INSERT INTO shows (movie_id, theater_id, timmings, show_date, screen_no, screen_dimensions, no_of_seats, selected_seats) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [movieId, theaterId, Timmings, showdate, screenno, screendimensions, noofseats, JSON.parse(JSON.stringify(selectedseats || '[]'))]);
+        await query('INSERT INTO shows (movie_id, theater_id, timmings, show_date, screen_no, screen_dimensions, no_of_seats, selected_seats) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [movieId, theaterId, Timmings, showdate, normalizedScreen, screendimensions, noofseats, JSON.parse(JSON.stringify(selectedseats || '[]'))]);
         return res.status(200).json({ success: true, message: "Movie added" });
       }
 
