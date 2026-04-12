@@ -12,8 +12,8 @@ export default async function handler(req, res) {
       }
 
       const result = await query(
-        'SELECT selected_seats FROM shows WHERE screen_id = $1 AND show_date = $2 AND timmings = $3', 
-        [screen_id, show_date, show_time]
+        'SELECT selected_seats FROM shows WHERE screen_id = $1', 
+        [screen_id]
       );
       
       if (result.rows.length === 0) {
