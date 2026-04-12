@@ -84,10 +84,10 @@ export default async function handler(req, res) {
 
         // 1. UPSERT SHOW: Ensure show exists to satisfy Foreign Key constraints
         await query(
-          `INSERT INTO shows (screen_id, movie_id, theater_id, timmings, show_date, screen_no, screen_dimensions, theater_name) 
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+          `INSERT INTO shows (screen_id, movie_id, theater_id, timmings, show_date, screen_no, screen_dimensions) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7) 
            ON CONFLICT (screen_id) DO NOTHING`,
-          [screenid, movie_id || 'M001', 1, show_time, show_date, 1, '2D', theater_name || 'Movie Magic']
+          [screenid, movie_id || 'M001', 1, show_time, show_date, 1, '2D']
         );
 
         // 2. Lock the row (FOR UPDATE) and check seats
