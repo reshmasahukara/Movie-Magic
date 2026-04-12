@@ -14,7 +14,12 @@
       <h2 style="margin-bottom: 2rem; color: var(--primary); text-align: center;">Secure Checkout</h2>
       
       <div id="booking-details" style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid var(--glass);">
-        <p style="color: var(--text-muted); text-align: center;">Loading transaction data...</p>
+        <h4 id="txnTitle" style="color: white; font-size: 1.2rem; margin-bottom: 0.5rem; text-align: center;">Loading...</h4>
+        <p id="txnMeta" style="font-size: 0.9rem; color: var(--text-muted); text-align: center;">Please wait</p>
+        <div style="display: flex; justify-content: space-between; font-size: 1.25rem; margin-top: 1rem;">
+          <span style="color: white;">Amount Due</span>
+          <span id="txnAmount" style="color: var(--primary); font-weight: 800;">₹0</span>
+        </div>
       </div>
 
       <form id="payment-form">
@@ -43,7 +48,7 @@
       </form>
 
       <div style="margin-top: 1rem; text-align: center;">
-        <p style="font-size: 0.7rem; color: #555;">Booking ID: <span id="display-id">#00000</span></p>
+        <p style="font-size: 0.7rem; color: #555;">Ref ID: <span id="bookingRef">#00000</span></p>
       </div>
 
       <div style="margin-top: 2rem; display: flex; align-items: center; justify-content: center; gap: 1rem; opacity: 0.5;">
@@ -56,80 +61,64 @@
 
   <script src="js/utils.js"></script>
   <script>
-    let paymentData = null;
+    let checkoutData = null;
 
     async function init() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const type = urlParams.get('type');
-      const eventId = urlParams.get('id');
-      const qty = parseInt(urlParams.get('qty')) || 1;
+      const params = new URLSearchParams(window.location.search);
+      const type = params.get("type");
+      const id = params.get("id");
+      const qty = parseInt(params.get("qty")) || 1;
 
-      // 1. Resolve Data (Event vs Movie)
-      if (type === 'event' && eventId) {
-        try {
+      // STEP 2: SUPPORT EVENT MODE
+      if (type === "event" && id) {
+         await loadEventCheckout(id, qty);
+         return;
+      }
+
+      // Old Movie Validation
+      const stored = localStorage.getItem('paymentData');
+      if (!stored) {
+         UI.showMessage('Transaction data missing. Redirecting...');
+         setTimeout(() => window.location.href = '/', 1500);
+         return;
+      }
+
+      const movieData = JSON.parse(stored);
+      checkoutData = { ...movieData, type: 'movie' };
+      
+      // Render Movie Info
+      document.getElementById("txnTitle").innerText = checkoutData.movie_name;
+      document.getElementById("txnAmount").innerText = "₹" + checkoutData.amount;
+      document.getElementById("bookingRef").innerText = checkoutData.booking_id;
+      document.getElementById("pay-btn").querySelector("span").textContent = `Pay ₹${checkoutData.amount}`;
+    }
+
+    async function loadEventCheckout(eventId, qty) {
+       try {
           const res = await API.fetch(`/api/events?action=details&id=${eventId}`);
-          if (!res.success) throw new Error('Event not found');
-          
-          paymentData = {
-            type: 'event',
-            booking_id: `EV-${Date.now()}`,
-            movie_name: res.event.event_name,
-            amount: res.event.price * qty,
-            qty: qty,
-            event_id: eventId,
-            event_details: res.event
+          if (!res.success) throw new Error("Event not found");
+
+          const event = res.event;
+          const price = Number(event.price || 499);
+          const total = price * qty;
+
+          document.getElementById("txnTitle").innerText = event.event_name;
+          document.getElementById("txnAmount").innerText = "₹" + total;
+          document.getElementById("bookingRef").innerText = "EV-" + Date.now();
+          document.getElementById("txnMeta").innerText = `Qty: ${qty} • ${event.event_date}`;
+          document.getElementById("pay-btn").querySelector("span").textContent = `Pay ₹${total}`;
+
+          checkoutData = {
+             type: "event",
+             eventId,
+             qty,
+             total,
+             event
           };
-        } catch (e) {
-          UI.showMessage('Error loading event details');
-          return;
-        }
-      } else {
-        const stored = localStorage.getItem('paymentData');
-        if (!stored) {
-          UI.showMessage('Transaction data missing. Redirecting...');
-          setTimeout(() => window.location.href = '/', 1500);
-          return;
-        }
-        paymentData = JSON.parse(stored);
-        paymentData.type = 'movie';
-      }
-
-      // 2. Populate UI
-      document.getElementById('display-id').textContent = `#${paymentData.booking_id}`;
-
-      let dateString = "Date Pending";
-      let timeString = "00:00";
-
-      if (paymentData.type === 'event') {
-        const d = new Date(paymentData.event_details.event_date);
-        dateString = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-        timeString = paymentData.event_details.event_time || "TBA";
-      } else {
-        const datetimeParam = urlParams.get('datetime');
-        if (datetimeParam) {
-          const dateObj = new Date(datetimeParam);
-          if (!isNaN(dateObj.getTime())) {
-            dateString = dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-            timeString = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-          }
-        }
-      }
-
-      document.getElementById('booking-details').innerHTML = `
-        <div style="text-align: center;">
-          <h4 style="color: white; font-size: 1.2rem; margin-bottom: 0.5rem;">${paymentData.movie_name}</h4>
-          <p style="font-size: 0.9rem; color: var(--text-muted);">${timeString} • ${dateString}</p>
-          <div style="margin: 1rem 0; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between;">
-            <span style="color: var(--text-muted)">${paymentData.type === 'event' ? 'Quantity' : 'Seats'}</span>
-            <span style="color: white; font-weight: bold;">${paymentData.type === 'event' ? paymentData.qty : paymentData.seats.join(', ')}</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; font-size: 1.25rem;">
-            <span style="color: white;">Amount Due</span>
-            <span style="color: var(--primary); font-weight: 800;">₹${paymentData.amount}</span>
-          </div>
-        </div>
-      `;
-      document.getElementById('pay-btn').querySelector('span').textContent = `Pay ₹${paymentData.amount}`;
+       } catch (e) {
+          console.error(e);
+          UI.showMessage("Unable to load event details");
+       }
     }
 
     document.getElementById('payment-form').onsubmit = async (e) => {
@@ -139,47 +128,46 @@
       btn.querySelector('span').textContent = "Processing...";
 
       try {
-        if (paymentData.type === 'event') {
+        if (checkoutData.type === "event") {
           const user = API.getUser();
           const res = await API.fetch('/api/events?action=book', {
             method: 'POST',
             body: JSON.stringify({
-              event_id: paymentData.event_id,
+              event_id: checkoutData.eventId,
               user_id: user.user_id,
               user_name: user.name,
               email: user.email,
               phone: user.contact_no || 'Not Set',
-              tickets_count: paymentData.qty,
-              amount: paymentData.amount
+              tickets_count: checkoutData.qty,
+              amount: checkoutData.total
             })
           });
 
           if (!res.success) throw new Error(res.error || 'Payment failed');
-          
           UI.showMessage('Event Booking Successful!', 'success');
           setTimeout(() => window.location.href = '/event-success.html', 1500);
           return;
         }
 
         // Movie Payment Flow
-        const payRes = await API.fetch('/api/payment', {
+        await API.fetch('/api/payment', {
           method: 'POST',
           body: JSON.stringify({
-            booking_id: paymentData.booking_id,
-            amount: paymentData.amount,
+            booking_id: checkoutData.booking_id,
+            amount: checkoutData.amount,
             payment_method: 'Credit/Debit Card',
             card_name: document.getElementById('card-name').value
           })
         });
 
         UI.showMessage('Payment Successful!', 'success');
-        localStorage.setItem('last_booking_id', paymentData.booking_id);
+        localStorage.setItem('last_booking_id', checkoutData.booking_id);
         setTimeout(() => { window.location.href = '/success.html'; }, 1000);
 
       } catch (err) {
         UI.showMessage(err.message);
         btn.disabled = false;
-        btn.querySelector('span').textContent = `Pay ₹${paymentData.amount}`;
+        btn.querySelector('span').textContent = `Authorize Payment`;
       }
     };
 
