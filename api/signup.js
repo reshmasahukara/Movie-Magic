@@ -6,10 +6,10 @@ export default async function handler(req, res) {
     const { method, body } = req;
 
     if (method === 'POST') {
-      const { username: name, email, password, city, contactno } = body;
+      const { username: name, email, password, city, contactno, otp } = body;
       
-      if (!name || !email || !password) {
-        return res.status(400).json({ error: "Missing required fields" });
+      if (!name || !email || !password || !otp) {
+        return res.status(400).json({ error: "Missing required fields (including OTP)" });
       }
 
       const checkUser = await query('SELECT user_id FROM customer WHERE email = $1', [email]);
@@ -17,10 +17,14 @@ export default async function handler(req, res) {
         return res.status(409).json({ error: "Email already exists" });
       }
 
-      // 1.5 Secure OTP Verification Check (Requirement: No creation before OTP)
-      const isVerified = await query('SELECT id FROM otp_verifications WHERE email = $1 AND is_verified = TRUE', [email]);
+      // 1.5 Secure OTP Verification Check (Requirement: OTP must match AND be verified)
+      const isVerified = await query(
+        'SELECT id FROM otp_verifications WHERE email = $1 AND otp = $2 AND is_verified = TRUE AND expires_at > NOW()', 
+        [email, otp]
+      );
+      
       if (isVerified.rows.length === 0) {
-        return res.status(401).json({ error: "Email verification required" });
+        return res.status(401).json({ error: "Invalid or unverified OTP Session. Please verify your email first." });
       }
 
       const hashpass = await bcrypt.hash(password, 10);

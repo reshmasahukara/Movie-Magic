@@ -143,10 +143,10 @@
         });
 
         if (verifyRes.success) {
-          // 3. Final Signup using existing route
+          // 3. Final Signup using existing route (added OTP for mandatory verification)
           const signupRes = await API.fetch('/api/signup', {
             method: 'POST',
-            body: JSON.stringify(signupData)
+            body: JSON.stringify({ ...signupData, otp })
           });
           
           if (signupRes.success) {
