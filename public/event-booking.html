@@ -201,35 +201,18 @@
       }
     };
 
-    function getFallbackEvents() {
-      return [
-        { id: 1, event_name: 'Sunburn Home Festival', category: 'Music', city: 'Goa', venue: 'Beachside', event_date: '2026-12-28', event_time: '04:00 PM', image_url: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=400', price: 5000 },
-        { id: 5, event_name: 'MI vs CSK', category: 'Sports', city: 'Mumbai', venue: 'Wankhede Stadium', event_date: '2026-05-02', event_time: '07:30 PM', image_url: 'https://i.pinimg.com/videos/thumbnails/originals/a0/8f/e0/a08fe047f55493fbca44602ddc5cee5e.0000000.jpg', price: 2500 },
-        { id: 21, event_name: 'RCB vs KKR', category: 'Sports', city: 'Bengaluru', venue: 'Chinnaswamy Stadium', event_date: '2026-05-18', event_time: '07:30 PM', image_url: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e', price: 1199 },
-        { id: 25, event_name: 'Goa Beach Camping', category: 'Outdoor', city: 'Goa', venue: 'Anjuna Beach', event_date: '2026-05-22', event_time: '04:00 PM', image_url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e', price: 799 },
-        { id: 27, event_name: 'Night Trekking Munnar', category: 'Outdoor', city: 'Kerala', venue: 'Munnar Hills', event_date: '2026-06-05', event_time: '09:00 PM', image_url: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee', price: 999 },
-        { id: 6, event_name: 'Wonderla Amusement Park', category: 'Outdoor', city: 'Bengaluru', venue: 'Wonderla Park', event_date: '2026-04-28', event_time: '10:00 AM', image_url: 'https://i.pinimg.com/originals/be/53/74/be53745621b23ab86399d7c0d8b03aaf.jpg', price: 1499 }
-      ];
-    }
-
     async function loadEvent() {
       const urlParams = new URLSearchParams(window.location.search);
       const id = urlParams.get('id');
       if (!id) return UI.showMessage('Invalid Event ID');
 
       try {
-        const { event } = await API.fetch(`/api/events?action=details&id=${id}`);
+        const { event } = await API.fetch(`/api/events?action=get&id=${id}`);
         
         if (event) {
           currentEvent = event;
         } else {
-          // Fallback to local data
-          const fallback = getFallbackEvents().find(fb => String(fb.id) === String(id));
-          if (fallback) {
-            currentEvent = fallback;
-          } else {
-            throw new Error('Event not found in live or fallback storage.');
-          }
+          throw new Error('Event not found.');
         }
         
         renderEventDetails();
