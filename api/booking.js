@@ -11,15 +11,21 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Missing required identification: screen_id, show_date, and show_time" });
       }
 
+      // Rely on the immutable transaction tables rather than the screen-level shows table constraint
       const result = await query(
-        'SELECT selected_seats FROM shows WHERE screen_id = $1', 
-        [screen_id]
+        `SELECT bs.seat_number 
+         FROM booked_seats bs
+         JOIN bookings b ON bs.booking_id = b.id
+         WHERE b.screen_id = $1 AND b.show_date = $2 AND b.show_time = $3`,
+        [screen_id, show_date, show_time]
       );
       
       if (result.rows.length === 0) {
         return res.status(200).json({ success: true, seats: [], dynamic: true });
       }
-      return res.status(200).json({ success: true, seats: result.rows[0].selected_seats || [] });
+      
+      const seatsArray = result.rows.map(r => r.seat_number);
+      return res.status(200).json({ success: true, seats: seatsArray });
     }
 
     // 2. BOOKING SUCCESS: Fetch by specific ID or fallback to latest for user/screen
