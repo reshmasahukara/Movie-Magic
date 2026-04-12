@@ -20,6 +20,17 @@
   <nav></nav>
 
   <main class="container">
+    <div style="display: flex; gap: 1.5rem; margin-top: 2rem;">
+      <div style="flex:1; background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--glass);">
+        <p style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">Total Revenue</p>
+        <h2 id="metric-revenue" style="color: var(--primary); font-size: 2rem;">₹0</h2>
+      </div>
+      <div style="flex:1; background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--glass);">
+        <p style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">Tickets Sold</p>
+        <h2 id="metric-tickets" style="font-size: 2rem;">0</h2>
+      </div>
+    </div>
+
     <div class="admin-grid">
       <div class="sidebar">
         <h4 style="margin-bottom: 1.5rem; color: var(--primary);">ADMIN PANEL</h4>
@@ -32,7 +43,7 @@
         <div id="movies-tab">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <h3>Manage Movies</h3>
-            <button class="btn-primary" onclick="UI.showMessage('Add Movie Form Coming Soon')">+ Add Movie</button>
+            <button class="btn-primary" onclick="addMoviePrompt()">+ Add Movie</button>
           </div>
           <table id="movies-table">
             <thead><tr><th>Movie</th><th>ID</th><th>Genre</th><th>Rating</th><th>Action</th></tr></thead>
@@ -68,6 +79,12 @@
       try {
         const { data } = await API.fetch('/api/admin?action=dash');
         
+        // 0. Inject Analytics Map
+        if (data.analytics) {
+           document.getElementById('metric-revenue').textContent = `₹${data.analytics.revenue.toLocaleString()}`;
+           document.getElementById('metric-tickets').textContent = data.analytics.totalTickets;
+        }
+
         // 1. Populate Movies
         document.querySelector('#movies-table tbody').innerHTML = data.movies.map(m => `
           <tr>
@@ -104,6 +121,41 @@
 
       } catch (err) {
         UI.showMessage(err.message);
+      }
+    }
+
+    async function addMoviePrompt() {
+      const name = prompt("Enter Movie Name (e.g., INCEPTION):");
+      if (!name) return;
+      const genre = prompt("Enter Genre (e.g., Sci-Fi):");
+      const movieId = "M" + Math.floor(Math.random() * 1000);
+
+      try {
+        const res = await API.fetch('/api/admin?action=addMovie', {
+          method: 'POST',
+          body: JSON.stringify({
+            movieId: movieId,
+            movieName: name,
+            movieRating: "8.5",
+            movieDimensions: "2D",
+            movieGenre: genre,
+            movieStatus: "Now Showing",
+            movieLanguage: "English",
+            theaterId: 1,
+            Timmings: "05:00 PM",
+            showdate: new Date().toISOString().split('T')[0],
+            screenno: 1,
+            screendimensions: "2D",
+            noofseats: 60,
+            selectedseats: []
+          })
+        });
+        if (res.success) {
+          UI.showMessage('Movie Added Successfully!', 'success');
+          loadAdminData();
+        }
+      } catch (e) {
+        UI.showMessage(e.message, 'error');
       }
     }
 

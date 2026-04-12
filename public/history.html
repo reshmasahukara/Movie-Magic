@@ -89,11 +89,19 @@
           return;
         }
 
+        let hasUpcomingToday = false;
+        const todayDate = new Date().toISOString().split('T')[0];
+
         const html = bookings.map(b => {
           const status = (b.payment_status || "Pending").toLowerCase();
           const date = formatDateSafe(b.show_date);
+          const rawDate = b.show_date ? String(b.show_date).split('T')[0] : '';
           const time = formatTimeSafe(b.timmings || b.show_time);
           const created = new Date(b.created_at || Date.now()).toLocaleString();
+          
+          if (rawDate === todayDate && status !== 'refunded') hasUpcomingToday = true;
+          
+          const isFuture = rawDate >= todayDate && status !== 'refunded';
           
           return `
             <div class="ticket animate-fade-in">
@@ -119,7 +127,10 @@
                     <span>ID: #MM-${b.id}</span>
                     <span>Booked: ${created}</span>
                   </div>
-                  <button onclick="window.location.href='/ticket.html?bookingId=${b.id}'" class="btn-primary" style="padding: 0.4rem 1rem; font-size: 0.7rem; background: transparent; border: 1px solid var(--primary);">Download Ticket</button>
+                  <div style="display: flex; gap: 10px;">
+                    ${isFuture ? `<button onclick="cancelBooking('${b.id}')" class="btn-primary" style="padding: 0.4rem 1rem; font-size: 0.7rem; background: rgba(229, 9, 20, 0.1); border: 1px solid #e50914; color: #e50914;">Cancel</button>` : ''}
+                    <button onclick="window.location.href='/ticket.html?bookingId=${b.id}'" class="btn-primary" style="padding: 0.4rem 1rem; font-size: 0.7rem; background: transparent; border: 1px solid var(--primary);">Download</button>
+                  </div>
                 </div>
               </div>
               <div class="ticket-side">ADMIT ONE</div>
@@ -128,10 +139,32 @@
         }).join('');
 
         UI.safeRender('history-list', html);
+        
+        if (hasUpcomingToday) {
+           UI.showMessage('Reminder: You have upcoming shows scheduled for today! 🍿', 'success');
+        }
 
       } catch (err) {
         UI.showMessage(err.message);
         UI.safeRender('history-list', `<p style="text-align: center; color: var(--primary);">Failed to load history: ${err.message}</p>`);
+      }
+    }
+
+    async function cancelBooking(bookingId) {
+      if (!confirm("Are you sure you want to cancel this booking? This action cannot be reversed and your seats will be released.")) return;
+      
+      const user = API.getSession();
+      try {
+        const res = await API.fetch('/api/booking?action=cancel', {
+           method: 'DELETE',
+           body: JSON.stringify({ booking_id: bookingId, user_id: user.user_id })
+        });
+        if (res.success) {
+           UI.showMessage('Booking securely cancelled and seats freed.', 'success');
+           loadHistory();
+        }
+      } catch (err) {
+        UI.showMessage('Failed to cancel booking: ' + err.message, 'error');
       }
     }
 

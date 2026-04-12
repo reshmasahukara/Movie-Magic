@@ -26,13 +26,22 @@ export default async function handler(req, res) {
       const movies = await query('SELECT * FROM movie');
       const theaters = await query('SELECT * FROM theater');
       const shows = await query('SELECT * FROM shows');
+      const bookings = await query('SELECT b.*, m.movie_name FROM bookings b LEFT JOIN movie m ON b.movie_id = m.movie_id ORDER BY b.created_at DESC');
+      
+      const totalRevenue = bookings.rows.reduce((sum, b) => sum + (parseFloat(b.price) || 0), 0);
+
       return res.status(200).json({
         success: true,
         data: {
           customers: customers.rows,
           movies: movies.rows,
-          theater: theaters.rows,
-          shows: shows.rows
+          theaters: theaters.rows,
+          shows: shows.rows,
+          bookings: bookings.rows,
+          analytics: {
+             revenue: totalRevenue,
+             totalTickets: bookings.rows.length
+          }
         }
       });
     }

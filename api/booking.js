@@ -85,7 +85,27 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, bookings: result.rows });
     }
 
-    // 4. POST: TRANSACTIONAL BOOKING
+    // 4. ACTION: CANCEL BOOKING
+    if (method === 'DELETE' && q.action === 'cancel') {
+      const { booking_id, user_id } = body;
+      if (!booking_id || !user_id) return res.status(400).json({ error: "Missing required identifiers for cancellation" });
+
+      const fetchBooking = await query('SELECT * FROM bookings WHERE id = $1 AND user_id = $2', [booking_id, user_id]);
+      if (fetchBooking.rows.length === 0) return res.status(404).json({ error: "Booking not found or unauthorized" });
+
+      // Free seats back up
+      await query('DELETE FROM booked_seats WHERE booking_id = $1', [booking_id]);
+
+      // Note: Legacy shows table mapping might remain marked in fallback checks due to `shows.selected_seats`, 
+      // but transactional map is explicitly prioritized.
+      
+      // Update booking to Refunded
+      await query('UPDATE bookings SET payment_status = $1 WHERE id = $2', ['Refunded', booking_id]);
+
+      return res.status(200).json({ success: true, message: 'Booking Cancelled and refunded' });
+    }
+
+    // 5. POST: TRANSACTIONAL BOOKING
     if (method === 'POST') {
       const { 
         screenid, user_id, noofseats, seats: rawSeats, price, 
