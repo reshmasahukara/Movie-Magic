@@ -59,13 +59,21 @@
       const user = API.getSession();
       if (!user) { window.location.href = '/login.html'; return; }
 
-      function formatSafeDate(d) {
-        if (!d) return "N/A";
-        const raw = d.split('T')[0];
-        const parts = raw.split('-');
-        if (parts.length !== 3) return d;
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        return `${months[parseInt(parts[1], 10)-1]} ${parseInt(parts[2], 10)}, ${parts[0]}`;
+      function formatDateSafe(dateStr){
+        if(!dateStr) return '';
+        const [y,m,d] = dateStr.split('T')[0].split('-');
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return `${months[parseInt(m)-1]} ${parseInt(d)}, ${y}`;
+      }
+
+      function formatTimeSafe(t){
+        if(!t) return '00:00';
+        let [h,min] = t.split(':');
+        h = parseInt(h);
+        if(isNaN(h)) return t;
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        return `${String(h).padStart(2,'0')}:${min} ${ampm}`;
       }
 
       try {
@@ -83,7 +91,8 @@
 
         const html = bookings.map(b => {
           const status = (b.payment_status || "Pending").toLowerCase();
-          const date = formatSafeDate(b.show_date);
+          const date = formatDateSafe(b.show_date);
+          const time = formatTimeSafe(b.timmings || b.show_time);
           const created = new Date(b.created_at || Date.now()).toLocaleString();
           
           return `
@@ -92,7 +101,7 @@
                 <span class="status-badge status-${status}">${status}</span>
                 <h3 style="font-size: 1.6rem; color: white; margin-bottom: 0.4rem;">${b.movie_name || "Movie Magic"}</h3>
                 <p style="color: var(--primary); font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px;">${b.theater_name || "Movie Magic Cinemas"}</p>
-                <p style="color: #888; font-size: 0.85rem; font-weight: 500;">${b.timmings || "00:00"} | ${date}</p>
+                <p style="color: #888; font-size: 0.85rem; font-weight: 500;">${time} | ${date}</p>
                 
                 <div style="margin-top: 1.2rem; display: flex; gap: 2.5rem;">
                   <div>
