@@ -1,13 +1,13 @@
 import { query } from './lib/db.js';
 
 const STATIC_EVENTS = [
-  { id: 101, event_name: 'Sunburn Home Festival', category: 'Music', city: 'Goa', venue: 'Beachside', event_date: '2026-12-28', image_url: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=400', price: 5000, total_seats: 1000 },
-  { id: 102, event_name: 'EDM Pulse 2026', category: 'Music', city: 'Mumbai', venue: 'Jio Gardens', event_date: '2026-05-15', image_url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=400', price: 2999, total_seats: 1000 },
-  { id: 103, event_name: 'Lollapalooza India', category: 'Music', city: 'Mumbai', venue: 'Mahalaxmi Race Course', event_date: '2026-01-28', image_url: 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=400', price: 8999, total_seats: 1000 },
-  { id: 201, event_name: 'MI vs CSK', category: 'Sports', city: 'Mumbai', venue: 'Wankhede Stadium', event_date: '2026-05-16', image_url: 'https://i.pinimg.com/videos/thumbnails/originals/a0/8f/e0/a08fe047f55493fbca44602ddc5cee5e.0000000.jpg', price: 999, total_seats: 1000 },
-  { id: 301, event_name: 'Zakir Khan Live', category: 'Comedy', city: 'Mumbai', venue: 'Shanmukhananda Hall', event_date: '2026-05-20', image_url: 'https://m.media-amazon.com/images/I/71R3yX-S1JL._RI_.jpg', price: 1200, total_seats: 1000 },
-  { id: 302, event_name: 'Chalta Hai Comedy', category: 'Comedy', city: 'Hyderabad', venue: 'Shilpakala Vedika', event_date: '2026-05-29', image_url: 'https://m.media-amazon.com/images/I/71MTDZktU9L.jpg', price: 499, total_seats: 1000 },
-  { id: 401, event_name: 'Wonderla Adventure', category: 'Outdoor', city: 'Bengaluru', venue: 'Wonderla', event_date: '2026-05-24', image_url: 'https://i.pinimg.com/originals/be/53/74/be53745621b23ab86399d7c0d8b03aaf.jpg', price: 1499, total_seats: 1000 }
+  { id: 1, event_name: 'Sunburn Home Festival', category: 'Music', city: 'Goa', venue: 'Beachside', event_date: '2026-12-28', image_url: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=400', price: 5000, total_seats: 1000 },
+  { id: 4, event_name: 'EDM Pulse 2026', category: 'Music', city: 'Mumbai', venue: 'Jio Gardens', event_date: '2026-05-15', image_url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=400', price: 2999, total_seats: 1000 },
+  { id: 17, event_name: 'Lollapalooza India', category: 'Music', city: 'Mumbai', venue: 'Mahalaxmi Race Course', event_date: '2026-01-28', image_url: 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=400', price: 8999, total_seats: 1000 },
+  { id: 5, event_name: 'MI vs CSK', category: 'Sports', city: 'Mumbai', venue: 'Wankhede Stadium', event_date: '2026-05-16', image_url: 'https://i.pinimg.com/videos/thumbnails/originals/a0/8f/e0/a08fe047f55493fbca44602ddc5cee5e.0000000.jpg', price: 999, total_seats: 1000 },
+  { id: 10, event_name: 'Zakir Khan Live', category: 'Comedy', city: 'Mumbai', venue: 'Shanmukhananda Hall', event_date: '2026-05-20', image_url: 'https://m.media-amazon.com/images/I/71R3yX-S1JL._RI_.jpg', price: 1200, total_seats: 1000 },
+  { id: 7, event_name: 'Chalta Hai Comedy', category: 'Comedy', city: 'Hyderabad', venue: 'Shilpakala Vedika', event_date: '2026-05-29', image_url: 'https://m.media-amazon.com/images/I/71MTDZktU9L.jpg', price: 499, total_seats: 1000 },
+  { id: 6, event_name: 'Wonderla Adventure', category: 'Outdoor', city: 'Bengaluru', venue: 'Wonderla', event_date: '2026-05-24', image_url: 'https://i.pinimg.com/originals/be/53/74/be53745621b23ab86399d7c0d8b03aaf.jpg', price: 1499, total_seats: 1000 }
 ];
 
 export default async function handler(req, res) {
