@@ -99,24 +99,32 @@
         submitBtn.innerText = 'Sending OTP...';
 
         // 1. Send OTP
-        UI.showMessage('Sending verification code...');
+        UI.showMessage('Contacting secure email server...');
+        console.log('Sending OTP to:', signupData.email);
+        
         const res = await API.fetch('/api/sendotp', {
           method: 'POST',
           body: JSON.stringify({ email: signupData.email })
         });
 
+        console.log('OTP Response:', res);
+
         if (res.success) {
           document.getElementById('display-email').textContent = signupData.email;
           const modal = document.getElementById('otpModal');
-          modal.classList.add('active');
+          modal.style.display = 'flex'; // Force display
+          setTimeout(() => modal.classList.add('active'), 10);
           startTimer();
           UI.showMessage('Success! Code sent to your email.', 'success');
         } else {
+          alert('Server refused to send OTP: ' + (res.error || 'Unknown error'));
           submitBtn.disabled = false;
           submitBtn.innerText = 'Register';
         }
       } catch (err) {
+        console.error('Signup Flow Error:', err);
         UI.showMessage(err.message || 'Failed to send OTP. Try again.');
+        alert('Error: ' + err.message);
         const submitBtn = e.target.querySelector('button[type="submit"]');
         submitBtn.disabled = false;
         submitBtn.innerText = 'Register';

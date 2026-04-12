@@ -6,6 +6,11 @@ export default async function handler(req, res) {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email is required' });
 
+  // Environment Check
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    return res.status(500).json({ error: 'Server configuration error: Email credentials missing in environment variables. Please add EMAIL_USER and EMAIL_PASS to Vercel.' });
+  }
+
   try {
     // 1. Check if user already exists
     const checkUser = await query('SELECT user_id FROM customer WHERE email = $1', [email]);
