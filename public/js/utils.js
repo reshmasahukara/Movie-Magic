@@ -80,6 +80,53 @@ const UI = {
         `}
       </div>
     `;
+  },
+
+  setupOTPInput: (containerId) => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const inputs = container.querySelectorAll('.otp-input');
+
+    inputs.forEach((input, index) => {
+      // Handle Typing
+      input.addEventListener('input', (e) => {
+        if (e.inputType === 'deleteContentBackward') return;
+        const val = input.value;
+        if (val.length > 1) {
+          input.value = val.charAt(0);
+        }
+        if (val && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        }
+      });
+
+      // Handle Backspace
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !input.value && index > 0) {
+          inputs[index - 1].focus();
+        }
+      });
+
+      // Handle Paste
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const data = e.clipboardData.getData('text').slice(0, 6).split('');
+        data.forEach((char, i) => {
+          if (inputs[i]) {
+            inputs[i].value = char;
+            if (i < inputs.length - 1) inputs[i + 1].focus();
+          }
+        });
+      });
+    });
+  },
+
+  getOTPValue: (containerId) => {
+    const container = document.getElementById(containerId);
+    if (!container) return "";
+    return Array.from(container.querySelectorAll('.otp-input'))
+      .map(input => input.value)
+      .join('');
   }
 };
 

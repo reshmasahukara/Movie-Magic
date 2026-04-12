@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let signupData = null;
     let timerInterval = null;
 
+    // Initialize OTP Input Logic
+    UI.setupOTPInput('otp-wrapper-signup');
+
     const signupForm = document.getElementById('signup-form');
     if (signupForm) {
         signupForm.onsubmit = async (e) => {
@@ -53,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const verifyOtpBtn = document.getElementById('verify-otp-btn');
     if (verifyOtpBtn) {
         verifyOtpBtn.onclick = async () => {
-            const otp = document.getElementById('otp-input').value;
+            const otp = UI.getOTPValue('otp-wrapper-signup');
             if (otp.length !== 6) return UI.showMessage('Enter valid 6-digit code');
 
             try {

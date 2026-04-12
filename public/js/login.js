@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Inputs & Buttons
     const forgotEmailInput = document.getElementById('forgot-email');
-    const forgotOtpInput = document.getElementById('forgot-otp');
+    // forgotOtpInput is now a container #otp-wrapper-forgot
     const newPassInput = document.getElementById('forgot-new-pass');
     const confirmPassInput = document.getElementById('forgot-confirm-pass');
     
@@ -87,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             forgotModal.style.display = 'flex';
             setTimeout(() => forgotModal.classList.add('active'), 10);
+            UI.setupOTPInput('otp-wrapper-forgot'); // Init boxes on open
             showStep(1);
         };
     }
@@ -130,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (verifyOtpBtn) {
         verifyOtpBtn.onclick = async () => {
-            resetOtp = forgotOtpInput.value;
+            resetOtp = UI.getOTPValue('otp-wrapper-forgot');
             if (resetOtp.length !== 6) return UI.showMessage('Enter 6-digit OTP');
             
             try {
