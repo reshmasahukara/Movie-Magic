@@ -11,20 +11,31 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Missing required identification: screen_id, show_date, and show_time" });
       }
 
-      // Rely on the immutable transaction tables rather than the screen-level shows table constraint
+      // Extremely resilient date/time matching
+      const targetDate = String(show_date).split('T')[0];
+      const targetTime = decodeURIComponent(show_time).trim();
+
       const result = await query(
         `SELECT bs.seat_number 
          FROM booked_seats bs
          JOIN bookings b ON bs.booking_id = b.id
-         WHERE b.screen_id = $1 AND b.show_date = $2 AND b.show_time = $3`,
-        [screen_id, show_date, show_time]
+         WHERE b.screen_id = $1 
+           AND TO_CHAR(b.show_date, 'YYYY-MM-DD') = $2 
+           AND b.show_time = $3`,
+        [screen_id, targetDate, targetTime]
       );
       
-      if (result.rows.length === 0) {
-        return res.status(200).json({ success: true, seats: [], dynamic: true });
+      const legacy = await query(
+        `SELECT selected_seats FROM shows WHERE screen_id = $1`, 
+        [screen_id]
+      );
+
+      let legacySeats = [];
+      if (legacy.rows.length > 0 && legacy.rows[0].selected_seats) {
+         legacySeats = legacy.rows[0].selected_seats;
       }
-      
-      const seatsArray = result.rows.map(r => r.seat_number);
+
+      const seatsArray = [...new Set([...result.rows.map(r => r.seat_number), ...legacySeats])];
       return res.status(200).json({ success: true, seats: seatsArray });
     }
 
