@@ -435,16 +435,43 @@
       const container = document.getElementById('theater-list');
       console.log("Rendering Theatres for Filter:", activeFilter);
 
-      // 2. Fix Filter Logic: Filter SHOWS, not entire theatres
+      const todayDate = new Date().toISOString().split('T')[0];
+      const now = new Date();
+      const currentFloat = now.getHours() + (now.getMinutes() / 60);
+
+      function parseTime(tStr) {
+        if (!tStr) return 0;
+        let isPM = tStr.toLowerCase().includes('pm');
+        let isAM = tStr.toLowerCase().includes('am');
+        let clean = tStr.replace(/[a-zA-Z\s]/g, '').trim();
+        let parts = clean.split(':');
+        let h = parseInt(parts[0], 10) || 0;
+        let m = parseInt(parts[1], 10) || 0;
+        
+        if (isPM && h !== 12) h += 12;
+        if (isAM && h === 12) h = 0;
+        
+        return h + (m / 60);
+      }
+
+      // 2. Fix Filter Logic: Filter SHOWS chronologically and expiration
       const processedTheatres = theatresData.map(theater => {
-        const filteredShows = theater.shows.filter(show => {
-          if (activeFilter === 'all') return true;
-          if (activeFilter === 'price-low') return show.price <= 200;
-          if (activeFilter === 'price-high') return show.price > 200;
-          if (activeFilter === '3d') return show.format === '3D';
-          if (activeFilter === '2d') return show.format === '2D';
+        let filteredShows = theater.shows.filter(show => {
+          if (activeFilter === 'price-low' && show.price > 200) return false;
+          if (activeFilter === 'price-high' && show.price <= 200) return false;
+          if (activeFilter === '3d' && show.format !== '3D') return false;
+          if (activeFilter === '2d' && show.format !== '2D') return false;
+
+          const tVal = parseTime(show.time);
+          if (selectedDate === todayDate && tVal < currentFloat) {
+            return false;
+          }
+
           return true;
         });
+
+        filteredShows.sort((a, b) => parseTime(a.time) - parseTime(b.time));
+
         return { ...theater, filteredShows };
       }).filter(t => t.filteredShows.length > 0);
 
