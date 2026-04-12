@@ -14,28 +14,31 @@
       overflow: visible !important;
       margin-bottom: 1.5rem;
     }
-    .forgot-force {
+    .reset-link-v2-container {
       display: block !important;
       visibility: visible !important;
       opacity: 1 !important;
       text-align: right;
-      margin-top: 8px;
-      margin-bottom: 18px;
+      margin-top: 5px;
+      margin-bottom: 20px;
       width: 100%;
       position: relative;
-      z-index: 9999;
+      z-index: 10000;
     }
-    .forgot-force a {
-      color: #ff2b2b !important;
+    #reset-link-v2-btn {
+      color: #ff3333 !important;
       font-size: 14px !important;
-      font-weight: 700 !important;
-      text-decoration: none !important;
+      font-weight: 800 !important;
+      text-decoration: underline !important;
       cursor: pointer !important;
       display: inline-block !important;
+      visibility: visible !important;
+      background: none;
+      border: none;
+      padding: 0;
     }
-    .forgot-force a:hover {
+    #reset-link-v2-btn:hover {
       color: white !important;
-      text-decoration: underline !important;
     }
   </style>
 </head>
@@ -49,9 +52,9 @@
   </nav>
 
   <div class="container">
-    <div class="auth-container" style="overflow: visible !important; height: auto !important;">
-      <h2 style="font-size: 2rem; margin-bottom: 2rem; text-align: center;">LOGIN & RECOVERY</h2>
-      <form id="login-form" style="overflow: visible !important;">
+    <div class="auth-container">
+      <h2 style="font-size: 2rem; margin-bottom: 2rem; text-align: center;">Secure Login | Movie Magic</h2>
+      <form id="login-form">
         <div class="form-group">
           <label>Email Address</label>
           <input type="email" id="email" required placeholder="name@example.com">
@@ -60,8 +63,8 @@
           <label>Password</label>
           <input type="password" id="password" required placeholder="••••••••">
         </div>
-        <div class="v-force-reset" style="display: block !important; visibility: visible !important; opacity: 1 !important; text-align: right !important; margin: 10px 0 20px 0 !important; width: 100% !important; position: relative !important; z-index: 99999 !important;">
-           <a href="javascript:void(0)" id="finalForgotBtn" style="color: #ff2b2b !important; font-size: 15px !important; font-weight: 900 !important; text-decoration: underline !important; cursor: pointer !important; display: inline-block !important; visibility: visible !important;">Forgot Password?</a>
+        <div class="reset-link-v2-container">
+           <button type="button" id="reset-link-v2-btn">Forgot Password?</button>
         </div>
         <button type="submit" class="btn-primary" style="width: 100%;">Sign In</button>
       </form>
@@ -144,10 +147,9 @@
     let resetEmail = '';
     let resetOtp = '';
     
-    // Fixed: Connect to the new final button ID
-    document.getElementById('finalForgotBtn').onclick = (e) => {
+    // Fixed: Connect to the NEW unique button ID (v2)
+    document.getElementById('reset-link-v2-btn').onclick = (e) => {
         e.preventDefault();
-        e.stopPropagation();
         document.getElementById('forgotModal').style.display = 'flex';
         showStep(1);
     };
