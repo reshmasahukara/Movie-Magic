@@ -1,5 +1,15 @@
 import { query } from './lib/db.js';
 
+const STATIC_EVENTS = [
+  { id: 101, event_name: 'Sunburn Home Festival', category: 'Music', city: 'Goa', venue: 'Beachside', event_date: '2026-12-28', image_url: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=400', price: 5000, total_seats: 1000 },
+  { id: 102, event_name: 'EDM Pulse 2026', category: 'Music', city: 'Mumbai', venue: 'Jio Gardens', event_date: '2026-05-15', image_url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=400', price: 2999, total_seats: 1000 },
+  { id: 103, event_name: 'Lollapalooza India', category: 'Music', city: 'Mumbai', venue: 'Mahalaxmi Race Course', event_date: '2026-01-28', image_url: 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=400', price: 8999, total_seats: 1000 },
+  { id: 201, event_name: 'MI vs CSK', category: 'Sports', city: 'Mumbai', venue: 'Wankhede Stadium', event_date: '2026-05-16', image_url: 'https://i.pinimg.com/videos/thumbnails/originals/a0/8f/e0/a08fe047f55493fbca44602ddc5cee5e.0000000.jpg', price: 999, total_seats: 1000 },
+  { id: 301, event_name: 'Zakir Khan Live', category: 'Comedy', city: 'Mumbai', venue: 'Shanmukhananda Hall', event_date: '2026-05-20', image_url: 'https://m.media-amazon.com/images/I/71R3yX-S1JL._RI_.jpg', price: 1200, total_seats: 1000 },
+  { id: 302, event_name: 'Chalta Hai Comedy', category: 'Comedy', city: 'Hyderabad', venue: 'Shilpakala Vedika', event_date: '2026-05-29', image_url: 'https://m.media-amazon.com/images/I/71MTDZktU9L.jpg', price: 499, total_seats: 1000 },
+  { id: 401, event_name: 'Wonderla Adventure', category: 'Outdoor', city: 'Bengaluru', venue: 'Wonderla', event_date: '2026-05-24', image_url: 'https://i.pinimg.com/originals/be/53/74/be53745621b23ab86399d7c0d8b03aaf.jpg', price: 1499, total_seats: 1000 }
+];
+
 export default async function handler(req, res) {
   const { method, query: q, body } = req;
   const action = q.action;
@@ -27,15 +37,34 @@ export default async function handler(req, res) {
         
         sql += ' ORDER BY event_date ASC';
         const result = await query(sql, params);
-        return res.status(200).json({ success: true, events: result.rows });
+        
+        // Merge with static events that pass the filter
+        let allEvents = result.rows;
+        const seenNames = new Set(allEvents.map(e => e.event_name.toLowerCase()));
+        
+        const filteredStatics = STATIC_EVENTS.filter(se => {
+            if (city && city !== 'all' && se.city !== city && se.city !== 'Online') return false;
+            if (category && category !== 'all' && se.category !== category) return false;
+            if (seenNames.has(se.event_name.toLowerCase())) return false;
+            return true;
+        });
+
+        return res.status(200).json({ success: true, events: [...allEvents, ...filteredStatics] });
       }
 
       // 2. Event Details
       if (action === 'details') {
         const { id } = q;
         const result = await query('SELECT * FROM events WHERE id = $1', [id]);
-        if (result.rows.length === 0) return res.status(404).json({ error: 'Event not found' });
-        return res.status(200).json({ success: true, event: result.rows[0] });
+        
+        if (result.rows.length > 0) {
+          return res.status(200).json({ success: true, event: result.rows[0] });
+        } else {
+          // Check Static
+          const staticMatch = STATIC_EVENTS.find(se => String(se.id) === String(id));
+          if (staticMatch) return res.status(200).json({ success: true, event: staticMatch });
+          return res.status(404).json({ error: 'Event not found' });
+        }
       }
 
       // 3. User Booking History
@@ -61,30 +90,32 @@ export default async function handler(req, res) {
         try {
           await query('BEGIN');
           
-          // Check availability
-          const eventRes = await query('SELECT * FROM events WHERE id = $1 FOR UPDATE', [event_id]);
-          const event = eventRes.rows[0];
-          
-          if (!event) throw new Error('Event not found');
-          if (event.status === 'Sold Out') throw new Error('Event is sold out');
-          
-          const currentlyBooked = event.booked_seats || [];
-          const newTotalBooked = currentlyBooked.length + (tickets_count || selected_seats.length);
-          
-          if (newTotalBooked > event.total_seats) throw new Error('Not enough seats available');
+          // Check availability (Mock for static, DB for real)
+          const staticMatch = STATIC_EVENTS.find(se => String(se.id) === String(event_id));
+          let event;
 
-          // Update Event Table
-          let updatedSeats = [...currentlyBooked];
-          if (selected_seats && selected_seats.length > 0) {
-            updatedSeats = [...updatedSeats, ...selected_seats];
+          if (staticMatch) {
+            event = staticMatch;
           } else {
-            // For qty-based, we just add placeholders to track count if needed, 
-            // but usually we just track the count. Here we'll stick to array length.
-            for(let i=0; i<tickets_count; i++) updatedSeats.push('QTY_PLACEHOLDER');
-          }
+            const eventRes = await query('SELECT * FROM events WHERE id = $1 FOR UPDATE', [event_id]);
+            event = eventRes.rows[0];
+            if (!event) throw new Error('Event not found');
+            if (event.status === 'Sold Out') throw new Error('Event is sold out');
+            
+            const currentlyBooked = event.booked_seats || [];
+            const newTotalBooked = currentlyBooked.length + (tickets_count || selected_seats.length);
+            if (newTotalBooked > event.total_seats) throw new Error('Not enough seats available');
 
-          await query('UPDATE events SET booked_seats = $1, status = $2 WHERE id = $3', 
-            [JSON.stringify(updatedSeats), newTotalBooked >= event.total_seats ? 'Sold Out' : 'Active', event_id]);
+            // Update Event Table
+            let updatedSeats = [...currentlyBooked];
+            if (selected_seats && selected_seats.length > 0) {
+              updatedSeats = [...updatedSeats, ...selected_seats];
+            } else {
+              for(let i=0; i<tickets_count; i++) updatedSeats.push('QTY_PLACEHOLDER');
+            }
+            await query('UPDATE events SET booked_seats = $1, status = $2 WHERE id = $3', 
+              [JSON.stringify(updatedSeats), newTotalBooked >= event.total_seats ? 'Sold Out' : 'Active', event_id]);
+          }
 
           // Create Booking Record
           const bookingRes = await query(
