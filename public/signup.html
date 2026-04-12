@@ -50,17 +50,17 @@
   </div>
 
   <!-- OTP Modal -->
-  <div class="modal-overlay" id="otpModal">
-    <div class="modal-content" style="max-width: 400px; padding: 2.5rem;">
+  <div class="modal-overlay" id="otpModal" style="display:none; opacity:0; pointer-events:none; transition: opacity 0.3s; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center;">
+    <div class="modal-content" style="max-width: 400px; padding: 2.5rem; background:#111; border:1px solid #333; border-radius:15px; text-align:center;">
       <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem; color: white;">Email Verification</h2>
-      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">We've sent a 6-digit code to <span id="display-email" style="color: var(--primary);"></span></p>
+      <p style="color: #888; font-size: 0.9rem; margin-bottom: 2rem;">We've sent a 6-digit code to <span id="display-email" style="color: var(--primary);"></span></p>
       
       <div class="form-group" style="text-align: left;">
-        <label>Enter 6-Digit OTP</label>
-        <input type="text" id="otp-input" placeholder="000000" maxlength="6" style="text-align: center; font-size: 1.5rem; letter-spacing: 8px; font-weight: 800; border: 1px solid #333;">
+        <label style="color: #666; font-size: 0.8rem; text-transform: uppercase;">Enter 6-Digit OTP</label>
+        <input type="text" id="otp-input" placeholder="000000" maxlength="6" style="text-align: center; font-size: 1.5rem; letter-spacing: 8px; font-weight: 800; border: 1px solid #333; width: 100%; background:#000; color:white; padding: 10px; border-radius: 8px;">
       </div>
 
-      <button id="verify-otp-btn" class="btn-primary" style="width: 100%; margin-top: 1rem;">VERIFY OTP</button>
+      <button id="verify-otp-btn" class="btn-primary" style="width: 100%; margin-top: 1rem; padding: 12px;">VERIFY OTP</button>
       
       <div style="margin-top: 1.5rem;">
         <p id="resend-timer-text" style="color: #666; font-size: 0.8rem;">Resend code in <span id="timer" style="color: var(--primary);">30</span>s</p>
@@ -68,6 +68,14 @@
       </div>
     </div>
   </div>
+
+  <style>
+    .modal-overlay.active {
+      display: flex !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+  </style>
 
   <script src="js/utils.js"></script>
   <script>
@@ -86,6 +94,10 @@
       };
 
       try {
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Sending OTP...';
+
         // 1. Send OTP
         UI.showMessage('Sending verification code...');
         const res = await API.fetch('/api/sendotp', {
@@ -95,12 +107,19 @@
 
         if (res.success) {
           document.getElementById('display-email').textContent = signupData.email;
-          document.getElementById('otpModal').classList.add('active');
+          const modal = document.getElementById('otpModal');
+          modal.classList.add('active');
           startTimer();
-          UI.showMessage('OTP sent successfully!', 'success');
+          UI.showMessage('Success! Code sent to your email.', 'success');
+        } else {
+          submitBtn.disabled = false;
+          submitBtn.innerText = 'Register';
         }
       } catch (err) {
-        UI.showMessage(err.message);
+        UI.showMessage(err.message || 'Failed to send OTP. Try again.');
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Register';
       }
     };
 
