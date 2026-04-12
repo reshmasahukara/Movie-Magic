@@ -82,44 +82,44 @@ export default async function handler(req, res) {
       try {
         await query('BEGIN'); // TRANSACTION START
 
-        // 1. Validate show existence and lock the row (FOR UPDATE)
-        const showRes = await query(
-          'SELECT selected_seats FROM shows WHERE screen_id = $1 AND show_date = $2 AND timmings = $3 FOR UPDATE',
-          [screenid, show_date, show_time]
+        // 1. UPSERT SHOW: Ensure show exists to satisfy Foreign Key constraints
+        await query(
+          `INSERT INTO shows (screen_id, movie_id, theater_id, timmings, show_date, screen_no, screen_dimensions, theater_name) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+           ON CONFLICT (screen_id) DO NOTHING`,
+          [screenid, movie_id || 'M001', 1, show_time, show_date, 1, '2D', theater_name || 'Movie Magic']
         );
 
-        if (showRes.rows.length === 0) {
-          // Dynamic Show Creation
-          try {
-            await query(
-              'INSERT INTO shows (screen_id, movie_id, show_date, timmings, theater_name, selected_seats) VALUES ($1, $2, $3, $4, $5, $6)',
-              [screenid, movie_id || 'M001', show_date, show_time, theater_name || 'Dynamic Theater', JSON.stringify(seats)]
-            );
-          } catch(e) {
-            console.error("Dynamic show creation skipped / failed:", e);
-          }
-        } else {
-          const rawOccupied = showRes.rows[0].selected_seats || [];
-          const existingSeats = rawOccupied.map(s => s.toString().trim().toUpperCase());
-          
-          // 2. Conflict Check (Overlap)
-          const overlap = seats.filter(s => existingSeats.includes(s));
-          if (overlap.length > 0) {
-            await query('ROLLBACK');
-            return res.status(400).json({ 
-              success: false, 
-              message: `Seat ${overlap[0]} already booked`,
-              conflicts: overlap 
-            });
-          }
+        // 2. Lock the row (FOR UPDATE) and check seats
+        const showRes = await query(
+          'SELECT selected_seats FROM shows WHERE screen_id = $1 FOR UPDATE',
+          [screenid]
+        );
 
-          // 3. Update Shows Table
-          await query(
-            'UPDATE shows SET selected_seats = COALESCE(selected_seats, \'[]\'::jsonb) || $1::jsonb WHERE screen_id = $2 AND show_date = $3 AND timmings = $4',
-            [JSON.stringify(seats), screenid, show_date, show_time]
-          );
+        let existingSeats = [];
+        if (showRes.rows.length > 0) {
+          const rawOccupied = showRes.rows[0].selected_seats || [];
+          existingSeats = rawOccupied.map(s => s.toString().trim().toUpperCase());
         }
-        // 4. Create Booking Record with complete context
+
+        // 3. Conflict Check (Overlap)
+        const overlap = seats.filter(s => existingSeats.includes(s));
+        if (overlap.length > 0) {
+          await query('ROLLBACK');
+          return res.status(400).json({ 
+            success: false, 
+            message: `Seat ${overlap[0]} already booked`,
+            conflicts: overlap 
+          });
+        }
+
+        // 4. Update Shows Table selected_seats
+        await query(
+          'UPDATE shows SET selected_seats = COALESCE(selected_seats, \'[]\'::jsonb) || $1::jsonb WHERE screen_id = $2',
+          [JSON.stringify(seats), screenid]
+        );
+
+        // 5. Create Booking Record
         const bookingRes = await query(
           `INSERT INTO bookings (
             screen_id, user_id, movie_id, no_of_seats, selected_seats, 
@@ -133,12 +133,11 @@ export default async function handler(req, res) {
 
         const bookingId = bookingRes.rows[0].id;
 
-        // 5. Secure individual seat locks (Temporal Instance Specific)
-        const showInstanceId = `${screenid}_${show_date}_${show_time.replace(/\s+/g, '')}`;
+        // 6. Secure individual seat locks (Must use exact screenid to satisfy booked_seats foreign key)
         for (const seat of seats) {
           await query(
             "INSERT INTO booked_seats (booking_id, screen_id, seat_number) VALUES ($1, $2, $3)",
-            [bookingId, showInstanceId, seat]
+            [bookingId, screenid, seat]
           );
         }
 
