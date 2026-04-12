@@ -159,9 +159,9 @@
       <div class="legend-item"><div class="seat"></div> Available</div>
       <div class="legend-item"><div class="seat selected"></div> Selected</div>
       <div class="legend-item"><div class="seat booked"></div> Booked (red X seat)</div>
-      <div class="legend-item"><div class="seat vip"></div> VIP (₹300)</div>
-      <div class="legend-item"><div class="seat premium"></div> Premium (₹200)</div>
       <div class="legend-item"><div class="seat regular"></div> Regular (₹100)</div>
+      <div class="legend-item"><div class="seat premium"></div> Premium (₹200)</div>
+      <div class="legend-item"><div class="seat vip"></div> VIP (₹300)</div>
     </div>
 
     <h2 id="selected-show-title" style="text-align: center; margin-bottom: 0.5rem; font-weight: 800; color: white;">Select Seats</h2>
@@ -201,9 +201,9 @@
     let validShow = true;
 
     const CATEGORIES = {
-      VIP: { price: 300, rows: ['A', 'B'], css: 'vip' },
+      REGULAR: { price: 100, rows: ['A', 'B'], css: 'regular' },
       PREMIUM: { price: 200, rows: ['C', 'D', 'E'], css: 'premium' },
-      REGULAR: { price: 100, rows: ['F', 'G', 'H', 'I', 'J'], css: 'regular' }
+      VIP: { price: 300, rows: ['F', 'G', 'H', 'I', 'J'], css: 'vip' }
     };
 
     async function init() {
@@ -353,7 +353,7 @@
         if (row === 'A' || row === 'C' || row === 'F') {
           const div = document.createElement('div');
           div.className = 'category-divider';
-          const label = row === 'A' ? 'VIP - ₹300' : (row === 'C' ? 'PREMIUM - ₹200' : 'REGULAR - ₹100');
+          const label = row === 'A' ? 'REGULAR - ₹100' : (row === 'C' ? 'PREMIUM - ₹200' : 'VIP - ₹300');
           div.textContent = label;
           grid.appendChild(div);
         }
