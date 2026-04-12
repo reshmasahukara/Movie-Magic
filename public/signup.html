@@ -136,26 +136,25 @@
       if (otp.length !== 6) return UI.showMessage('Enter valid 6-digit code');
 
       try {
-        // 2. Verify OTP
-        const verifyRes = await API.fetch('/api/verifyotp', {
+        const verifyBtn = document.getElementById('verify-otp-btn');
+        verifyBtn.disabled = true;
+        verifyBtn.innerText = 'Verifying & Registering...';
+
+        // ATOMIC STEP: Verify OTP AND Register Account in one backend call
+        const res = await API.fetch('/api/register', {
           method: 'POST',
-          body: JSON.stringify({ email: signupData.email, otp })
+          body: JSON.stringify({ ...signupData, otp })
         });
 
-        if (verifyRes.success) {
-          // 3. Final Signup using existing route (added OTP for mandatory verification)
-          const signupRes = await API.fetch('/api/signup', {
-            method: 'POST',
-            body: JSON.stringify({ ...signupData, otp })
-          });
-          
-          if (signupRes.success) {
-             UI.showMessage('Verification Successful! Account Created.', 'success');
-             setTimeout(() => window.location.href = '/login.html', 2000);
-          }
+        if (res.success) {
+          UI.showMessage('Registration Successful!', 'success');
+          setTimeout(() => window.location.href = '/login.html', 2000);
         }
       } catch (err) {
-        UI.showMessage(err.message);
+        UI.showMessage(err.message || 'Verification failed. Please try again.');
+        const verifyBtn = document.getElementById('verify-otp-btn');
+        verifyBtn.disabled = false;
+        verifyBtn.innerText = 'VERIFY OTP';
       }
     };
 
