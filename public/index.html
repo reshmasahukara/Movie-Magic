@@ -188,11 +188,12 @@
     function getFallbackEvents() {
       return [
         { id: 1, event_name: 'Sunburn Home Festival', category: 'Music', city: 'Goa', venue: 'Beachside', event_date: '2026-12-28', image_url: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=400', price: 5000 },
-        { id: 4, event_name: 'EDM Pulse 2026', category: 'Music', city: 'Mumbai', venue: 'Jio Gardens', event_date: '2026-05-15', image_url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=400', price: 2999 },
-        { id: 17, event_name: 'Lollapalooza India', category: 'Music', city: 'Mumbai', venue: 'Mahalaxmi Race Course', event_date: '2026-01-28', image_url: 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=400', price: 8999 },
         { id: 5, event_name: 'MI vs CSK', category: 'Sports', city: 'Mumbai', venue: 'Wankhede Stadium', event_date: '2026-05-16', image_url: 'https://i.pinimg.com/videos/thumbnails/originals/a0/8f/e0/a08fe047f55493fbca44602ddc5cee5e.0000000.jpg', price: 999 },
+        { id: 21, event_name: 'RCB vs KKR', category: 'Sports', city: 'Bengaluru', venue: 'Chinnaswamy Stadium', event_date: '2026-05-18', image_url: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e', price: 1199 },
+        { id: 22, event_name: 'India vs Australia T20', category: 'Sports', city: 'Mumbai', venue: 'Wankhede Stadium', event_date: '2026-06-02', image_url: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018', price: 2499 },
+        { id: 25, event_name: 'Goa Beach Camping', category: 'Outdoor', city: 'Goa', venue: 'Anjuna Beach', event_date: '2026-05-22', image_url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e', price: 799 },
+        { id: 27, event_name: 'Night Trekking Munnar', category: 'Outdoor', city: 'Kerala', venue: 'Munnar Hills', event_date: '2026-06-05', image_url: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee', price: 999 },
         { id: 10, event_name: 'Zakir Khan Live', category: 'Comedy', city: 'Mumbai', venue: 'Shanmukhananda Hall', event_date: '2026-05-20', image_url: 'https://m.media-amazon.com/images/I/71R3yX-S1JL._RI_.jpg', price: 1200 },
-        { id: 7, event_name: 'Chalta Hai Comedy', category: 'Comedy', city: 'Hyderabad', venue: 'Shilpakala Vedika', event_date: '2026-05-29', image_url: 'https://m.media-amazon.com/images/I/71MTDZktU9L.jpg', price: 499 },
         { id: 6, event_name: 'Wonderla Adventure', category: 'Outdoor', city: 'Bengaluru', venue: 'Wonderla', event_date: '2026-05-24', image_url: 'https://i.pinimg.com/originals/be/53/74/be53745621b23ab86399d7c0d8b03aaf.jpg', price: 1499 }
       ];
     }
@@ -247,8 +248,14 @@
 
         // --- 3. Pre-populated Grouping ---
         const groups = {};
-        // Initialize all priorities to ensure rendering order and presence
-        CATEGORY_PRIORITY.forEach(cat => groups[cat] = []);
+        
+        let priority = [...CATEGORY_PRIORITY];
+        // Bonus: If city is Kochi, put Outdoor first
+        if (selectedCity === 'Kochi') {
+          priority = ['Outdoor', ...priority.filter(c => c !== 'Outdoor')];
+        }
+
+        priority.forEach(cat => groups[cat] = []);
         
         filteredEvents.forEach(ev => {
           const norm = normalizeCategory(ev.category);
@@ -258,7 +265,7 @@
 
         // --- 4. Render Sections ---
         // Only render categories that actually have items
-        const renderableCategories = CATEGORY_PRIORITY.filter(cat => groups[cat] && groups[cat].length > 0);
+        const renderableCategories = priority.filter(cat => groups[cat] && groups[cat].length > 0);
         
         container.innerHTML = renderableCategories.map(cat => {
           const listId = `list-${cat.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
