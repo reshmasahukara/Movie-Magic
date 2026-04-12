@@ -194,6 +194,26 @@
       }
     };
 
+    function getFallbackEvents() {
+      return [
+        { id: 101, event_name: 'Sunburn Home Festival', category: 'Music', city: 'Goa', venue: 'Beachside', event_date: '2026-12-28', image_url: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=400', price: 5000 },
+        { id: 102, event_name: 'EDM Pulse 2026', category: 'Music', city: 'Mumbai', venue: 'Jio Gardens', event_date: '2026-05-15', image_url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=400', price: 2999 },
+        { id: 103, event_name: 'Lollapalooza India', category: 'Music', city: 'Mumbai', venue: 'Mahalaxmi Race Course', event_date: '2026-01-28', image_url: 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=400', price: 8999 },
+        { id: 201, event_name: 'MI vs CSK', category: 'Sports', city: 'Mumbai', venue: 'Wankhede Stadium', event_date: '2026-05-16', image_url: 'https://i.pinimg.com/videos/thumbnails/originals/a0/8f/e0/a08fe047f55493fbca44602ddc5cee5e.0000000.jpg', price: 999 },
+        { id: 202, event_name: 'RCB vs KKR', category: 'Sports', city: 'Bengaluru', venue: 'Chinnaswamy Stadium', event_date: '2026-05-20', image_url: 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&w=400', price: 1200 },
+        { id: 203, event_name: 'Wankhede Stadium Tour', category: 'Sports', city: 'Mumbai', venue: 'Wankhede', event_date: '2026-05-22', image_url: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=400', price: 499 },
+        { id: 301, event_name: 'Zakir Khan Live', category: 'Comedy', city: 'Mumbai', venue: 'Shanmukhananda Hall', event_date: '2026-05-20', image_url: 'https://m.media-amazon.com/images/I/71R3yX-S1JL._RI_.jpg', price: 1200 },
+        { id: 302, event_name: 'Chalta Hai Comedy', category: 'Comedy', city: 'Hyderabad', venue: 'Shilpakala Vedika', event_date: '2026-05-29', image_url: 'https://m.media-amazon.com/images/I/71MTDZktU9L.jpg', price: 499 },
+        { id: 303, event_name: 'Comicstaan Premiere', category: 'Comedy', city: 'Delhi', venue: 'Talkatora Stadium', event_date: '2026-06-05', image_url: 'https://images.unsplash.com/photo-1527224857813-f8e1374528ca?auto=format&fit=crop&w=400', price: 799 },
+        { id: 401, event_name: 'Wonderla Adventure', category: 'Outdoor', city: 'Bengaluru', venue: 'Wonderla', event_date: '2026-05-24', image_url: 'https://i.pinimg.com/originals/be/53/74/be53745621b23ab86399d7c0d8b03aaf.jpg', price: 1499 },
+        { id: 402, event_name: 'Riverside Trekking', category: 'Outdoor', city: 'Pune', venue: 'Mulshi Lake', event_date: '2026-05-30', image_url: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=400', price: 899 },
+        { id: 403, event_name: 'Stargazing Night', category: 'Outdoor', city: 'Mumbai', venue: 'Lonavala', event_date: '2026-06-02', image_url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=400', price: 1999 },
+        { id: 501, event_name: 'Pottery Workshop', category: 'Workshops', city: 'Mumbai', venue: 'The Art Studio', event_date: '2026-05-18', image_url: 'https://images.unsplash.com/photo-1565191999001-551c187427bb?auto=format&fit=crop&w=400', price: 1500 },
+        { id: 502, event_name: 'Photography Class', category: 'Workshops', city: 'Delhi', venue: 'Lodhi Gardens', event_date: '2026-06-10', image_url: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?auto=format&fit=crop&w=400', price: 2500 },
+        { id: 503, event_name: 'AI Bootcamp', category: 'Workshops', city: 'Bengaluru', venue: 'NextGen Labs', event_date: '2026-06-15', image_url: 'https://images.unsplash.com/photo-1591453089816-0fbb971b454c?auto=format&fit=crop&w=400', price: 4999 }
+      ];
+    }
+
     async function loadEvent() {
       const urlParams = new URLSearchParams(window.location.search);
       const id = urlParams.get('id');
@@ -201,11 +221,24 @@
 
       try {
         const { event } = await API.fetch(`/api/events?action=details&id=${id}`);
-        currentEvent = event;
+        
+        if (event) {
+          currentEvent = event;
+        } else {
+          // Fallback to local data
+          const fallback = getFallbackEvents().find(fb => String(fb.id) === String(id));
+          if (fallback) {
+            currentEvent = fallback;
+          } else {
+            throw new Error('Event not found in live or fallback storage.');
+          }
+        }
+        
         renderEventDetails();
         setupBookingUI();
       } catch (err) {
-        UI.showMessage(err.message);
+        console.error('Event Load Error:', err);
+        UI.showMessage('Event Unavailable at this time. 🎟️');
       }
     }
 
