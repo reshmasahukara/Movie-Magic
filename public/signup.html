@@ -49,11 +49,35 @@
     </div>
   </div>
 
+  <!-- OTP Modal -->
+  <div class="modal-overlay" id="otpModal">
+    <div class="modal-content" style="max-width: 400px; padding: 2.5rem;">
+      <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem; color: white;">Email Verification</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">We've sent a 6-digit code to <span id="display-email" style="color: var(--primary);"></span></p>
+      
+      <div class="form-group" style="text-align: left;">
+        <label>Enter 6-Digit OTP</label>
+        <input type="text" id="otp-input" placeholder="000000" maxlength="6" style="text-align: center; font-size: 1.5rem; letter-spacing: 8px; font-weight: 800; border: 1px solid #333;">
+      </div>
+
+      <button id="verify-otp-btn" class="btn-primary" style="width: 100%; margin-top: 1rem;">VERIFY OTP</button>
+      
+      <div style="margin-top: 1.5rem;">
+        <p id="resend-timer-text" style="color: #666; font-size: 0.8rem;">Resend code in <span id="timer" style="color: var(--primary);">30</span>s</p>
+        <button id="resend-btn" style="background: none; border: none; color: var(--primary); font-weight: 700; cursor: pointer; display: none;">RESEND OTP</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/utils.js"></script>
   <script>
+    let signupData = null;
+    let timerInterval = null;
+
     document.getElementById('signup-form').onsubmit = async (e) => {
       e.preventDefault();
-      const data = {
+      
+      signupData = {
         username: document.getElementById('username').value,
         email: document.getElementById('email').value,
         password: document.getElementById('password').value,
@@ -62,16 +86,82 @@
       };
 
       try {
-        await API.fetch('/api/signup', {
+        // 1. Send OTP
+        UI.showMessage('Sending verification code...');
+        const res = await API.fetch('/api/sendotp', {
           method: 'POST',
-          body: JSON.stringify(data)
+          body: JSON.stringify({ email: signupData.email })
         });
-        UI.showMessage('Registration successful! Please login.', 'success');
-        setTimeout(() => window.location.href = '/login.html', 1500);
+
+        if (res.success) {
+          document.getElementById('display-email').textContent = signupData.email;
+          document.getElementById('otpModal').classList.add('active');
+          startTimer();
+          UI.showMessage('OTP sent successfully!', 'success');
+        }
       } catch (err) {
         UI.showMessage(err.message);
       }
     };
+
+    document.getElementById('verify-otp-btn').onclick = async () => {
+      const otp = document.getElementById('otp-input').value;
+      if (otp.length !== 6) return UI.showMessage('Enter valid 6-digit code');
+
+      try {
+        // 2. Verify OTP
+        const verifyRes = await API.fetch('/api/verifyotp', {
+          method: 'POST',
+          body: JSON.stringify({ email: signupData.email, otp })
+        });
+
+        if (verifyRes.success) {
+          // 3. Final Signup using existing route
+          const signupRes = await API.fetch('/api/signup', {
+            method: 'POST',
+            body: JSON.stringify(signupData)
+          });
+          
+          if (signupRes.success) {
+             UI.showMessage('Verification Successful! Account Created.', 'success');
+             setTimeout(() => window.location.href = '/login.html', 2000);
+          }
+        }
+      } catch (err) {
+        UI.showMessage(err.message);
+      }
+    };
+
+    document.getElementById('resend-btn').onclick = async () => {
+        try {
+            await API.fetch('/api/sendotp', {
+                method: 'POST',
+                body: JSON.stringify({ email: signupData.email })
+            });
+            UI.showMessage('Resent! Check your email.', 'success');
+            startTimer();
+        } catch (e) {
+            UI.showMessage(e.message);
+        }
+    };
+
+    function startTimer() {
+        let timeLeft = 30;
+        document.getElementById('resend-btn').style.display = 'none';
+        document.getElementById('resend-timer-text').style.display = 'block';
+        document.getElementById('timer').textContent = timeLeft;
+        
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').textContent = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                document.getElementById('resend-btn').style.display = 'block';
+                document.getElementById('resend-timer-text').style.display = 'none';
+            }
+        }, 1000);
+    }
   </script>
 </body>
 </html>

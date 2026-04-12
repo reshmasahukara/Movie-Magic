@@ -17,6 +17,12 @@ export default async function handler(req, res) {
         return res.status(409).json({ error: "Email already exists" });
       }
 
+      // 1.5 Secure OTP Verification Check (Requirement: No creation before OTP)
+      const isVerified = await query('SELECT id FROM otp_verifications WHERE email = $1 AND is_verified = TRUE', [email]);
+      if (isVerified.rows.length === 0) {
+        return res.status(401).json({ error: "Email verification required" });
+      }
+
       const hashpass = await bcrypt.hash(password, 10);
       const result = await query(
         'INSERT INTO customer (name, email, password, city, contact_no) VALUES ($1, $2, $3, $4, $5) RETURNING user_id',
@@ -24,6 +30,9 @@ export default async function handler(req, res) {
       );
 
       const user_id = result.rows[0].user_id;
+
+      // 4. Purge verification record after successful signup
+      await query('DELETE FROM otp_verifications WHERE email = $1', [email]);
 
       return res.status(201).json({ 
         success: true, 
