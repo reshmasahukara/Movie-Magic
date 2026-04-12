@@ -149,8 +149,8 @@ async function handleGoogleLogin(req, res) {
     return res.status(200).json({ success: true, user: userData });
   } else {
     const newUser = await query(
-      'INSERT INTO customer (name, email, provider, profile_pic, city, contact_no) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [name, email, 'google', profile_pic, 'Not Set', req.body.contact_no || null]
+      'INSERT INTO customer (name, email, password, provider, profile_pic, city, contact_no) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [name, email, 'GOOGLE_AUTH_USER', 'google', profile_pic, 'Not Set', req.body.contact_no || null]
     );
     const { password: _, ...userData } = newUser.rows[0];
     return res.status(201).json({ success: true, user: userData });
