@@ -50,7 +50,7 @@
           <input type="email" id="forgot-email" placeholder="email@example.com" style="width:100%; background:#000; color:white; border:1px solid #333; padding:12px; border-radius:8px;">
         </div>
         <button id="forgot-send-btn" class="btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 12px;">SEND OTP</button>
-        <button onclick="document.getElementById('forgotModal').style.display='none'" style="background:none; border:none; color:#666; margin-top:1rem; cursor:pointer;">Cancel</button>
+        <button onclick="closeForgotModal()" style="background:none; border:none; color:#666; margin-top:1rem; cursor:pointer;">Cancel</button>
       </div>
 
       <!-- Step 2: OTP -->
@@ -82,94 +82,6 @@
   </div>
 
   <script src="js/utils.js"></script>
-  <script>
-    // Login Logic
-    document.getElementById('login-form').onsubmit = async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-
-      try {
-        const { user } = await API.fetch('/api/auth?action=login', {
-          method: 'POST',
-          body: JSON.stringify({ email, password })
-        });
-        API.saveSession(user);
-        UI.showMessage('Login successful!', 'success');
-        setTimeout(() => window.location.href = '/', 1000);
-      } catch (err) {
-        UI.showMessage(err.message);
-      }
-    };
-
-    // Forgot Password Flow
-    const forgotEmailInput = document.getElementById('forgot-email');
-    const forgotOtpInput = document.getElementById('forgot-otp');
-    const newPassInput = document.getElementById('forgot-new-pass');
-    const confirmPassInput = document.getElementById('forgot-confirm-pass');
-    
-    let resetEmail = '';
-    let resetOtp = '';
-    
-    // Fixed: Connect to the robust Forgot Password anchor ID
-    document.getElementById('forgotPasswordBtn').onclick = (e) => {
-        e.preventDefault();
-        document.getElementById('forgotModal').style.display = 'flex';
-        showStep(1);
-    };
-
-    function showStep(step) {
-        document.getElementById('forgot-step-1').style.display = step === 1 ? 'block' : 'none';
-        document.getElementById('forgot-step-2').style.display = step === 2 ? 'block' : 'none';
-        document.getElementById('forgot-step-3').style.display = step === 3 ? 'block' : 'none';
-    }
-
-    document.getElementById('forgot-send-btn').onclick = async () => {
-        resetEmail = forgotEmailInput.value;
-        if(!resetEmail) return UI.showMessage('Enter email address');
-        
-        try {
-            UI.showMessage('Sending OTP...');
-            const res = await API.fetch('/api/auth?action=forgot-password', {
-                method: 'POST',
-                body: JSON.stringify({ email: resetEmail })
-            });
-            UI.showMessage(res.message, 'success');
-            showStep(2);
-        } catch(e) { UI.showMessage(e.message); }
-    };
-
-    document.getElementById('forgot-verify-btn').onclick = async () => {
-        resetOtp = forgotOtpInput.value;
-        if(resetOtp.length !== 6) return UI.showMessage('Enter 6-digit OTP');
-        
-        try {
-            await API.fetch('/api/auth?action=verify-reset-otp', {
-                method: 'POST',
-                body: JSON.stringify({ email: resetEmail, otp: resetOtp })
-            });
-            UI.showMessage('Verified!', 'success');
-            showStep(3);
-        } catch(e) { UI.showMessage(e.message); }
-    };
-
-    document.getElementById('forgot-reset-btn').onclick = async () => {
-        const pass = newPassInput.value;
-        const confirm = confirmPassInput.value;
-        
-        if(!pass || pass.length < 8) return UI.showMessage('Password must be at least 8 chars');
-        if(pass !== confirm) return UI.showMessage('Passwords do not match');
-        
-        try {
-            UI.showMessage('Updating password...');
-            await API.fetch('/api/auth?action=reset-password', {
-                method: 'POST',
-                body: JSON.stringify({ email: resetEmail, otp: resetOtp, password: pass })
-            });
-            UI.showMessage('Password updated! Redirecting...', 'success');
-            setTimeout(() => window.location.reload(), 2000);
-        } catch(e) { UI.showMessage(e.message); }
-    };
-  </script>
+  <script src="js/login.js"></script>
 </body>
 </html>
