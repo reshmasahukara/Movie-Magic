@@ -6,10 +6,62 @@
   <title>Book Event Tickets | Movie Magic</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
-    .booking-layout { display: grid; grid-template-columns: 1fr 350px; gap: 2rem; margin-top: 2rem; }
-    .event-details-hero { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--glass); }
-    .event-banner { width: 100%; height: 300px; object-fit: cover; }
-    .event-info-pane { padding: 2rem; }
+    .booking-layout { display: grid; grid-template-columns: 1fr 380px; gap: 2.5rem; margin-top: 2rem; }
+    
+    /* Premium Hero Styles */
+    .event-details-hero { 
+      background: var(--card-bg); 
+      border-radius: 16px; 
+      overflow: hidden; 
+      border: 1px solid var(--glass);
+      position: relative;
+    }
+    
+    .hero-banner-container {
+      position: relative;
+      width: 100%;
+      height: 440px;
+      overflow: hidden;
+    }
+    
+    .event-banner { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+      object-position: center;
+      transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+      display: block;
+    }
+    
+    .hero-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 40%, transparent 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    .hero-content-overlay {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 3rem 2.5rem;
+      z-index: 2;
+    }
+
+    .hero-banner-container:hover .event-banner {
+      transform: scale(1.03);
+    }
+    
+    .event-info-pane { padding: 2.5rem; background: var(--card-bg); }
+    
+    @media (max-width: 768px) {
+      .booking-layout { grid-template-columns: 1fr; }
+      .hero-banner-container { height: 240px; }
+      .hero-content-overlay { padding: 1.5rem; }
+      #event-name { font-size: 1.8rem !important; }
+    }
+    
+    /* Existing Seat/Qty Styles... */
     
     .seat-grid-container { background: #111; padding: 2rem; border-radius: 12px; margin-top: 1.5rem; text-align: center; }
     .seat-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 10px; justify-content: center; margin: 2rem auto; max-width: 500px; }
@@ -37,12 +89,21 @@
       <!-- Left: Event & Selection -->
       <section>
         <div class="event-details-hero">
-          <img id="event-banner" src="" class="event-banner">
+          <div class="hero-banner-container">
+            <img id="event-banner" src="" class="event-banner" loading="lazy">
+            <div class="hero-overlay"></div>
+            <div class="hero-content-overlay">
+              <span id="event-category" class="event-tag" style="margin-bottom: 0.8rem; background: var(--primary); color: white; border: none;"></span>
+              <h1 id="event-name" style="font-size: 3rem; margin-bottom: 0.5rem; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.5);"></h1>
+              <p id="event-meta-top" style="color: #eee; font-size: 1.1rem; opacity: 0.9;"></p>
+            </div>
+          </div>
           <div class="event-info-pane">
-            <span id="event-category" class="event-tag" style="margin-bottom: 1rem;"></span>
-            <h1 id="event-name" style="font-size: 2.5rem; margin-bottom: 0.5rem;"></h1>
-            <p id="event-meta" style="color: var(--text-muted); font-size: 1.1rem;"></p>
-            <p id="event-description" style="margin-top: 1.5rem; line-height: 1.6; color: #ccc;"></p>
+            <h3 style="color: var(--primary); text-transform: uppercase; font-size: 0.9rem; letter-spacing: 2px; margin-bottom: 1rem;">About the Event</h3>
+            <p id="event-description" style="line-height: 1.8; color: #ccc; font-size: 1.05rem;"></p>
+            <div id="event-meta-bottom" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px dashed #333; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+              <!-- Meta items injected here -->
+            </div>
           </div>
         </div>
 
@@ -159,8 +220,23 @@
       document.getElementById('event-name').textContent = currentEvent.event_name;
       document.getElementById('event-category').textContent = currentEvent.category;
       
-      const date = new Date(currentEvent.event_date).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-      document.getElementById('event-meta').innerHTML = `📅 ${date} at ${currentEvent.event_time}<br>📍 ${currentEvent.venue}, ${currentEvent.city}`;
+      const dateStr = new Date(currentEvent.event_date).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      
+      document.getElementById('event-meta-top').innerHTML = `📅 ${dateStr} at ${currentEvent.event_time}`;
+      document.getElementById('event-meta-bottom').innerHTML = `
+        <div>
+          <span style="display:block; color: #666; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px;">VENUE</span>
+          <span style="font-weight: 700;">${currentEvent.venue}</span>
+        </div>
+        <div>
+          <span style="display:block; color: #666; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px;">CITY</span>
+          <span style="font-weight: 700;">${currentEvent.city}</span>
+        </div>
+        <div>
+          <span style="display:block; color: #666; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px;">PRICE</span>
+          <span style="font-weight: 700; color: var(--primary);">₹${currentEvent.price} onwards</span>
+        </div>
+      `;
       document.getElementById('event-description').textContent = currentEvent.description || "No description available for this event.";
       
       updateSummary();
