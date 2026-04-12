@@ -220,19 +220,39 @@
 
       try {
         const cityFilter = selectedCity || 'all';
-        // Always fetch all for local fuzzy filtering if "all" or specific
         const url = `/api/events?action=list&city=${cityFilter}&category=all`;
         const { events } = await API.fetch(url);
         
-        let displayEvents = (events && events.length > 0) ? events : getFallbackEvents();
+        // --- 1. Robust Data Merging ---
+        const displayEvents = [];
+        const seenNames = new Set();
         
-        // Fuzzy Filtering for specific tabs
+        // Add Live events
+        if (Array.isArray(events)) {
+          events.forEach(e => {
+            if (e && e.event_name) {
+              displayEvents.push(e);
+              seenNames.add(e.event_name.toLowerCase());
+            }
+          });
+        }
+        
+        // Pad with Fallbacks
+        getFallbackEvents().forEach(fb => {
+          if (!seenNames.has(fb.event_name.toLowerCase())) {
+            displayEvents.push(fb);
+            seenNames.add(fb.event_name.toLowerCase());
+          }
+        });
+
+        // --- 2. Filtering ---
+        let filteredEvents = displayEvents;
         if (selectedCategory !== 'all') {
           const normTarget = normalizeCategory(selectedCategory);
-          displayEvents = displayEvents.filter(e => normalizeCategory(e.category) === normTarget);
+          filteredEvents = filteredEvents.filter(e => normalizeCategory(e.category) === normTarget);
         }
 
-        if (displayEvents.length === 0) {
+        if (filteredEvents.length === 0) {
           container.innerHTML = `
             <div class="container" style="padding: 5rem 2rem; text-align: center; color: var(--text-muted); background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px dashed #333; margin-top:2rem;">
               <p style="font-size: 1.2rem;">No events available in this category. 🎫</p>
@@ -242,37 +262,38 @@
           return;
         }
 
-        // Group by Normalized Category
+        // --- 3. Pre-populated Grouping ---
         const groups = {};
-        displayEvents.forEach(ev => {
+        // Initialize all priorities to ensure rendering order and presence
+        CATEGORY_PRIORITY.forEach(cat => groups[cat] = []);
+        
+        filteredEvents.forEach(ev => {
           const norm = normalizeCategory(ev.category);
           if (!groups[norm]) groups[norm] = [];
           groups[norm].push(ev);
         });
 
-        // Sort keys by priority
-        const sortedKeys = Object.keys(groups).sort((a, b) => {
-          const ia = CATEGORY_PRIORITY.indexOf(a);
-          const ib = CATEGORY_PRIORITY.indexOf(b);
-          if (ia === -1 && ib === -1) return a.localeCompare(b);
-          if (ia === -1) return 1;
-          if (ib === -1) return -1;
-          return ia - ib;
-        });
-
-        // Render sections
-        container.innerHTML = sortedKeys.map(cat => {
+        // --- 4. Render Sections ---
+        // Only render categories that actually have items
+        const renderableCategories = CATEGORY_PRIORITY.filter(cat => groups[cat] && groups[cat].length > 0);
+        
+        container.innerHTML = renderableCategories.map(cat => {
           const listId = `list-${cat.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
-          const sliderHtml = renderEventSliderHTML(groups[cat]);
+          const items = groups[cat];
+          const sliderHtml = renderEventSliderHTML(items);
+          
+          // If only 1 item, we can center it or keep it left
+          const justifyStyle = items.length === 1 ? 'justify-content: center;' : 'justify-content: flex-start;';
+
           return `
             <div class="container" style="margin-top: 2rem; margin-bottom: 2rem;">
               <div class="carousel-section">
                 <div class="section-header-bar" style="padding: 0 1%;">
-                  <h2>${cat} Events</h2>
-                  <a href="#" class="see-all-link">See All ❯</a>
+                  <h2 style="font-weight: 800; letter-spacing: -0.5px;">${cat} Events</h2>
+                  <a href="#" class="see-all-link" style="color: var(--primary); font-weight: 700; text-decoration: none; font-size: 0.85rem;">See All ❯</a>
                 </div>
                 <button class="scroll-btn left" onclick="scrollCarousel('${listId}', 'left')">❮</button>
-                <div class="carousel-container" id="${listId}">
+                <div class="carousel-container" id="${listId}" style="${justifyStyle}">
                   ${sliderHtml}
                 </div>
                 <button class="scroll-btn right" onclick="scrollCarousel('${listId}', 'right')">❯</button>
@@ -282,26 +303,21 @@
         }).join('');
 
       } catch (err) {
-        console.error('Failed to load events:', err);
+        console.error('Render failure:', err);
         const fb = getFallbackEvents();
-        const groups = { 'Featured': fb };
-        container.innerHTML = Object.keys(groups).map(cat => {
-          const listId = `list-${cat.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
-          return `
-            <div class="container" style="margin-top: 2rem; margin-bottom: 2rem;">
-              <div class="carousel-section">
-                <div class="section-header-bar" style="padding: 0 1%;">
-                  <h2>Recommended for You</h2>
-                </div>
-                <button class="scroll-btn left" onclick="scrollCarousel('${listId}', 'left')">❮</button>
-                <div class="carousel-container" id="${listId}">
-                  ${renderEventSliderHTML(fb)}
-                </div>
-                <button class="scroll-btn right" onclick="scrollCarousel('${listId}', 'right')">❯</button>
+        const listId = 'list-fallback-error';
+        container.innerHTML = `
+          <div class="container" style="margin-top: 2rem;">
+            <div class="carousel-section">
+              <div class="section-header-bar"><h2>Recommended Events</h2></div>
+              <button class="scroll-btn left" onclick="scrollCarousel('${listId}', 'left')">❮</button>
+              <div class="carousel-container" id="${listId}">
+                ${renderEventSliderHTML(fb)}
               </div>
+              <button class="scroll-btn right" onclick="scrollCarousel('${listId}', 'right')">❯</button>
             </div>
-          `;
-        }).join('');
+          </div>
+        `;
       }
     }
 

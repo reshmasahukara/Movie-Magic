@@ -713,9 +713,9 @@ nav .links a:hover {
 /* --- Hardened Event Card Styles --- */
 .carousel-container .movie-card,
 .carousel-container .event-card { 
-  min-width: 250px; 
-  max-width: 250px; 
-  flex: 0 0 250px; 
+  min-width: 250px !important; 
+  max-width: 250px !important; 
+  flex: 0 0 250px !important; 
   height: 100%;
 }
 .event-card { background: var(--card-bg); border: 1px solid var(--glass); border-radius: 16px; overflow: hidden; transition: transform 0.3s, border-color 0.3s; cursor: pointer; height: 100%; }
