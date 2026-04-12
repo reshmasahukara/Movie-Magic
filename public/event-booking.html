@@ -73,7 +73,7 @@
     .qty-selector { display: flex; align-items: center; gap: 1.5rem; justify-content: center; padding: 2rem; background: #111; border-radius: 12px; }
     .qty-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--primary); background: transparent; color: white; cursor: pointer; font-size: 1.2rem; }
     
-    .summary-card { background: var(--card-bg); border-radius: 12px; padding: 2rem; border: 1px solid var(--glass); height: fit-content; position: sticky; top: 2rem; }
+    .summary-card { background: var(--card-bg); border-radius: 12px; padding: 2rem; border: 1px solid var(--glass); height: fit-content; position: sticky; top: 2rem; z-index: 50; pointer-events: auto; }
     .screen-indicator { width: 80%; height: 4px; background: var(--primary); margin: 0 auto 2rem; border-radius: 2px; box-shadow: 0 4px 10px var(--primary); }
   </style>
 </head>
@@ -153,7 +153,7 @@
              <span id="total-price" style="color: var(--primary);">₹0</span>
           </div>
           
-          <button id="proceed-btn" class="btn-primary" style="width: 100%; margin-top: 2rem; padding: 15px;" onclick="proceedToPayment()">PROCEED TO PAY</button>
+          <button id="proceed-btn" class="btn-primary" style="width: 100%; margin-top: 2rem; padding: 15px; position: relative; z-index: 60; cursor: pointer;">PROCEED TO PAY</button>
           
           <p style="font-size: 0.75rem; color: #555; text-align: center; margin-top: 1.5rem;">By clicking Proceed, you agree to our Terms & Conditions.</p>
         </div>
@@ -352,6 +352,8 @@
           amount: count * currentEvent.price
         };
 
+        console.log('Finalizing Event Booking Payload:', payload);
+
         const res = await API.fetch('/api/events?action=book', {
           method: 'POST',
           body: JSON.stringify(payload)
@@ -360,6 +362,8 @@
         if (res.success) {
            UI.showMessage('Booking Successful! Redirecting to your ticket...', 'success');
            setTimeout(() => window.location.href = '/history.html', 2000);
+        } else {
+           throw new Error(res.error || 'Failed to process booking. Please try again.');
         }
       } catch (err) {
         UI.showMessage(err.message);
@@ -368,6 +372,7 @@
       }
     }
 
+    document.getElementById('proceed-btn').addEventListener('click', proceedToPayment);
     UI.initNavbar();
     loadEvent();
   </script>
