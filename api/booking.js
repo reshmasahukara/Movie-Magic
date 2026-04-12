@@ -29,17 +29,19 @@ export default async function handler(req, res) {
       let result;
       if (bookingid) {
         result = await query(
-          `SELECT b.*, m.movie_name 
+          `SELECT b.*, m.movie_name, s.timmings, s.show_date 
            FROM bookings b 
            JOIN movie m ON b.movie_id = m.movie_id 
+           LEFT JOIN shows s ON b.screen_id = s.screen_id
            WHERE b.id = $1 AND b.user_id = $2`,
           [bookingid, userid]
         );
       } else {
         result = await query(
-          `SELECT b.*, m.movie_name 
+          `SELECT b.*, m.movie_name, s.timmings, s.show_date 
            FROM bookings b 
            JOIN movie m ON b.movie_id = m.movie_id 
+           LEFT JOIN shows s ON b.screen_id = s.screen_id
            WHERE b.user_id = $1 AND b.screen_id = $2 
            ORDER BY b.created_at DESC LIMIT 1`,
           [userid, screenid]
@@ -55,9 +57,10 @@ export default async function handler(req, res) {
       if (!userid) return res.status(400).json({ error: "userid is required" });
       
       const result = await query(
-        `SELECT b.*, m.movie_name 
+        `SELECT b.*, m.movie_name, s.timmings, s.show_date 
          FROM bookings b 
          LEFT JOIN movie m ON b.movie_id = m.movie_id 
+         LEFT JOIN shows s ON b.screen_id = s.screen_id
          WHERE b.user_id = $1 
          ORDER BY b.created_at DESC`,
         [userid]

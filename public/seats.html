@@ -446,7 +446,20 @@
 
       try {
         const selectedBooking = JSON.parse(localStorage.getItem('selectedBooking') || '{}');
-        const theaterName = selectedBooking.theaterName || (currentShow ? currentShow.theater_name : "Movie Magic Cinemas");
+        const theaterName = selectedBooking.theaterName || (currentShow && currentShow.theater_name ? currentShow.theater_name : "Movie Magic Cinemas");
+        const rawTime = selectedBooking.time || (currentShow ? currentShow.timmings : null);
+        let finalDisplayTime = "10:15 AM";
+        if (datetime && !isNaN(new Date(datetime))) {
+          finalDisplayTime = new Date(datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } else if (rawTime && rawTime.match(/^\d{2}:\d{2}/)) {
+          const parts = rawTime.split(':');
+          let hh = parseInt(parts[0], 10);
+          const ampm = hh >= 12 ? 'PM' : 'AM';
+          hh = hh % 12 || 12;
+          finalDisplayTime = `${hh.toString().padStart(2, '0')}:${parts[1]} ${ampm}`;
+        } else if (rawTime) {
+          finalDisplayTime = rawTime;
+        }
 
         const res = await API.fetch('/api/booking', {
           method: 'POST',
@@ -460,7 +473,7 @@
             movie_id: movieId,
             theater_name: theaterName,
             show_date: selectedBooking.date || (currentShow ? currentShow.show_date : null),
-            show_time: selectedBooking.time || (currentShow ? currentShow.timmings : null)
+            show_time: finalDisplayTime
           })
         });
 
@@ -469,7 +482,7 @@
           amount: total,
           movie_name: movieName,
           theater_name: theaterName,
-          timmings: datetime ? new Date(datetime).toLocaleTimeString() : (currentShow ? currentShow.timmings : "10:15 AM"),
+          timmings: finalDisplayTime,
           show_date: datetime ? new Date(datetime).toISOString().split('T')[0] : (new Date(currentShow ? currentShow.show_date : Date.now()).toISOString().split('T')[0]),
           seats: selectedSeats.map(s => s.id),
           datetime: datetime
