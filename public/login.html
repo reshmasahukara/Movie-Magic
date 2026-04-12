@@ -29,14 +29,61 @@
         </div>
         <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Sign In</button>
       </form>
+      <div style="text-align: right; margin-top: 1rem;">
+        <button id="forgot-link" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; transition: color 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">Forgot Password?</button>
+      </div>
       <p style="text-align: center; margin-top: 1.5rem; color: var(--text-muted);">
         New to Movie Magic? <a href="/signup.html" style="color: var(--primary); text-decoration: none;">Join now</a>
       </p>
     </div>
   </div>
 
+  <!-- Forgot Password Multi-Step Modal -->
+  <div class="modal-overlay" id="forgotModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center;">
+    <div class="modal-content" style="max-width: 400px; padding: 2.5rem; background:#111; border:1px solid #333; border-radius:15px; text-align:center;">
+      
+      <!-- Step 1: Email -->
+      <div id="forgot-step-1">
+        <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem; color: white;">Find Your Account</h2>
+        <p style="color: #888; font-size: 0.9rem; margin-bottom: 2rem;">Enter your registered email to receive an OTP.</p>
+        <div class="form-group" style="text-align: left;">
+          <input type="email" id="forgot-email" placeholder="email@example.com" style="width:100%; background:#000; color:white; border:1px solid #333; padding:12px; border-radius:8px;">
+        </div>
+        <button id="forgot-send-btn" class="btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 12px;">SEND OTP</button>
+        <button onclick="document.getElementById('forgotModal').style.display='none'" style="background:none; border:none; color:#666; margin-top:1rem; cursor:pointer;">Cancel</button>
+      </div>
+
+      <!-- Step 2: OTP -->
+      <div id="forgot-step-2" style="display:none;">
+        <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem; color: white;">Verify OTP</h2>
+        <p style="color: #888; font-size: 0.9rem; margin-bottom: 2rem;">Check your email for the 6-digit code.</p>
+        <div class="form-group">
+          <input type="text" id="forgot-otp" placeholder="000000" maxlength="6" style="text-align: center; font-size:1.5rem; letter-spacing:8px; width:100%; background:#000; color:white; border:1px solid #333; padding:12px; border-radius:8px;">
+        </div>
+        <button id="forgot-verify-btn" class="btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 12px;">VERIFY & PROCEED</button>
+      </div>
+
+      <!-- Step 3: New Password -->
+      <div id="forgot-step-3" style="display:none;">
+        <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem; color: white;">Reset Password</h2>
+        <p style="color: #888; font-size: 0.9rem; margin-bottom: 2rem;">Choose a new, strong password.</p>
+        <div class="form-group" style="text-align: left; margin-bottom: 1rem;">
+          <label style="font-size: 0.8rem; color:#666;">New Password</label>
+          <input type="password" id="forgot-new-pass" style="width:100%; background:#000; color:white; border:1px solid #333; padding:12px; border-radius:8px;">
+        </div>
+        <div class="form-group" style="text-align: left;">
+          <label style="font-size: 0.8rem; color:#666;">Confirm Password</label>
+          <input type="password" id="forgot-confirm-pass" style="width:100%; background:#000; color:white; border:1px solid #333; padding:12px; border-radius:8px;">
+        </div>
+        <button id="forgot-reset-btn" class="btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 12px;">UPDATE PASSWORD</button>
+      </div>
+
+    </div>
+  </div>
+
   <script src="js/utils.js"></script>
   <script>
+    // Login Logic
     document.getElementById('login-form').onsubmit = async (e) => {
       e.preventDefault();
       const email = document.getElementById('email').value;
@@ -53,6 +100,73 @@
       } catch (err) {
         UI.showMessage(err.message);
       }
+    };
+
+    // Forgot Password Flow
+    const forgotEmailInput = document.getElementById('forgot-email');
+    const forgotOtpInput = document.getElementById('forgot-otp');
+    const newPassInput = document.getElementById('forgot-new-pass');
+    const confirmPassInput = document.getElementById('forgot-confirm-pass');
+    
+    let resetEmail = '';
+    let resetOtp = '';
+
+    document.getElementById('forgot-link').onclick = () => {
+        document.getElementById('forgotModal').style.display = 'flex';
+        showStep(1);
+    };
+
+    function showStep(step) {
+        document.getElementById('forgot-step-1').style.display = step === 1 ? 'block' : 'none';
+        document.getElementById('forgot-step-2').style.display = step === 2 ? 'block' : 'none';
+        document.getElementById('forgot-step-3').style.display = step === 3 ? 'block' : 'none';
+    }
+
+    document.getElementById('forgot-send-btn').onclick = async () => {
+        resetEmail = forgotEmailInput.value;
+        if(!resetEmail) return UI.showMessage('Enter email address');
+        
+        try {
+            UI.showMessage('Sending OTP...');
+            const res = await API.fetch('/api/forgot-password', {
+                method: 'POST',
+                body: JSON.stringify({ email: resetEmail })
+            });
+            UI.showMessage(res.message, 'success');
+            showStep(2);
+        } catch(e) { UI.showMessage(e.message); }
+    };
+
+    document.getElementById('forgot-verify-btn').onclick = async () => {
+        resetOtp = forgotOtpInput.value;
+        if(resetOtp.length !== 6) return UI.showMessage('Enter 6-digit OTP');
+        
+        try {
+            await API.fetch('/api/verify-reset-otp', {
+                method: 'POST',
+                body: JSON.stringify({ email: resetEmail, otp: resetOtp })
+            });
+            UI.showMessage('Verified!', 'success');
+            showStep(3);
+        } catch(e) { UI.showMessage(e.message); }
+    };
+
+    document.getElementById('forgot-reset-btn').onclick = async () => {
+        const pass = newPassInput.value;
+        const confirm = confirmPassInput.value;
+        
+        if(!pass || pass.length < 8) return UI.showMessage('Password must be at least 8 chars');
+        if(pass !== confirm) return UI.showMessage('Passwords do not match');
+        
+        try {
+            UI.showMessage('Updating password...');
+            await API.fetch('/api/reset-password', {
+                method: 'POST',
+                body: JSON.stringify({ email: resetEmail, otp: resetOtp, password: pass })
+            });
+            UI.showMessage('Password updated! Redirecting...', 'success');
+            setTimeout(() => window.location.reload(), 2000);
+        } catch(e) { UI.showMessage(e.message); }
     };
   </script>
 </body>
