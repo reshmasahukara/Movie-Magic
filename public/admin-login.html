@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal | Movie Magic</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body style="background: linear-gradient(rgba(10, 10, 20, 0.95), rgba(10, 10, 20, 0.95)), url('https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&w=1920&q=80'); background-size: cover; background-position: center;">
+  <nav>
+    <a href="/" class="logo" style="color: var(--primary);">SYSTEMS PORTAL</a>
+  </nav>
+
+  <div class="container">
+    <div class="auth-container" style="border-top: 4px solid var(--primary); box-shadow: 0 20px 40px rgba(229,9,20,0.1);">
+      <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem; text-align: center; color: white;">Admin Authentication</h2>
+      <p style="text-align: center; color: #888; font-size: 0.9rem; margin-bottom: 2rem;">Authorized Personnel Only</p>
+      
+      <form id="admin-login-form">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="email" required placeholder="admin@moviemagic.com">
+        </div>
+        <div class="form-group">
+          <label>Master Password</label>
+          <input type="password" id="password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem; font-weight: 800; letter-spacing: 2px;">AUTHENTICATE</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/utils.js"></script>
+  <script>
+    document.getElementById('admin-login-form').onsubmit = async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch('/api/admin?action=login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          // Securely inject specific admin session
+          localStorage.setItem('adminSession', JSON.stringify({
+             isAdmin: true,
+             email: email,
+             name: 'System Administrator'
+          }));
+          window.location.href = '/admin.html';
+        } else {
+          UI.showMessage(data.error || 'Authentication Failed', 'error');
+        }
+      } catch (err) {
+        UI.showMessage('Network Protocol Error', 'error');
+      }
+    };
+  </script>
+</body>
+</html>

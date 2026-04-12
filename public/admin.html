@@ -73,8 +73,17 @@
   <script src="js/utils.js"></script>
   <script>
     async function loadAdminData() {
-      const user = API.getSession();
-      if (!user || user.name !== 'admin') { window.location.href = '/'; return; }
+      const adminRaw = localStorage.getItem('adminSession');
+      if (!adminRaw) { 
+         window.location.href = '/admin-login.html'; 
+         return; 
+      }
+      
+      const adminUser = JSON.parse(adminRaw);
+      if (!adminUser.isAdmin) {
+         window.location.href = '/admin-login.html';
+         return;
+      }
 
       try {
         const { data } = await API.fetch('/api/admin?action=dash');

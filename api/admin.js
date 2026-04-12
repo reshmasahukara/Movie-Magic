@@ -5,19 +5,43 @@ export default async function handler(req, res) {
   try {
     const { method, body, query: q } = req;
 
-    // 1. Admin Login
+    // 1. Admin Login Structure Migration & Verification
     if (method === 'POST' && q.action === 'login') {
-      const { username, password } = body;
-      const result = await query('SELECT * FROM admin WHERE user_name = $1', [username]);
+      const { email, password } = body;
+      
+      // Ensure robust table schema exists
+      await query(`
+        CREATE TABLE IF NOT EXISTS admins (
+          id SERIAL PRIMARY KEY,
+          username VARCHAR(50),
+          email VARCHAR(100) UNIQUE NOT NULL,
+          password_hash VARCHAR(255) NOT NULL,
+          role VARCHAR(20) DEFAULT 'admin'
+        )
+      `);
+
+      // Seed default admin if missing
+      const checkAdmin = await query('SELECT * FROM admins');
+      if (checkAdmin.rows.length === 0) {
+        const defaultHash = await bcrypt.hash('Admin@123', 10);
+        await query(
+           'INSERT INTO admins (username, email, password_hash, role) VALUES ($1, $2, $3, $4)', 
+           ['admin', 'admin@moviemagic.com', defaultHash, 'superadmin']
+        );
+      }
+
+      // Perform auth verification
+      const result = await query('SELECT * FROM admins WHERE email = $1', [email]);
       if (result.rows.length > 0) {
         const admin = result.rows[0];
-        const match = admin.password.startsWith('$2b$') 
-          ? await bcrypt.compare(password, admin.password) 
-          : (password === admin.password);
+        const match = await bcrypt.compare(password, admin.password_hash);
         
-        if (match) return res.status(200).json({ success: true, admin: { username: admin.user_name } });
+        if (match) {
+           return res.status(200).json({ success: true, admin: { email: admin.email, role: admin.role } });
+        }
       }
-      return res.status(401).json({ error: "Invalid admin credentials" });
+      
+      return res.status(401).json({ error: "Invalid admin credentials." });
     }
 
     // 2. Fetch Dashboard Data
