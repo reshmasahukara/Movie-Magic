@@ -35,6 +35,9 @@
     .status-failed { background: #E50914; color: white; }
 
     .ticket-footer { margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #555; }
+    
+    .tab-btn { padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 30px; cursor: pointer; transition: all 0.3s; font-weight: 600; }
+    .tab-btn.active { background: var(--primary); border-color: var(--primary); box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4); }
   </style>
 </head>
 <body>
@@ -51,11 +54,6 @@
       </div>
     </div>
 
-    <style>
-      .tab-btn { padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 30px; cursor: pointer; transition: all 0.3s; font-weight: 600; }
-      .tab-btn.active { background: var(--primary); border-color: var(--primary); box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4); }
-    </style>
-
     <div id="history-list">
       <div style="padding: 4rem; text-align: center; color: var(--text-muted);">
         <p>Synchronizing with server...</p>
@@ -65,162 +63,195 @@
 
   <script src="js/utils.js"></script>
   <script>
-    async function loadHistory() {
+    // --- 1. Global State ---
+    let currentTab = 'movies';
+
+    // --- 2. Formatting Helpers ---
+    function formatDateSafe(dateStr){
+      if(!dateStr) return '';
+      const parts = dateStr.split('T')[0].split('-');
+      if (parts.length < 3) return dateStr;
+      const [y,m,d] = parts;
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return `${months[parseInt(m)-1]} ${parseInt(d)}, ${y}`;
+    }
+
+    function formatTimeSafe(t){
+      if(!t) return '00:00';
+      let [h,min] = t.split(':');
+      h = parseInt(h);
+      if(isNaN(h)) return t;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${String(h).padStart(2,'0')}:${min} ${ampm}`;
+    }
+
+    // --- 3. Tab Management ---
+    window.switchHistoryTab = (tab) => {
+      console.log(`[History] Switching to tab: ${tab}`);
+      currentTab = tab;
+      
+      // UI Update
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.getElementById(`tab-${tab}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      // Container Reset
+      const list = document.getElementById('history-list');
+      if (list) list.innerHTML = `<div style="padding: 4rem; text-align: center; color: var(--text-muted);"><p>Loading ${tab} history...</p></div>`;
+
+      // Load Logic
+      if (tab === 'movies') loadMovieHistory();
+      else loadEventHistory();
+    };
+
+    // --- 4. Content Loaders ---
+    async function loadMovieHistory() {
       const user = API.getSession();
       if (!user) { window.location.href = '/login.html'; return; }
 
-      function formatDateSafe(dateStr){
-        if(!dateStr) return '';
-        const [y,m,d] = dateStr.split('T')[0].split('-');
-        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-        return `${months[parseInt(m)-1]} ${parseInt(d)}, ${y}`;
-      }
-
-      function formatTimeSafe(t){
-        if(!t) return '00:00';
-        let [h,min] = t.split(':');
-        h = parseInt(h);
-        if(isNaN(h)) return t;
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        h = h % 12 || 12;
-        return `${String(h).padStart(2,'0')}:${min} ${ampm}`;
-      }
-
-      let currentTab = 'movies';
-
-      window.switchHistoryTab = (tab) => {
-        currentTab = tab;
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(`tab-${tab}`).classList.add('active');
-        loadHistory();
-      };
-
       try {
-        const endpoint = currentTab === 'movies' 
-          ? `/api/user?action=history&userid=${user.user_id}`
-          : `/api/events?action=history&userid=${user.user_id}`;
-          
-        const res = await API.fetch(endpoint);
-        const bookings = res.bookings;
+        const res = await API.fetch(`/api/user?action=history&userid=${user.user_id}`);
+        const bookings = res.bookings || [];
         
-        if (!bookings || bookings.length === 0) {
-          UI.safeRender('history-list', `
-            <div style="padding: 5rem 2rem; text-align: center; background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px dashed rgba(255,255,255,0.1);">
-              <p style="font-size: 1.2rem; color: var(--text-muted);">You haven't booked any tickets yet. 🍿</p>
-              <button onclick="window.location.href='/'" class="btn-primary" style="margin-top: 1.5rem">Browse Movies</button>
-            </div>
-          `);
+        if (bookings.length === 0) {
+          renderEmptyState('movies');
           return;
         }
 
-        let hasUpcomingToday = false;
         const todayDate = new Date().toISOString().split('T')[0];
-
         const html = bookings.map(b => {
           const status = (b.payment_status || "Pending").toLowerCase();
           const created = new Date(b.booking_date || b.created_at || Date.now()).toLocaleString();
+          const date = formatDateSafe(b.show_date);
+          const rawDate = b.show_date ? String(b.show_date).split('T')[0] : '';
+          const time = formatTimeSafe(b.timmings || b.show_time);
+          const isFuture = rawDate >= todayDate && status !== 'refunded' && status !== 'failed';
           
-          if (currentTab === 'movies') {
-            const date = formatDateSafe(b.show_date);
-            const rawDate = b.show_date ? String(b.show_date).split('T')[0] : '';
-            const time = formatTimeSafe(b.timmings || b.show_time);
-            if (rawDate === todayDate && status !== 'refunded') hasUpcomingToday = true;
-            const isFuture = rawDate >= todayDate && status !== 'refunded';
-            
-            return `
-              <div class="ticket animate-fade-in movie-ticket">
-                <div class="ticket-main">
-                  <span class="status-badge status-${status}">${status}</span>
-                  <h3 style="font-size: 1.6rem; color: white; margin-bottom: 0.4rem;">${b.movie_name || "Movie Magic"}</h3>
-                  <p style="color: var(--primary); font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px;">${b.theater_name || "Movie Magic Cinemas"}</p>
-                  <p style="color: #888; font-size: 0.85rem; font-weight: 500;">${time} | ${date}</p>
-                  
-                  <div style="margin-top: 1.2rem; display: flex; gap: 2.5rem;">
-                    <div>
-                      <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">SEATS</p>
-                      <p style="font-weight: 700; font-size: 0.9rem;">${(b.selected_seats || []).join(', ') || "-"}</p>
-                    </div>
-                    <div>
-                      <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">AMOUNT</p>
-                      <p style="font-weight: 700; font-size: 0.9rem; color: var(--primary);">₹${b.price || b.amount || 0}</p>
-                    </div>
+          return `
+            <div class="ticket animate-fade-in movie-ticket">
+              <div class="ticket-main">
+                <span class="status-badge status-${status}">${status}</span>
+                <h3 style="font-size: 1.6rem; color: white; margin-bottom: 0.4rem;">${b.movie_name || "Movie Magic"}</h3>
+                <p style="color: var(--primary); font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px;">${b.theater_name || "Movie Magic Cinemas"}</p>
+                <p style="color: #888; font-size: 0.85rem; font-weight: 500;">${time} | ${date}</p>
+                <div style="margin-top: 1.2rem; display: flex; gap: 2.5rem;">
+                  <div>
+                    <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">SEATS</p>
+                    <p style="font-weight: 700; font-size: 0.9rem;">${(b.selected_seats || []).join(', ') || "-"}</p>
                   </div>
-
-                  <div class="ticket-footer">
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                      <span>ID: #MM-${b.id}</span>
-                      <span>Booked: ${created}</span>
-                    </div>
-                    <div style="display: flex; gap: 10px;">
-                      ${isFuture ? `<button onclick="cancelBooking('${b.id}')" class="btn-primary" style="padding: 0.4rem 1rem; font-size: 0.7rem; background: rgba(229, 9, 20, 0.1); border: 1px solid #e50914; color: #e50914;">Cancel</button>` : ''}
-                      <button onclick="window.location.href='/ticket.html?bookingId=${b.id}'" class="btn-primary" style="padding: 0.4rem 1rem; font-size: 0.7rem; background: transparent; border: 1px solid var(--primary);">Download</button>
-                    </div>
+                  <div>
+                    <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">AMOUNT</p>
+                    <p style="font-weight: 700; font-size: 0.9rem; color: var(--primary);">₹${b.price || b.amount || 0}</p>
                   </div>
                 </div>
-                <div class="ticket-side">ADMIT ONE</div>
-              </div>
-            `;
-          } else {
-            // Event Ticket Rendering
-            const eventDate = new Date(b.event_date).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=EV-${b.id}`;
-            
-            return `
-              <div class="ticket animate-fade-in event-ticket" style="border-left: 5px solid #00d4ff;">
-                <div class="ticket-main">
-                  <span class="status-badge status-${status}">${status}</span>
-                  <div style="display: flex; gap: 1.5rem;">
-                    <img src="${b.image_url}" style="width: 80px; height: 80px; border-radius: 8px; object-fit: cover;">
-                    <div>
-                      <h3 style="font-size: 1.4rem; color: white; margin-bottom: 0.4rem;">${b.event_name}</h3>
-                      <p style="color: #00d4ff; font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">${b.venue}, ${b.city}</p>
-                      <p style="color: #888; font-size: 0.85rem; font-weight: 500;">${b.event_time} | ${eventDate}</p>
-                    </div>
+                <div class="ticket-footer">
+                  <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <span>ID: #MM-${b.id}</span>
+                    <span>Booked: ${created}</span>
                   </div>
-                  
-                  <div style="margin-top: 1.2rem; display: flex; gap: 2.5rem;">
-                    <div>
-                      <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">TICKETS</p>
-                      <p style="font-weight: 700; font-size: 0.9rem;">${b.tickets_count}</p>
-                    </div>
-                    <div>
-                      <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">SEATS</p>
-                      <p style="font-weight: 700; font-size: 0.9rem;">${(b.selected_seats || []).length > 0 ? b.selected_seats.join(', ') : 'Open Entry'}</p>
-                    </div>
-                    <div>
-                      <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">AMOUNT</p>
-                      <p style="font-weight: 700; font-size: 0.9rem; color: #00d4ff;">₹${b.amount}</p>
-                    </div>
+                  <div style="display: flex; gap: 10px;">
+                    ${isFuture ? `<button onclick="cancelBooking('${b.id}')" class="btn-primary" style="padding: 0.4rem 1rem; font-size: 0.7rem; background: rgba(229,9,20,0.1); border: 1px solid #e50914; color: #e50914;">Cancel</button>` : ''}
+                    <button onclick="window.location.href='/ticket.html?bookingId=${b.id}'" class="btn-primary" style="padding: 0.4rem 1rem; font-size: 0.7rem; background: transparent; border: 1px solid var(--primary);">Download</button>
                   </div>
-
-                  <div class="ticket-footer">
-                    <span>ID: #EV-${b.id} | Booked: ${created}</span>
-                  </div>
-                </div>
-                <div class="ticket-side" style="width: 150px; background: white; writing-mode: horizontal-tb; transform: none; display: flex; flex-direction: column; gap: 8px;">
-                  <img src="${qrUrl}" style="width: 100px; height: 100px;">
-                  <span style="color: black; font-size: 0.6rem; letter-spacing: 1px; font-weight: 800;">SCAN FOR ENTRY</span>
                 </div>
               </div>
-            `;
-          }
+              <div class="ticket-side">ADMIT ONE</div>
+            </div>
+          `;
         }).join('');
 
         UI.safeRender('history-list', html);
-        
-        if (hasUpcomingToday) {
-           UI.showMessage('Reminder: You have upcoming shows scheduled for today! 🍿', 'success');
-        }
-
       } catch (err) {
         UI.showMessage(err.message);
-        UI.safeRender('history-list', `<p style="text-align: center; color: var(--primary);">Failed to load history: ${err.message}</p>`);
+        renderErrorState(err.message);
       }
+    }
+
+    async function loadEventHistory() {
+      const user = API.getSession();
+      if (!user) { window.location.href = '/login.html'; return; }
+
+      try {
+        const res = await API.fetch(`/api/events?action=history&userid=${user.user_id}`);
+        const bookings = res.bookings || [];
+        
+        if (bookings.length === 0) {
+          renderEmptyState('events');
+          return;
+        }
+
+        const html = bookings.map(b => {
+          const status = (b.payment_status || "Paid").toLowerCase();
+          const created = new Date(b.booking_date || b.created_at || Date.now()).toLocaleString();
+          const eventDate = formatDateSafe(b.event_date);
+          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=EV-${b.id}`;
+          
+          return `
+            <div class="ticket animate-fade-in event-ticket" style="border-left: 5px solid #00d4ff;">
+              <div class="ticket-main">
+                <span class="status-badge status-${status}">${status}</span>
+                <div style="display: flex; gap: 1.5rem;">
+                  <img src="${b.image_url}" style="width: 80px; height: 80px; border-radius: 8px; object-fit: cover;" onerror="this.src='https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=400'">
+                  <div>
+                    <h3 style="font-size: 1.4rem; color: white; margin-bottom: 0.4rem;">${b.event_name}</h3>
+                    <p style="color: #00d4ff; font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">${b.venue}, ${b.city}</p>
+                    <p style="color: #888; font-size: 0.85rem; font-weight: 500;">${b.event_time || 'Check Details'} | ${eventDate}</p>
+                  </div>
+                </div>
+                <div style="margin-top: 1.2rem; display: flex; gap: 2.5rem;">
+                  <div>
+                    <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">TICKETS</p>
+                    <p style="font-weight: 700; font-size: 0.9rem;">${b.tickets_count}</p>
+                  </div>
+                  <div>
+                    <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">SEATS</p>
+                    <p style="font-weight: 700; font-size: 0.9rem;">${(b.selected_seats && b.selected_seats.length > 0) ? b.selected_seats.join(', ') : 'Open Entry'}</p>
+                  </div>
+                  <div>
+                    <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">AMOUNT</p>
+                    <p style="font-weight: 700; font-size: 0.9rem; color: #00d4ff;">₹${b.amount}</p>
+                  </div>
+                </div>
+                <div class="ticket-footer">
+                  <span>ID: #EV-${b.id} | Booked: ${created}</span>
+                </div>
+              </div>
+              <div class="ticket-side" style="width: 150px; background: white; writing-mode: horizontal-tb; transform: none; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; transform: rotate(0deg);">
+                <img src="${qrUrl}" style="width: 100px; height: 100px;">
+                <span style="color: black; font-size: 0.6rem; letter-spacing: 1px; font-weight: 800; transform: none;">SCAN FOR ENTRY</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        UI.safeRender('history-list', html);
+      } catch (err) {
+        UI.showMessage(err.message);
+        renderErrorState(err.message);
+      }
+    }
+
+    // --- 5. State Renderers ---
+    function renderEmptyState(type) {
+      const msg = type === 'movies' ? "You haven't booked any movie tickets yet. 🍿" : "Your event ticket history is empty. 🎫";
+      const btnText = type === 'movies' ? "Browse Movies" : "Browse Events";
+      const link = type === 'movies' ? '/' : '/';
+      
+      UI.safeRender('history-list', `
+        <div style="padding: 5rem 2rem; text-align: center; background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px dashed rgba(255,255,255,0.1);">
+          <p style="font-size: 1.2rem; color: var(--text-muted);">${msg}</p>
+          <button onclick="window.location.href='${link}'" class="btn-primary" style="margin-top: 1.5rem">${btnText}</button>
+        </div>
+      `);
+    }
+
+    function renderErrorState(msg) {
+      UI.safeRender('history-list', `<p style="text-align: center; color: var(--primary); padding: 4rem;">Failed to load history: ${msg}</p>`);
     }
 
     async function cancelBooking(bookingId) {
       if (!confirm("Are you sure you want to cancel this booking? This action cannot be reversed and your seats will be released.")) return;
-      
       const user = API.getSession();
       try {
         const res = await API.fetch('/api/movies?action=cancel', {
@@ -229,15 +260,18 @@
         });
         if (res.success) {
            UI.showMessage('Booking securely cancelled and seats freed.', 'success');
-           loadHistory();
+           loadMovieHistory();
         }
       } catch (err) {
-        UI.showMessage('Failed to cancel booking: ' + err.message, 'error');
+        UI.showMessage('Failed to cancel: ' + err.message, 'error');
       }
     }
 
-    // Defensive Trigger
-    window.addEventListener('load', loadHistory);
+    // --- 6. Initial Load ---
+    window.addEventListener('load', () => {
+      UI.initNavbar();
+      loadMovieHistory();
+    });
   </script>
 </body>
 </html>
