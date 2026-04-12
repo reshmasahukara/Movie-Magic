@@ -43,6 +43,8 @@ async function handleLogin(req, res) {
   if (result.rows.length === 0) return res.status(404).json({ error: "User Not Found" });
 
   const user = result.rows[0];
+  if (user.is_blocked) return res.status(403).json({ error: "Your account is temporarily restricted. Please contact support." });
+  
   const match = await bcrypt.compare(password, user.password);
   if (!match) return res.status(401).json({ error: "Invalid password" });
 

@@ -2,106 +2,115 @@ import { query } from './lib/db.js';
 import bcrypt from 'bcryptjs';
 
 export default async function handler(req, res) {
+  const { method, body, query: q } = req;
+  const { action } = q;
+
   try {
-    const { method, body, query: q } = req;
-
-    // 1. Admin Login Structure Migration & Verification
-    if (method === 'POST' && q.action === 'login') {
+    // 1. ADMIN LOGIN
+    if (method === 'POST' && action === 'login') {
       const { email, password } = body;
-      
-      // Ensure robust table schema exists
-      await query(`
-        CREATE TABLE IF NOT EXISTS admins (
-          id SERIAL PRIMARY KEY,
-          username VARCHAR(50),
-          email VARCHAR(100) UNIQUE NOT NULL,
-          password_hash VARCHAR(255) NOT NULL,
-          role VARCHAR(20) DEFAULT 'admin'
-        )
-      `);
-
-      // Seed default admin if missing
-      const checkAdmin = await query('SELECT * FROM admins');
-      if (checkAdmin.rows.length === 0) {
-        const defaultHash = await bcrypt.hash('Admin@123', 10);
-        await query(
-           'INSERT INTO admins (username, email, password_hash, role) VALUES ($1, $2, $3, $4)', 
-           ['admin', 'admin@moviemagic.com', defaultHash, 'superadmin']
-        );
-      }
-
-      // Perform auth verification
       const result = await query('SELECT * FROM admins WHERE email = $1', [email]);
-      if (result.rows.length > 0) {
-        const admin = result.rows[0];
-        const match = await bcrypt.compare(password, admin.password_hash);
-        
-        if (match) {
-           return res.status(200).json({ success: true, admin: { email: admin.email, role: admin.role } });
-        }
-      }
       
-      return res.status(401).json({ error: "Invalid admin credentials." });
+      if (result.rows.length === 0) return res.status(401).json({ error: 'Admin not found' });
+      
+      const admin = result.rows[0];
+      const match = await bcrypt.compare(password, admin.password);
+      
+      if (!match) return res.status(401).json({ error: 'Invalid admin credentials' });
+      
+      const { password: _, ...adminData } = admin;
+      return res.status(200).json({ success: true, admin: adminData });
     }
 
-    // 2. Fetch Dashboard Data
-    if (method === 'GET' && q.action === 'dash') {
-      const customers = await query('SELECT * FROM customer');
-      const movies = await query('SELECT * FROM movie');
-      const theaters = await query('SELECT * FROM theater');
-      const shows = await query('SELECT * FROM shows');
-      const events = await query('SELECT * FROM events WHERE status != $1', ['Deleted']);
-      const bookings = await query('SELECT b.*, m.movie_name FROM bookings b LEFT JOIN movie m ON b.movie_id = m.movie_id ORDER BY b.created_at DESC');
-      const eventBookings = await query('SELECT eb.*, e.event_name FROM event_bookings eb JOIN events e ON eb.event_id = e.id ORDER BY eb.booking_date DESC');
+    // 2. DASHBOARD ANALYTICS (GET)
+    if (method === 'GET' && action === 'dash') {
+      const usersCount = await query('SELECT COUNT(*) FROM customer');
+      const movieBookingsCount = await query('SELECT COUNT(*) FROM bookings');
+      const eventBookingsCount = await query('SELECT COUNT(*) FROM event_bookings');
       
-      const movieRevenue = bookings.rows.reduce((sum, b) => sum + (parseFloat(b.price) || 0), 0);
-      const eventRevenue = eventBookings.rows.reduce((sum, b) => sum + (parseFloat(b.amount) || 0), 0);
-      const totalRevenue = movieRevenue + eventRevenue;
+      const movieRev = await query('SELECT SUM(price) as total FROM bookings');
+      const eventRev = await query('SELECT SUM(amount) as total FROM event_bookings');
+      
+      const moviesCount = await query('SELECT COUNT(*) FROM movie');
+      const eventsCount = await query('SELECT COUNT(*) FROM events');
 
       return res.status(200).json({
         success: true,
-        data: {
-          customers: customers.rows,
-          movies: movies.rows,
-          theaters: theaters.rows,
-          shows: shows.rows,
-          events: events.rows,
-          bookings: bookings.rows,
-          eventBookings: eventBookings.rows,
-          analytics: {
-             revenue: totalRevenue,
-             totalTickets: bookings.rows.length + eventBookings.rows.length
-          }
+        stats: {
+          users: usersCount.rows[0].count,
+          movieBookings: movieBookingsCount.rows[0].count,
+          eventBookings: eventBookingsCount.rows[0].count,
+          revenue: (parseFloat(movieRev.rows[0].total || 0) + parseFloat(eventRev.rows[0].total || 0)).toFixed(2),
+          movies: moviesCount.rows[0].count,
+          events: eventsCount.rows[0].count
         }
       });
     }
 
-    // 3. CRUD Operations
-    if (method === 'POST') {
-      const { action } = q;
-      if (action === 'addMovie') {
-        const { movieId, movieName, movieRating, movieDimensions, movieGenre, movieStatus, movieDescription, movieLanguage, theaterId, Timmings, showdate, screenno, screendimensions, noofseats, selectedseats } = body;
-        const normalizedScreen = screenno || 1;
-        await query('INSERT INTO movie (movie_id, movie_name, movie_rating, movie_dimensions, genre, status, description, language) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (movie_id) DO NOTHING', [movieId, movieName, movieRating, movieDimensions, movieGenre, movieStatus, movieDescription, movieLanguage]);
-        await query('INSERT INTO theater1 (theater_id, movie_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [theaterId, movieId]);
-        await query('INSERT INTO shows (movie_id, theater_id, timmings, show_date, screen_no, screen_dimensions, no_of_seats, selected_seats) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [movieId, theaterId, Timmings, showdate, normalizedScreen, screendimensions, noofseats, JSON.parse(JSON.stringify(selectedseats || '[]'))]);
-        return res.status(200).json({ success: true, message: "Movie added" });
-      }
+    // 3. BOOKINGS LIST (GET)
+    if (method === 'GET' && action === 'bookings') {
+      const movieB = await query(`
+        SELECT b.id, b.user_id, b.amount as price, b.payment_status, b.created_at, m.movie_name as item_name, 'movie' as type
+        FROM bookings b
+        LEFT JOIN movie m ON b.movie_id = m.movie_id
+        ORDER BY b.created_at DESC
+      `);
+      const eventB = await query(`
+        SELECT eb.id, eb.user_id, eb.amount as price, eb.payment_status, eb.booking_date as created_at, e.event_name as item_name, 'event' as type
+        FROM event_bookings eb
+        LEFT JOIN events e ON eb.event_id = e.id
+        ORDER BY eb.booking_date DESC
+      `);
+      
+      const all = [...movieB.rows, ...eventB.rows].sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+      return res.status(200).json({ success: true, bookings: all });
+    }
 
-      if (action === 'removeMovie') {
-        const { movieId, theaterId, showId } = body;
-        if (showId) await query('DELETE FROM shows WHERE screen_id = $1', [showId]);
-        return res.status(200).json({ success: true, message: "Movie removed" });
-      }
+    // 4. USERS LIST (GET)
+    if (method === 'GET' && action === 'users') {
+      const result = await query('SELECT user_id, name, email, city, contact_no, is_blocked FROM customer ORDER BY user_id DESC');
+      return res.status(200).json({ success: true, users: result.rows });
+    }
 
-      if (action === 'removeCustomer') {
-        const { customeremail } = body;
-        await query('DELETE FROM customer WHERE email = $1', [customeremail]);
-        return res.status(200).json({ success: true, message: "Customer removed" });
+    // 5. MANAGE USER (POST)
+    if (method === 'POST' && action === 'manageUser') {
+      const { user_id, block } = body;
+      await query('UPDATE customer SET is_blocked = $1 WHERE user_id = $2', [block, user_id]);
+      return res.status(200).json({ success: true });
+    }
+
+    // 6. CONTENT LISTING (GET)
+    if (method === 'GET' && action === 'content') {
+      const { type } = q;
+      if (type === 'movies') {
+        const resu = await query('SELECT * FROM movie ORDER BY movie_id DESC');
+        return res.status(200).json({ success: true, list: resu.rows });
+      }
+      if (type === 'events') {
+        const resu = await query('SELECT * FROM events ORDER BY id DESC');
+        return res.status(200).json({ success: true, list: resu.rows });
+      }
+      if (type === 'theatres') {
+        const resu = await query('SELECT * FROM theater ORDER BY theater_id DESC');
+        return res.status(200).json({ success: true, list: resu.rows });
       }
     }
 
-    return res.status(405).json({ error: `Method ${method} Not Allowed` });
+    // 7. CONTENT MANAGEMENT (POST)
+    if (method === 'POST' && action === 'manage') {
+      const { type, subAction, data } = body;
+      if (type === 'movie' && subAction === 'delete') {
+        await query('DELETE FROM movie WHERE movie_id = $1', [data.id]);
+        return res.status(200).json({ success: true });
+      }
+      if (type === 'event' && subAction === 'delete') {
+        await query('DELETE FROM events WHERE id = $1', [data.id]);
+        return res.status(200).json({ success: true });
+      }
+      return res.status(400).json({ error: 'Management action not implemented yet' });
+    }
+
+    return res.status(400).json({ error: 'Invalid admin action' });
   } catch (error) {
     console.error('Admin API Error:', error);
     return res.status(500).json({ error: error.message });
