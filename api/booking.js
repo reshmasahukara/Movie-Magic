@@ -29,7 +29,7 @@ export default async function handler(req, res) {
       let result;
       if (bookingid) {
         result = await query(
-          `SELECT b.*, m.movie_name, s.timmings, TO_CHAR(COALESCE(s.show_date, b.show_date), 'YYYY-MM-DD') AS show_date
+          `SELECT b.*, m.movie_name, COALESCE(b.show_time, s.timmings) AS timmings, TO_CHAR(COALESCE(b.show_date, s.show_date), 'YYYY-MM-DD') AS show_date
            FROM bookings b 
            JOIN movie m ON b.movie_id = m.movie_id 
            LEFT JOIN shows s ON b.screen_id = s.screen_id
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
         );
       } else {
         result = await query(
-          `SELECT b.*, m.movie_name, s.timmings, TO_CHAR(COALESCE(s.show_date, b.show_date), 'YYYY-MM-DD') AS show_date
+          `SELECT b.*, m.movie_name, COALESCE(b.show_time, s.timmings) AS timmings, TO_CHAR(COALESCE(b.show_date, s.show_date), 'YYYY-MM-DD') AS show_date
            FROM bookings b 
            JOIN movie m ON b.movie_id = m.movie_id 
            LEFT JOIN shows s ON b.screen_id = s.screen_id
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
       if (!userid) return res.status(400).json({ error: "userid is required" });
       
       const result = await query(
-        `SELECT b.*, m.movie_name, s.timmings, TO_CHAR(COALESCE(s.show_date, b.show_date), 'YYYY-MM-DD') AS show_date
+        `SELECT b.*, m.movie_name, COALESCE(b.show_time, s.timmings) AS timmings, TO_CHAR(COALESCE(b.show_date, s.show_date), 'YYYY-MM-DD') AS show_date
          FROM bookings b 
          LEFT JOIN movie m ON b.movie_id = m.movie_id 
          LEFT JOIN shows s ON b.screen_id = s.screen_id
