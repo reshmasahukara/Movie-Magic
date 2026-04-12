@@ -44,7 +44,17 @@
     <div style="max-width: 900px; margin: 0 auto; padding: 0 20px;">
       <h2 style="font-size: 2rem; font-weight: 800;">Your Booking History</h2>
       <p style="color: var(--text-muted); margin-top: 0.5rem;">Total verified transactions and pending passes.</p>
+      
+      <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+        <button id="tab-movies" class="tab-btn active" onclick="switchHistoryTab('movies')">🍿 Movie Tickets</button>
+        <button id="tab-events" class="tab-btn" onclick="switchHistoryTab('events')">🎫 Event Tickets</button>
+      </div>
     </div>
+
+    <style>
+      .tab-btn { padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 30px; cursor: pointer; transition: all 0.3s; font-weight: 600; }
+      .tab-btn.active { background: var(--primary); border-color: var(--primary); box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4); }
+    </style>
 
     <div id="history-list">
       <div style="padding: 4rem; text-align: center; color: var(--text-muted);">
@@ -76,8 +86,22 @@
         return `${String(h).padStart(2,'0')}:${min} ${ampm}`;
       }
 
+      let currentTab = 'movies';
+
+      window.switchHistoryTab = (tab) => {
+        currentTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`tab-${tab}`).classList.add('active');
+        loadHistory();
+      };
+
       try {
-        const { bookings } = await API.fetch(`/api/user?action=history&userid=${user.user_id}`);
+        const endpoint = currentTab === 'movies' 
+          ? `/api/user?action=history&userid=${user.user_id}`
+          : `/api/events?action=history&userid=${user.user_id}`;
+          
+        const res = await API.fetch(endpoint);
+        const bookings = res.bookings;
         
         if (!bookings || bookings.length === 0) {
           UI.safeRender('history-list', `
@@ -94,48 +118,92 @@
 
         const html = bookings.map(b => {
           const status = (b.payment_status || "Pending").toLowerCase();
-          const date = formatDateSafe(b.show_date);
-          const rawDate = b.show_date ? String(b.show_date).split('T')[0] : '';
-          const time = formatTimeSafe(b.timmings || b.show_time);
-          const created = new Date(b.created_at || Date.now()).toLocaleString();
+          const created = new Date(b.booking_date || b.created_at || Date.now()).toLocaleString();
           
-          if (rawDate === todayDate && status !== 'refunded') hasUpcomingToday = true;
-          
-          const isFuture = rawDate >= todayDate && status !== 'refunded';
-          
-          return `
-            <div class="ticket animate-fade-in">
-              <div class="ticket-main">
-                <span class="status-badge status-${status}">${status}</span>
-                <h3 style="font-size: 1.6rem; color: white; margin-bottom: 0.4rem;">${b.movie_name || "Movie Magic"}</h3>
-                <p style="color: var(--primary); font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px;">${b.theater_name || "Movie Magic Cinemas"}</p>
-                <p style="color: #888; font-size: 0.85rem; font-weight: 500;">${time} | ${date}</p>
-                
-                <div style="margin-top: 1.2rem; display: flex; gap: 2.5rem;">
-                  <div>
-                    <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">SEATS</p>
-                    <p style="font-weight: 700; font-size: 0.9rem;">${(b.selected_seats || []).join(', ') || "-"}</p>
+          if (currentTab === 'movies') {
+            const date = formatDateSafe(b.show_date);
+            const rawDate = b.show_date ? String(b.show_date).split('T')[0] : '';
+            const time = formatTimeSafe(b.timmings || b.show_time);
+            if (rawDate === todayDate && status !== 'refunded') hasUpcomingToday = true;
+            const isFuture = rawDate >= todayDate && status !== 'refunded';
+            
+            return `
+              <div class="ticket animate-fade-in movie-ticket">
+                <div class="ticket-main">
+                  <span class="status-badge status-${status}">${status}</span>
+                  <h3 style="font-size: 1.6rem; color: white; margin-bottom: 0.4rem;">${b.movie_name || "Movie Magic"}</h3>
+                  <p style="color: var(--primary); font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px;">${b.theater_name || "Movie Magic Cinemas"}</p>
+                  <p style="color: #888; font-size: 0.85rem; font-weight: 500;">${time} | ${date}</p>
+                  
+                  <div style="margin-top: 1.2rem; display: flex; gap: 2.5rem;">
+                    <div>
+                      <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">SEATS</p>
+                      <p style="font-weight: 700; font-size: 0.9rem;">${(b.selected_seats || []).join(', ') || "-"}</p>
+                    </div>
+                    <div>
+                      <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">AMOUNT</p>
+                      <p style="font-weight: 700; font-size: 0.9rem; color: var(--primary);">₹${b.price || b.amount || 0}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">AMOUNT</p>
-                    <p style="font-weight: 700; font-size: 0.9rem; color: var(--primary);">₹${b.price || 0}</p>
+
+                  <div class="ticket-footer">
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                      <span>ID: #MM-${b.id}</span>
+                      <span>Booked: ${created}</span>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                      ${isFuture ? `<button onclick="cancelBooking('${b.id}')" class="btn-primary" style="padding: 0.4rem 1rem; font-size: 0.7rem; background: rgba(229, 9, 20, 0.1); border: 1px solid #e50914; color: #e50914;">Cancel</button>` : ''}
+                      <button onclick="window.location.href='/ticket.html?bookingId=${b.id}'" class="btn-primary" style="padding: 0.4rem 1rem; font-size: 0.7rem; background: transparent; border: 1px solid var(--primary);">Download</button>
+                    </div>
                   </div>
                 </div>
+                <div class="ticket-side">ADMIT ONE</div>
+              </div>
+            `;
+          } else {
+            // Event Ticket Rendering
+            const eventDate = new Date(b.event_date).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=EV-${b.id}`;
+            
+            return `
+              <div class="ticket animate-fade-in event-ticket" style="border-left: 5px solid #00d4ff;">
+                <div class="ticket-main">
+                  <span class="status-badge status-${status}">${status}</span>
+                  <div style="display: flex; gap: 1.5rem;">
+                    <img src="${b.image_url}" style="width: 80px; height: 80px; border-radius: 8px; object-fit: cover;">
+                    <div>
+                      <h3 style="font-size: 1.4rem; color: white; margin-bottom: 0.4rem;">${b.event_name}</h3>
+                      <p style="color: #00d4ff; font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">${b.venue}, ${b.city}</p>
+                      <p style="color: #888; font-size: 0.85rem; font-weight: 500;">${b.event_time} | ${eventDate}</p>
+                    </div>
+                  </div>
+                  
+                  <div style="margin-top: 1.2rem; display: flex; gap: 2.5rem;">
+                    <div>
+                      <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">TICKETS</p>
+                      <p style="font-weight: 700; font-size: 0.9rem;">${b.tickets_count}</p>
+                    </div>
+                    <div>
+                      <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">SEATS</p>
+                      <p style="font-weight: 700; font-size: 0.9rem;">${(b.selected_seats || []).length > 0 ? b.selected_seats.join(', ') : 'Open Entry'}</p>
+                    </div>
+                    <div>
+                      <p class="info-label" style="font-size: 0.65rem; color: #444; letter-spacing: 1.5px; margin-bottom: 4px;">AMOUNT</p>
+                      <p style="font-weight: 700; font-size: 0.9rem; color: #00d4ff;">₹${b.amount}</p>
+                    </div>
+                  </div>
 
-                <div class="ticket-footer">
-                  <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <span>ID: #MM-${b.id}</span>
-                    <span>Booked: ${created}</span>
+                  <div class="ticket-footer">
+                    <span>ID: #EV-${b.id} | Booked: ${created}</span>
                   </div>
-                  <div style="display: flex; gap: 10px;">
-                    ${isFuture ? `<button onclick="cancelBooking('${b.id}')" class="btn-primary" style="padding: 0.4rem 1rem; font-size: 0.7rem; background: rgba(229, 9, 20, 0.1); border: 1px solid #e50914; color: #e50914;">Cancel</button>` : ''}
-                    <button onclick="window.location.href='/ticket.html?bookingId=${b.id}'" class="btn-primary" style="padding: 0.4rem 1rem; font-size: 0.7rem; background: transparent; border: 1px solid var(--primary);">Download</button>
-                  </div>
+                </div>
+                <div class="ticket-side" style="width: 150px; background: white; writing-mode: horizontal-tb; transform: none; display: flex; flex-direction: column; gap: 8px;">
+                  <img src="${qrUrl}" style="width: 100px; height: 100px;">
+                  <span style="color: black; font-size: 0.6rem; letter-spacing: 1px; font-weight: 800;">SCAN FOR ENTRY</span>
                 </div>
               </div>
-              <div class="ticket-side">ADMIT ONE</div>
-            </div>
-          `;
+            `;
+          }
         }).join('');
 
         UI.safeRender('history-list', html);

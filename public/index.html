@@ -138,6 +138,23 @@
     </div>
 
 
+    <!-- 2. Event Filters -->
+    <div class="container" style="margin-top: 2rem;">
+      <div id="event-filters" style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 10px; border-bottom: 1px solid var(--glass);">
+        <button class="filter-btn active" onclick="filterEvents('all')">All</button>
+        <button class="filter-btn" onclick="filterEvents('Music')">Music</button>
+        <button class="filter-btn" onclick="filterEvents('Comedy')">Comedy</button>
+        <button class="filter-btn" onclick="filterEvents('Outdoor')">Outdoor</button>
+        <button class="filter-btn" onclick="filterEvents('Sports')">Sports</button>
+        <button class="filter-btn" onclick="filterEvents('Workshops')">Workshops</button>
+      </div>
+    </div>
+
+    <style>
+      .filter-btn { padding: 8px 20px; background: transparent; border: 1px solid #333; color: white; border-radius: 20px; cursor: pointer; white-space: nowrap; transition: all 0.3s; }
+      .filter-btn.active { background: var(--primary); border-color: var(--primary); }
+      .filter-btn:hover:not(.active) { border-color: var(--primary); }
+    </style>
 
     <!-- 3. Your Music Studio (Sliders) -->
     <div id="music-studio-section" class="container" style="margin-top: 20px;">
@@ -178,18 +195,49 @@
 
 
 
-    const SAMPLE_MUSIC = [
-      { id: 'mus1', name: 'Sunburn Home Festival', date: 'Sat, 20 Apr', venue: 'Digital Event', city: 'Online', tag: 'Music', img: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=600' },
-      { id: 'mus2', name: 'Live Jazz Night', date: 'Wed, 25 Apr', venue: 'The Blue Door', city: 'Bengaluru', tag: 'Music', img: 'https://www.shutterstock.com/image-vector/live-music-jazz-night-neon-260nw-1891078309.jpg' },
-      { id: 'mus3', name: 'EDM Pulse 2026', date: 'Fri, 02 May', venue: 'MMRDA Grounds', city: 'Mumbai', tag: 'Music', img: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=600' },
-      { id: 'mus4', name: 'Symphony Orchestra', date: 'Sun, 10 May', venue: 'NCPA', city: 'Mumbai', tag: 'Classical', img: 'https://www.springfieldsymphony.org/wp-content/uploads/2025/10/DSC_6517-1024x681.jpg' }
-    ];
+    let selectedCategory = 'all';
 
-    const SAMPLE_OUTDOOR = [
-      { id: 'out1', name: 'Camping in Pawna', date: '18 - 19 Apr', venue: 'Pawna Lake', city: 'Pune', tag: 'Outdoor', img: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=600' },
-      { id: 'out2', name: 'Stargazing at Malshej', date: 'Sat, 02 May', venue: 'Malshej Ghat', city: 'Mumbai', tag: 'Adventure', img: 'https://static2.tripoto.com/media/filter/nl/img/1240564/TripDocument/1682613144_malshej_ghat.jpg.webp' },
-      { id: 'out3', name: 'Riverside Trekking', date: 'Sun, 03 May', venue: 'Vaitarna', city: 'Nashik', tag: 'Outdoor', img: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=600' }
-    ];
+    async function updateEvents() {
+      try {
+        const cityFilter = selectedCity || 'all';
+        const url = `/api/events?action=list&city=${cityFilter}&category=${selectedCategory}`;
+        const { events } = await API.fetch(url);
+        
+        const musicEvents = events.filter(e => e.category === 'Music');
+        const outdoorEvents = events.filter(e => e.category === 'Outdoor');
+
+        renderEventSlider('music-list', musicEvents);
+        renderEventSlider('outdoor-list', outdoorEvents);
+        
+        // Handle categories filter display
+        if (selectedCategory !== 'all') {
+           const filteredResults = events.filter(e => e.category === selectedCategory);
+           renderEventSlider('music-list', filteredResults);
+           if (selectedCategory !== 'Outdoor') {
+             const outdoorSec = document.getElementById('outdoor-events-section');
+             if(outdoorSec) outdoorSec.style.display = 'none';
+           }
+        } else {
+           const outdoorSec = document.getElementById('outdoor-events-section');
+           if(outdoorSec) outdoorSec.style.display = 'block';
+        }
+      } catch (err) {
+        console.error('Failed to load events:', err);
+      }
+    }
+
+    window.filterEvents = async (category) => {
+      selectedCategory = category;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      // Find the button that was clicked and activate it
+      const btns = document.querySelectorAll('.filter-btn');
+      btns.forEach(btn => {
+        if(btn.innerText === category || (category === 'all' && btn.innerText === 'All')) {
+          btn.classList.add('active');
+        }
+      });
+      await updateEvents();
+    };
 
     function initCity() {
       // Inject cities into grid
@@ -204,8 +252,7 @@
       if (selectedCity) updateNavCity();
       
       loadMovies(); 
-      renderEventSlider('music-list', SAMPLE_MUSIC);
-      renderEventSlider('outdoor-list', SAMPLE_OUTDOOR);
+      updateEvents();
     }
 
     function showCityModal() {
@@ -224,7 +271,7 @@
       closeCityModal();
       updateNavCity();
       loadMovies();
-      // You could also filter events by city here
+      updateEvents();
     }
 
     function updateNavCity() {
@@ -270,23 +317,32 @@
 
     function renderEventSlider(id, data) {
       const list = document.getElementById(id);
-      list.innerHTML = data.map(ev => `
-        <div class="event-card">
+      if (data.length === 0) {
+        list.innerHTML = `<p style="padding: 2rem; color: #666;">No events found in this category.</p>`;
+        return;
+      }
+      list.innerHTML = data.map(ev => {
+        const date = new Date(ev.event_date).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+        return `
+        <div class="event-card" onclick="window.location.href='/event-booking.html?id=${ev.id}'">
           <div class="image-box">
-            <img src="${ev.img}" alt="${ev.name}">
+            <img src="${ev.image_url}" alt="${ev.event_name}">
           </div>
           <div class="event-card-content">
-            <span class="event-date">${ev.date}</span>
-            <span class="event-name">${ev.name}</span>
+            <span class="event-date">${date}</span>
+            <span class="event-name">${ev.event_name}</span>
             <div class="event-meta">📍 ${ev.venue}</div>
             <div class="event-meta">🏢 ${ev.city}</div>
             <div style="margin-top: 15px; display: flex; align-items: center; justify-content: space-between;">
-              <span class="event-tag">${ev.tag}</span>
-              <button class="btn-book" style="padding: 6px 14px; font-size: 0.7rem;" onclick="UI.showMessage('Ticket booking for events coming soon! 🎫', 'success')">Book Now</button>
+              <span class="event-tag">${ev.category}</span>
+              <button class="btn-book" style="padding: 6px 14px; font-size: 0.7rem;" 
+                onclick="event.stopPropagation(); window.location.href='/event-booking.html?id=${ev.id}'">
+                ${ev.status === 'Sold Out' ? 'Sold Out' : 'Book Now'}
+              </button>
             </div>
           </div>
         </div>
-      `).join('');
+      `}).join('');
     }
 
     function getFallbackMovies() {

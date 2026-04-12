@@ -50,9 +50,13 @@ export default async function handler(req, res) {
       const movies = await query('SELECT * FROM movie');
       const theaters = await query('SELECT * FROM theater');
       const shows = await query('SELECT * FROM shows');
+      const events = await query('SELECT * FROM events WHERE status != $1', ['Deleted']);
       const bookings = await query('SELECT b.*, m.movie_name FROM bookings b LEFT JOIN movie m ON b.movie_id = m.movie_id ORDER BY b.created_at DESC');
+      const eventBookings = await query('SELECT eb.*, e.event_name FROM event_bookings eb JOIN events e ON eb.event_id = e.id ORDER BY eb.booking_date DESC');
       
-      const totalRevenue = bookings.rows.reduce((sum, b) => sum + (parseFloat(b.price) || 0), 0);
+      const movieRevenue = bookings.rows.reduce((sum, b) => sum + (parseFloat(b.price) || 0), 0);
+      const eventRevenue = eventBookings.rows.reduce((sum, b) => sum + (parseFloat(b.amount) || 0), 0);
+      const totalRevenue = movieRevenue + eventRevenue;
 
       return res.status(200).json({
         success: true,
@@ -61,10 +65,12 @@ export default async function handler(req, res) {
           movies: movies.rows,
           theaters: theaters.rows,
           shows: shows.rows,
+          events: events.rows,
           bookings: bookings.rows,
+          eventBookings: eventBookings.rows,
           analytics: {
              revenue: totalRevenue,
-             totalTickets: bookings.rows.length
+             totalTickets: bookings.rows.length + eventBookings.rows.length
           }
         }
       });

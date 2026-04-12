@@ -35,6 +35,7 @@
       <div class="sidebar">
         <h4 style="margin-bottom: 1.5rem; color: var(--primary);">ADMIN PANEL</h4>
         <button class="active" onclick="switchTab('movies')">Movies Management</button>
+        <button onclick="switchTab('events')">Events Management</button>
         <button onclick="switchTab('theaters')">Theaters</button>
         <button onclick="switchTab('bookings')">Recent Sales</button>
       </div>
@@ -47,6 +48,17 @@
           </div>
           <table id="movies-table">
             <thead><tr><th>Movie</th><th>ID</th><th>Genre</th><th>Rating</th><th>Action</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div id="events-tab" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>Manage Events</h3>
+            <button class="btn-primary" onclick="addEventPrompt()">+ Add Event</button>
+          </div>
+          <table id="events-table">
+            <thead><tr><th>Event</th><th>Category</th><th>City</th><th>Price</th><th>Action</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -114,17 +126,31 @@
           </tr>
         `).join('');
 
-        // 3. Populate Bookings
+        // 4. Populate Events
+        document.querySelector('#events-table tbody').innerHTML = data.events.map(e => `
+          <tr>
+            <td>${e.event_name}</td>
+            <td>${e.category}</td>
+            <td>${e.city}</td>
+            <td>₹${e.price}</td>
+            <td><button onclick="deleteEvent(${e.id})" style="color: #E50914; background:none; border:none; cursor:pointer">Delete</button></td>
+          </tr>
+        `).join('');
+
+        // 5. Populate Combined Bookings
         const bookingsTable = document.querySelector('#bookings-table tbody');
-        // Fetch global bookings (admin action)
-        const allBookings = data.bookings || [];
+        const mBookings = (data.bookings || []).map(b => ({ ...b, type: 'Movie', name: b.movie_name, total: b.price, date: b.created_at }));
+        const eBookings = (data.eventBookings || []).map(b => ({ ...b, type: 'Event', name: b.event_name, total: b.amount, date: b.booking_date }));
+        
+        const allBookings = [...mBookings, ...eBookings].sort((a,b) => new Date(b.date) - new Date(a.date));
+        
         bookingsTable.innerHTML = allBookings.map(b => `
           <tr>
             <td>#${b.id}</td>
             <td>User ID ${b.user_id}</td>
-            <td>${b.movie_name || 'N/A'}</td>
-            <td>₹${b.price}</td>
-            <td><span class="status-badge status-${b.status}">${b.status}</span></td>
+            <td>[${b.type}] ${b.name || 'N/A'}</td>
+            <td>₹${b.total}</td>
+            <td><span class="status-badge status-${(b.status || b.payment_status || 'Paid').toLowerCase()}">${b.status || b.payment_status || 'Paid'}</span></td>
           </tr>
         `).join('');
 
@@ -168,11 +194,59 @@
       }
     }
 
+    async function deleteEvent(id) {
+      if (!confirm('Are you sure you want to delete this event?')) return;
+      try {
+        await API.fetch('/api/events?action=manage', {
+          method: 'DELETE',
+          body: JSON.stringify({ id })
+        });
+        loadAdminData();
+      } catch (e) {
+        UI.showMessage(e.message);
+      }
+    }
+
+    async function addEventPrompt() {
+      const name = prompt("Enter Event Name:");
+      if (!name) return;
+      const cat = prompt("Category (Music/Comedy/Outdoor/Sports/Workshops):", "Music");
+      const city = prompt("City:", "Mumbai");
+      const price = prompt("Price:", "500");
+      const venue = prompt("Venue:", "Grand Arena");
+
+      try {
+        const res = await API.fetch('/api/events?action=manage', {
+          method: 'POST',
+          body: JSON.stringify({
+            event_name: name,
+            category: cat,
+            city: city,
+            venue: venue,
+            event_date: new Date().toISOString().split('T')[0],
+            event_time: "07:00 PM",
+            price: parseInt(price),
+            total_seats: 100,
+            image_url: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=600",
+            description: "Exciting " + cat + " event in " + city,
+            has_seat_map: false
+          })
+        });
+        if (res.success) {
+          UI.showMessage('Event Added!', 'success');
+          loadAdminData();
+        }
+      } catch (e) {
+        UI.showMessage(e.message);
+      }
+    }
+
     function switchTab(tabId) {
       document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
       event.target.classList.add('active');
       
       document.getElementById('movies-tab').style.display = 'none';
+      document.getElementById('events-tab').style.display = 'none';
       document.getElementById('theaters-tab').style.display = 'none';
       document.getElementById('bookings-tab').style.display = 'none';
       

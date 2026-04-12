@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Event Tickets | Movie Magic</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .booking-layout { display: grid; grid-template-columns: 1fr 350px; gap: 2rem; margin-top: 2rem; }
+    .event-details-hero { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--glass); }
+    .event-banner { width: 100%; height: 300px; object-fit: cover; }
+    .event-info-pane { padding: 2rem; }
+    
+    .seat-grid-container { background: #111; padding: 2rem; border-radius: 12px; margin-top: 1.5rem; text-align: center; }
+    .seat-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 10px; justify-content: center; margin: 2rem auto; max-width: 500px; }
+    .seat { width: 35px; height: 35px; background: #333; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; transition: all 0.3s; }
+    .seat.selected { background: var(--primary); color: white; transform: scale(1.1); box-shadow: 0 0 10px var(--primary); }
+    .seat.booked { background: #1a1a1a; cursor: not-allowed; opacity: 0.3; color: transparent; }
+    .seat:hover:not(.booked) { border: 1px solid var(--primary); }
+
+    .qty-selector { display: flex; align-items: center; gap: 1.5rem; justify-content: center; padding: 2rem; background: #111; border-radius: 12px; }
+    .qty-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--primary); background: transparent; color: white; cursor: pointer; font-size: 1.2rem; }
+    
+    .summary-card { background: var(--card-bg); border-radius: 12px; padding: 2rem; border: 1px solid var(--glass); height: fit-content; position: sticky; top: 2rem; }
+    .screen-indicator { width: 80%; height: 4px; background: var(--primary); margin: 0 auto 2rem; border-radius: 2px; box-shadow: 0 4px 10px var(--primary); }
+  </style>
+</head>
+<body>
+  <nav id="nav-placeholder"></nav>
+
+  <main class="container">
+    <div id="event-loading" style="text-align: center; padding: 5rem;">
+       <h2 style="color: var(--primary);">Loading Event Details...</h2>
+    </div>
+
+    <div id="booking-content" class="booking-layout" style="display: none;">
+      <!-- Left: Event & Selection -->
+      <section>
+        <div class="event-details-hero">
+          <img id="event-banner" src="" class="event-banner">
+          <div class="event-info-pane">
+            <span id="event-category" class="event-tag" style="margin-bottom: 1rem;"></span>
+            <h1 id="event-name" style="font-size: 2.5rem; margin-bottom: 0.5rem;"></h1>
+            <p id="event-meta" style="color: var(--text-muted); font-size: 1.1rem;"></p>
+            <p id="event-description" style="margin-top: 1.5rem; line-height: 1.6; color: #ccc;"></p>
+          </div>
+        </div>
+
+        <!-- Hybrid UI -->
+        <div id="selection-area">
+          <div id="grid-ui" style="display: none;">
+            <div class="seat-grid-container">
+              <h3>SELECT YOUR SEATS</h3>
+              <div class="screen-indicator"></div>
+              <div id="seats-container" class="seat-grid"></div>
+              <div style="display: flex; justify-content: center; gap: 20px; font-size: 0.8rem; color: #888;">
+                <div style="display:flex; align-items:center; gap:5px;"><div class="seat" style="width:15px; height:15px; cursor:default;"></div> Available</div>
+                <div style="display:flex; align-items:center; gap:5px;"><div class="seat selected" style="width:15px; height:15px; cursor:default;"></div> Selected</div>
+                <div style="display:flex; align-items:center; gap:5px;"><div class="seat booked" style="width:15px; height:15px; cursor:default;"></div> Occupied</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="qty-ui" style="display: none;">
+            <div style="text-align: center; margin-top: 2rem;">
+              <h3>SELECT QUANTITY</h3>
+              <div class="qty-selector">
+                <button class="qty-btn" onclick="changeQty(-1)">-</button>
+                <span id="qty-display" style="font-size: 2.5rem; font-weight: 800; min-width: 60px;">1</span>
+                <button class="qty-btn" onclick="changeQty(1)">+</button>
+              </div>
+              <p style="color: #666; margin-top: 10px;">Max 10 tickets per booking</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Summary & Checkout -->
+      <aside>
+        <div class="summary-card">
+          <h3 style="border-bottom: 1px solid var(--glass); padding-bottom: 1rem; margin-bottom: 1.5rem;">Order Summary</h3>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+             <span id="summary-label">Tickets (×1)</span>
+             <span id="summary-price">₹0</span>
+          </div>
+          <div id="selected-seats-row" style="display: none; justify-content: space-between; margin-bottom: 1rem; color: var(--primary);">
+             <span>Seats</span>
+             <span id="summary-seats">-</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px dashed #444; font-weight: 800; font-size: 1.2rem;">
+             <span>Total Amount</span>
+             <span id="total-price" style="color: var(--primary);">₹0</span>
+          </div>
+          
+          <button id="proceed-btn" class="btn-primary" style="width: 100%; margin-top: 2rem; padding: 15px;" onclick="proceedToPayment()">PROCEED TO PAY</button>
+          
+          <p style="font-size: 0.75rem; color: #555; text-align: center; margin-top: 1.5rem;">By clicking Proceed, you agree to our Terms & Conditions.</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script src="js/utils.js"></script>
+  <script>
+    let currentEvent = null;
+    let selectedSeats = [];
+    let ticketQty = 1;
+
+    async function loadEvent() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const id = urlParams.get('id');
+      if (!id) return UI.showMessage('Invalid Event ID');
+
+      try {
+        const { event } = await API.fetch(`/api/events?action=details&id=${id}`);
+        currentEvent = event;
+        renderEventDetails();
+        setupBookingUI();
+      } catch (err) {
+        UI.showMessage(err.message);
+      }
+    }
+
+    function renderEventDetails() {
+      document.getElementById('event-loading').style.display = 'none';
+      document.getElementById('booking-content').style.display = 'grid';
+      
+      document.getElementById('event-banner').src = currentEvent.image_url;
+      document.getElementById('event-name').textContent = currentEvent.event_name;
+      document.getElementById('event-category').textContent = currentEvent.category;
+      
+      const date = new Date(currentEvent.event_date).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      document.getElementById('event-meta').innerHTML = `📅 ${date} at ${currentEvent.event_time}<br>📍 ${currentEvent.venue}, ${currentEvent.city}`;
+      document.getElementById('event-description').textContent = currentEvent.description || "No description available for this event.";
+      
+      updateSummary();
+    }
+
+    function setupBookingUI() {
+      if (currentEvent.has_seat_map) {
+        document.getElementById('grid-ui').style.display = 'block';
+        document.getElementById('selected-seats-row').style.display = 'flex';
+        renderGrid();
+      } else {
+        document.getElementById('qty-ui').style.display = 'block';
+      }
+    }
+
+    function renderGrid() {
+      const container = document.getElementById('seats-container');
+      const booked = currentEvent.booked_seats || [];
+      const total = currentEvent.total_seats || 100;
+
+      let html = '';
+      for (let i = 1; i <= total; i++) {
+        const seatId = 'S' + i;
+        const isBooked = booked.includes(seatId);
+        html += `<div class="seat ${isBooked ? 'booked' : ''}" onclick="toggleSeat('${seatId}', this)">${i}</div>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function toggleSeat(id, el) {
+      if (el.classList.contains('booked')) return;
+      
+      if (selectedSeats.includes(id)) {
+        selectedSeats = selectedSeats.filter(s => s !== id);
+        el.classList.remove('selected');
+      } else {
+        if (selectedSeats.length >= 10) return UI.showMessage('Max 10 tickets allowed');
+        selectedSeats.push(id);
+        el.classList.add('selected');
+      }
+      updateSummary();
+    }
+
+    function changeQty(delta) {
+      const newQty = ticketQty + delta;
+      if (newQty < 1 || newQty > 10) return;
+      ticketQty = newQty;
+      document.getElementById('qty-display').textContent = ticketQty;
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const count = currentEvent.has_seat_map ? selectedSeats.length : ticketQty;
+      const total = count * currentEvent.price;
+      
+      document.getElementById('summary-label').textContent = `Tickets (×${count})`;
+      document.getElementById('summary-price').textContent = `₹${total}`;
+      document.getElementById('total-price').textContent = `₹${total}`;
+      
+      if (currentEvent.has_seat_map) {
+        document.getElementById('summary-seats').textContent = selectedSeats.length > 0 ? selectedSeats.join(', ') : '-';
+      }
+    }
+
+    async function proceedToPayment() {
+      const user = API.getUser();
+      if (!user) {
+        UI.showMessage('Please login to book tickets');
+        setTimeout(() => window.location.href = '/login.html', 1500);
+        return;
+      }
+
+      const count = currentEvent.has_seat_map ? selectedSeats.length : ticketQty;
+      if (count === 0) return UI.showMessage('Please select at least one ticket');
+
+      const btn = document.getElementById('proceed-btn');
+      btn.disabled = true;
+      btn.textContent = 'Processing...';
+
+      try {
+        const payload = {
+          event_id: currentEvent.id,
+          user_id: user.user_id,
+          user_name: user.name,
+          email: user.email,
+          phone: user.contact_no || 'Not Set',
+          tickets_count: count,
+          selected_seats: selectedSeats,
+          amount: count * currentEvent.price
+        };
+
+        const res = await API.fetch('/api/events?action=book', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+
+        if (res.success) {
+           UI.showMessage('Booking Successful! Redirecting to your ticket...', 'success');
+           setTimeout(() => window.location.href = '/history.html', 2000);
+        }
+      } catch (err) {
+        UI.showMessage(err.message);
+        btn.disabled = false;
+        btn.textContent = 'PROCEED TO PAY';
+      }
+    }
+
+    UI.initNavbar();
+    loadEvent();
+  </script>
+</body>
+</html>
