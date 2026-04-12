@@ -65,13 +65,18 @@ const UI = {
         ${user ? `
           <a href="/history.html">History</a>
           ${isAdmin ? '<a href="/admin.html" style="color: var(--primary)">Admin Panel</a>' : ''}
-          <div style="display: flex; align-items: center; gap: 1rem; margin-left: 1rem;">
-            ${user.profile_pic ? `<img src="${user.profile_pic}" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--primary); object-fit: cover;">` : ''}
-            <button onclick="API.logout()" class="btn-primary" style="padding: 0.5rem 1rem; background: transparent; border: 1px solid var(--primary)">Logout</button>
+          <div style="display: flex; align-items: center; gap: 18px; margin-left: 10px;">
+            <div class="nav-avatar">
+              ${user.profile_pic ? 
+                `<img src="${user.profile_pic}" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                `<div class="nav-avatar-initials">${user.name ? user.name.charAt(0) : 'U'}</div>`
+              }
+            </div>
+            <button onclick="API.logout()" class="btn-logout-nav">Logout</button>
           </div>
         ` : `
           <a href="/login.html">Login</a>
-          <a href="/signup.html">Signup</a>
+          <a href="/signup.html" class="btn-primary" style="padding: 0.6rem 1.2rem; margin-left: 5px;">Join Now</a>
         `}
       </div>
     `;
