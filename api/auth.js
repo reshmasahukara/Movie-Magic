@@ -24,6 +24,8 @@ export default async function handler(req, res) {
         return await handleVerifyResetOtp(req, res);
       case 'reset-password':
         return await handleResetPassword(req, res);
+      case 'google-login':
+        return await handleGoogleLogin(req, res);
       default:
         return res.status(400).json({ error: 'Invalid auth action' });
     }
@@ -129,6 +131,30 @@ async function handleResetPassword(req, res) {
   await query('UPDATE customer SET password = $1 WHERE email = $2', [hashpass, email]);
   await query('DELETE FROM otp_verifications WHERE email = $1', [email]);
   return res.status(200).json({ success: true });
+}
+
+async function handleGoogleLogin(req, res) {
+  const { name, email, profile_pic } = req.body;
+  if (!email) return res.status(400).json({ error: "Email is required" });
+
+  const result = await query('SELECT * FROM customer WHERE email = $1', [email]);
+  
+  if (result.rows.length > 0) {
+    const user = result.rows[0];
+    if (user.profile_pic !== profile_pic) {
+      await query('UPDATE customer SET profile_pic = $1 WHERE email = $2', [profile_pic, email]);
+      user.profile_pic = profile_pic;
+    }
+    const { password: _, ...userData } = user;
+    return res.status(200).json({ success: true, user: userData });
+  } else {
+    const newUser = await query(
+      'INSERT INTO customer (name, email, provider, profile_pic, city, contact_no) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [name, email, 'google', profile_pic, 'Not Set', 'Not Set']
+    );
+    const { password: _, ...userData } = newUser.rows[0];
+    return res.status(201).json({ success: true, user: userData });
+  }
 }
 
 async function sendMail(to, subject, otp, title, subtitle) {

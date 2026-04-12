@@ -65,7 +65,10 @@ const UI = {
         ${user ? `
           <a href="/history.html">History</a>
           ${isAdmin ? '<a href="/admin.html" style="color: var(--primary)">Admin Panel</a>' : ''}
-          <button onclick="API.logout()" class="btn-primary" style="padding: 0.5rem 1rem; margin-left:1rem; background: transparent; border: 1px solid var(--primary)">Logout</button>
+          <div style="display: flex; align-items: center; gap: 1rem; margin-left: 1rem;">
+            ${user.profile_pic ? `<img src="${user.profile_pic}" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--primary); object-fit: cover;">` : ''}
+            <button onclick="API.logout()" class="btn-primary" style="padding: 0.5rem 1rem; background: transparent; border: 1px solid var(--primary)">Logout</button>
+          </div>
         ` : `
           <a href="/login.html">Login</a>
           <a href="/signup.html">Signup</a>

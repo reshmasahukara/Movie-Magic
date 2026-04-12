@@ -1,3 +1,6 @@
+import { auth, googleProvider } from './firebase-config.js';
+import { signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
 document.addEventListener('DOMContentLoaded', () => {
     // 1. LOGIN HANDLER
     const loginForm = document.getElementById('login-form');
@@ -28,7 +31,41 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // 2. FORGOT PASSWORD FLOW
+    // 2. GOOGLE LOGIN HANDLER
+    const googleBtn = document.getElementById('google-signin-btn');
+    if (googleBtn) {
+        googleBtn.onclick = async () => {
+            try {
+                googleBtn.disabled = true;
+                const result = await signInWithPopup(auth, googleProvider);
+                const gUser = result.user;
+
+                UI.showMessage('Authenticating with Google...', 'success');
+
+                const { user } = await API.fetch('/api/auth?action=google-login', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name: gUser.displayName,
+                        email: gUser.email,
+                        profile_pic: gUser.photoURL
+                    })
+                });
+
+                API.saveSession(user);
+                UI.showMessage('Welcome back, ' + user.name + '!', 'success');
+                setTimeout(() => window.location.href = '/', 1000);
+
+            } catch (error) {
+                console.error("Google Auth Error:", error);
+                if (error.code !== 'auth/popup-closed-by-user') {
+                    UI.showMessage('Google Login Failed: ' + error.message);
+                }
+                googleBtn.disabled = false;
+            }
+        };
+    }
+
+    // 3. FORGOT PASSWORD FLOW
     const forgotModal = document.getElementById('forgotModal');
     const forgotBtn = document.getElementById('forgotPasswordBtn');
     

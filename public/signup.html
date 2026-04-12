@@ -7,13 +7,7 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body style="background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=1920&q=80'); background-size: cover;">
-  <nav>
-    <a href="/" class="logo"><i>🎬</i> MOVIE MAGIC</a>
-    <div class="links">
-      <a href="/">Home</a>
-      <a href="/login.html">Login</a>
-    </div>
-  </nav>
+  <nav></nav>
 
   <div class="container">
     <div class="auth-container" style="max-width: 500px;">
@@ -42,6 +36,12 @@
           </div>
         </div>
         <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Register</button>
+        
+        <div class="auth-divider">OR</div>
+        <button type="button" id="google-signup-btn" class="btn-google">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+          Continue with Google
+        </button>
       </form>
       <p style="text-align: center; margin-top: 1.5rem; color: var(--text-muted);">
         Already have an account? <a href="/login.html" style="color: var(--primary); text-decoration: none;">Sign in</a>
@@ -78,116 +78,6 @@
   </style>
 
   <script src="js/utils.js"></script>
-  <script>
-    let signupData = null;
-    let timerInterval = null;
-
-    document.getElementById('signup-form').onsubmit = async (e) => {
-      e.preventDefault();
-      
-      signupData = {
-        username: document.getElementById('username').value,
-        email: document.getElementById('email').value,
-        password: document.getElementById('password').value,
-        city: document.getElementById('city').value,
-        contactno: document.getElementById('contactno').value
-      };
-
-      try {
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.innerText = 'Sending OTP...';
-
-        // 1. Send OTP
-        UI.showMessage('Contacting secure email server...');
-        console.log('Sending OTP to:', signupData.email);
-        
-        const res = await API.fetch('/api/auth?action=sendotp', {
-          method: 'POST',
-          body: JSON.stringify({ email: signupData.email })
-        });
-
-        console.log('OTP Response:', res);
-
-        if (res.success) {
-          document.getElementById('display-email').textContent = signupData.email;
-          const modal = document.getElementById('otpModal');
-          modal.style.display = 'flex'; // Force display
-          setTimeout(() => modal.classList.add('active'), 10);
-          startTimer();
-          UI.showMessage('Success! Code sent to your email.', 'success');
-        } else {
-          alert('Server refused to send OTP: ' + (res.error || 'Unknown error'));
-          submitBtn.disabled = false;
-          submitBtn.innerText = 'Register';
-        }
-      } catch (err) {
-        console.error('Signup Flow Error:', err);
-        UI.showMessage(err.message || 'Failed to send OTP. Try again.');
-        alert('Error: ' + err.message);
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        submitBtn.disabled = false;
-        submitBtn.innerText = 'Register';
-      }
-    };
-
-    document.getElementById('verify-otp-btn').onclick = async () => {
-      const otp = document.getElementById('otp-input').value;
-      if (otp.length !== 6) return UI.showMessage('Enter valid 6-digit code');
-
-      try {
-        const verifyBtn = document.getElementById('verify-otp-btn');
-        verifyBtn.disabled = true;
-        verifyBtn.innerText = 'Verifying & Registering...';
-
-        // ATOMIC STEP: Verify OTP AND Register Account in one backend call
-        const res = await API.fetch('/api/auth?action=register', {
-          method: 'POST',
-          body: JSON.stringify({ ...signupData, otp })
-        });
-
-        if (res.success) {
-          UI.showMessage('Registration Successful!', 'success');
-          setTimeout(() => window.location.href = '/login.html', 2000);
-        }
-      } catch (err) {
-        UI.showMessage(err.message || 'Verification failed. Please try again.');
-        const verifyBtn = document.getElementById('verify-otp-btn');
-        verifyBtn.disabled = false;
-        verifyBtn.innerText = 'VERIFY OTP';
-      }
-    };
-
-    document.getElementById('resend-btn').onclick = async () => {
-        try {
-            await API.fetch('/api/auth?action=sendotp', {
-                method: 'POST',
-                body: JSON.stringify({ email: signupData.email })
-            });
-            UI.showMessage('Resent! Check your email.', 'success');
-            startTimer();
-        } catch (e) {
-            UI.showMessage(e.message);
-        }
-    };
-
-    function startTimer() {
-        let timeLeft = 30;
-        document.getElementById('resend-btn').style.display = 'none';
-        document.getElementById('resend-timer-text').style.display = 'block';
-        document.getElementById('timer').textContent = timeLeft;
-        
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            timeLeft--;
-            document.getElementById('timer').textContent = timeLeft;
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                document.getElementById('resend-btn').style.display = 'block';
-                document.getElementById('resend-timer-text').style.display = 'none';
-            }
-        }, 1000);
-    }
-  </script>
+  <script type="module" src="js/signup.js"></script>
 </body>
 </html>
