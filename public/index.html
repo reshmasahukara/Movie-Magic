@@ -172,6 +172,49 @@
 
     let selectedCategory = 'all';
 
+    function getFallbackEvents() {
+      return [
+        { id: 1, event_name: 'MI vs CSK', category: 'Sports', city: 'Mumbai', venue: 'Wankhede Stadium', event_date: '2026-05-16', image_url: 'https://i.pinimg.com/videos/thumbnails/originals/a0/8f/e0/a08fe047f55493fbca44602ddc5cee5e.0000000.jpg', price: 999 },
+        { id: 2, event_name: 'Sunburn Festival', category: 'Festival', city: 'Goa', venue: 'Vagator', event_date: '2026-12-28', image_url: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=400', price: 5000 },
+        { id: 3, event_name: 'Zakir Khan Live', category: 'Comedy', city: 'Mumbai', venue: 'Shanmukhananda Hall', event_date: '2026-05-20', image_url: 'https://m.media-amazon.com/images/I/71R3yX-S1JL._RI_.jpg', price: 1200 },
+        { id: 4, event_name: 'Wonderla Adventure', category: 'Outdoor', city: 'Bengaluru', venue: 'Wonderla', event_date: '2026-05-24', image_url: 'https://i.pinimg.com/originals/be/53/74/be53745621b23ab86399d7c0d8b03aaf.jpg', price: 1499 },
+        { id: 5, event_name: 'Pottery Workshop', category: 'Workshops', city: 'Mumbai', venue: 'The Art Studio', event_date: '2026-05-18', image_url: 'https://images.unsplash.com/photo-1565191999001-551c187427bb?auto=format&fit=crop&w=400', price: 1500 }
+      ];
+    }
+
+    async function updateEvents() {
+      const container = document.getElementById('events-sections-container');
+      if (!container) return;
+
+      try {
+        const cityFilter = selectedCity || 'all';
+        const url = `/api/events?action=list&city=${cityFilter}&category=${selectedCategory}`;
+        const { events } = await API.fetch(url);
+        
+        let displayEvents = (events && events.length > 0) ? events : getFallbackEvents();
+        
+        // Filter by category if needed (API should do this, but safe fallback)
+        if (selectedCategory !== 'all') {
+          displayEvents = displayEvents.filter(e => e.category === selectedCategory);
+        }
+
+        if (displayEvents.length === 0) {
+          container.innerHTML = `
+            <div class="container" style="padding: 5rem 2rem; text-align: center; color: var(--text-muted); background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px dashed #333; margin-top:2rem;">
+              <p style="font-size: 1.2rem;">No events match your criteria. 🎫</p>
+              <button onclick="filterEvents('all')" class="btn-primary" style="margin-top: 1.5rem">Browse All</button>
+            </div>
+          `;
+          return;
+        }
+
+        // Group by category
+        const groups = {};
+        displayEvents.forEach(ev => {
+          if (!groups[ev.category]) groups[ev.category] = [];
+          groups[ev.category].push(ev);
+        });
+
         // Render sections
         container.innerHTML = Object.keys(groups).map(cat => {
           const listId = `list-${cat.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
@@ -195,7 +238,25 @@
 
       } catch (err) {
         console.error('Failed to load events:', err);
-        container.innerHTML = `<p style="padding: 3rem; text-align: center; color: var(--primary);">Failed to connect to entertainment server. Please try again.</p>`;
+        const fb = getFallbackEvents();
+        const groups = { 'Featured': fb };
+        container.innerHTML = Object.keys(groups).map(cat => {
+          const listId = `list-${cat.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+          return `
+            <div class="container" style="margin-top: 2rem; margin-bottom: 2rem;">
+              <div class="carousel-section">
+                <div class="section-header-bar" style="padding: 0 1%;">
+                  <h2>Recommended for You</h2>
+                </div>
+                <button class="scroll-btn left" onclick="scrollCarousel('${listId}', 'left')">❮</button>
+                <div class="carousel-container" id="${listId}">
+                  ${renderEventSliderHTML(fb)}
+                </div>
+                <button class="scroll-btn right" onclick="scrollCarousel('${listId}', 'right')">❯</button>
+              </div>
+            </div>
+          `;
+        }).join('');
       }
     }
 
