@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login | Movie Magic</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
     .auth-container {
       height: auto !important;
       overflow: visible !important;
@@ -13,25 +14,26 @@
       overflow: visible !important;
       margin-bottom: 1.5rem;
     }
-    .forgot-wrap {
+    .forgot-force {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
       text-align: right;
-      margin-top: 5px;
-      margin-bottom: 20px;
+      margin-top: 8px;
+      margin-bottom: 18px;
+      width: 100%;
+      position: relative;
+      z-index: 9999;
     }
-    #forgotPasswordBtn {
-      color: #ff3333 !important;
+    .forgot-force a {
+      color: #ff2b2b !important;
       font-size: 14px !important;
       font-weight: 700 !important;
-      text-decoration: none;
-      transition: .3s;
-      background: none;
-      border: none;
-      padding: 0;
+      text-decoration: none !important;
       cursor: pointer !important;
       display: inline-block !important;
-      visibility: visible !important;
     }
-    #forgotPasswordBtn:hover {
+    .forgot-force a:hover {
       color: white !important;
       text-decoration: underline !important;
     }
@@ -58,7 +60,7 @@
           <label>Password</label>
           <input type="password" id="password" required placeholder="••••••••">
         </div>
-        <div class="forgot-wrap">
+        <div class="forgot-force">
            <a href="#" id="forgotPasswordBtn">Forgot Password?</a>
         </div>
         <button type="submit" class="btn-primary" style="width: 100%;">Sign In</button>
