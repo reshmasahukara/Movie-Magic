@@ -75,7 +75,7 @@ export default async function handler(req, res) {
            FROM event_bookings eb 
            JOIN events e ON eb.event_id = e.id 
            WHERE eb.user_id = $1 
-           ORDER BY eb.booking_date DESC`,
+           ORDER BY eb.id DESC`,
           [userid]
         );
         return res.status(200).json({ success: true, bookings: result.rows });
@@ -119,8 +119,8 @@ export default async function handler(req, res) {
 
           // Create Booking Record
           const bookingRes = await query(
-            `INSERT INTO event_bookings (event_id, user_id, user_name, email, phone, tickets_count, selected_seats, amount, payment_status) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Paid') RETURNING id`,
+            `INSERT INTO event_bookings (event_id, user_id, user_name, email, phone, tickets_count, selected_seats, amount, payment_status, booking_date) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Paid', NOW()) RETURNING id`,
             [event_id, user_id, user_name, email, phone, tickets_count || selected_seats.length, selected_seats || [], amount]
           );
 
