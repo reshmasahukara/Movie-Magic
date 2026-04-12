@@ -171,6 +171,19 @@
 
 
     let selectedCategory = 'all';
+    const CATEGORY_PRIORITY = ['Music', 'Sports', 'Comedy', 'Outdoor', 'Festival', 'Workshops'];
+
+    function normalizeCategory(cat) {
+      if (!cat) return 'Other';
+      const s = cat.toLowerCase().replace(/[\s-]/g, '');
+      if (s.includes('music')) return 'Music';
+      if (s.includes('sport')) return 'Sports';
+      if (s.includes('comedy')) return 'Comedy';
+      if (s.includes('outdoor')) return 'Outdoor';
+      if (s.includes('festival')) return 'Festival';
+      if (s.includes('workshop')) return 'Workshops';
+      return cat; 
+    }
 
     function getFallbackEvents() {
       return [
@@ -188,35 +201,48 @@
 
       try {
         const cityFilter = selectedCity || 'all';
-        const url = `/api/events?action=list&city=${cityFilter}&category=${selectedCategory}`;
+        // Always fetch all for local fuzzy filtering if "all" or specific
+        const url = `/api/events?action=list&city=${cityFilter}&category=all`;
         const { events } = await API.fetch(url);
         
         let displayEvents = (events && events.length > 0) ? events : getFallbackEvents();
         
-        // Filter by category if needed (API should do this, but safe fallback)
+        // Fuzzy Filtering for specific tabs
         if (selectedCategory !== 'all') {
-          displayEvents = displayEvents.filter(e => e.category === selectedCategory);
+          const normTarget = normalizeCategory(selectedCategory);
+          displayEvents = displayEvents.filter(e => normalizeCategory(e.category) === normTarget);
         }
 
         if (displayEvents.length === 0) {
           container.innerHTML = `
             <div class="container" style="padding: 5rem 2rem; text-align: center; color: var(--text-muted); background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px dashed #333; margin-top:2rem;">
-              <p style="font-size: 1.2rem;">No events match your criteria. 🎫</p>
-              <button onclick="filterEvents('all')" class="btn-primary" style="margin-top: 1.5rem">Browse All</button>
+              <p style="font-size: 1.2rem;">No events available in this category. 🎫</p>
+              <button onclick="filterEvents('all')" class="btn-primary" style="margin-top: 1.5rem">Browse All Categories</button>
             </div>
           `;
           return;
         }
 
-        // Group by category
+        // Group by Normalized Category
         const groups = {};
         displayEvents.forEach(ev => {
-          if (!groups[ev.category]) groups[ev.category] = [];
-          groups[ev.category].push(ev);
+          const norm = normalizeCategory(ev.category);
+          if (!groups[norm]) groups[norm] = [];
+          groups[norm].push(ev);
+        });
+
+        // Sort keys by priority
+        const sortedKeys = Object.keys(groups).sort((a, b) => {
+          const ia = CATEGORY_PRIORITY.indexOf(a);
+          const ib = CATEGORY_PRIORITY.indexOf(b);
+          if (ia === -1 && ib === -1) return a.localeCompare(b);
+          if (ia === -1) return 1;
+          if (ib === -1) return -1;
+          return ia - ib;
         });
 
         // Render sections
-        container.innerHTML = Object.keys(groups).map(cat => {
+        container.innerHTML = sortedKeys.map(cat => {
           const listId = `list-${cat.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
           const sliderHtml = renderEventSliderHTML(groups[cat]);
           return `
