@@ -51,46 +51,73 @@ const UI = {
     
     nav.innerHTML = `
       <div class="nav-container">
-        <!-- LEFT: Logo & City -->
-        <div style="display: flex; align-items: center; gap: 2rem; flex: 1;">
+        <!-- LEFT: Premium Branding -->
+        <div class="nav-left">
           <a href="/" class="logo"><i>🎬</i> MOVIE MAGIC</a>
-          <button id="navCityBtn" style="background: transparent; color: var(--text-muted); border: 1px solid var(--glass-border); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: 600;" 
-            onclick="if(window.showCityModal) { showCityModal(); } else { window.location.href = '/?showModal=true'; }">
-            ${selectedCity} ▾
-          </button>
         </div>
 
-        <!-- CENTER: Search -->
-        <div class="search-wrapper no-mobile" style="flex: 2; max-width: 500px; justify-content: center;">
-          <div style="position: relative; width: 100%; max-width: 420px;">
+        <!-- CENTER: City & Search Grouped -->
+        <div class="nav-center no-mobile">
+          <button id="navCityBtn" onclick="if(window.showCityModal) { showCityModal(); } else { window.location.href = '/?showModal=true'; }">
+            <span style="opacity: 0.6;">📍</span> ${selectedCity} ▾
+          </button>
+          
+          <div class="search-wrapper">
             <span class="search-icon">🔍</span>
-            <input type="text" id="movie-search" class="search-bar" placeholder="Search for Movies, Events, Sports..." onkeyup="handleSearch(this.value)">
+            <input type="text" id="movie-search" class="search-bar" placeholder="Search Movies, Events, Sports..." onkeyup="handleSearch(this.value)">
           </div>
         </div>
 
-        <!-- RIGHT: Links -->
-        <div class="links" id="nav-links" style="flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 2rem;">
-          <a href="/">Home</a>
-          ${user ? `
-            <a href="/history.html">History</a>
-            ${isAdmin ? '<a href="/admin.html" style="color: var(--primary); font-weight: 700;">Admin Panel</a>' : ''}
-            <div style="display: flex; align-items: center; gap: 15px;">
+        <!-- RIGHT: Interactions -->
+        <div class="nav-right">
+          <div class="links no-mobile" id="nav-links">
+            <a href="/">Home</a>
+            ${user ? `<a href="/history.html">History</a>` : ''}
+            ${isAdmin ? `<a href="/admin.html" style="color: var(--primary); font-weight: 800;">Admin Panel</a>` : ''}
+          </div>
+
+          <div class="user-actions">
+            ${user ? `
               <div class="nav-avatar" onclick="window.location.href='/dashboard.html'">
                 ${user.profile_pic ? 
-                  `<img src="${user.profile_pic}" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                  `<img src="${user.profile_pic}">` : 
                   `<div class="nav-avatar-initials">${user.name ? user.name.charAt(0).toUpperCase() : 'U'}</div>`
                 }
               </div>
-              <button onclick="API.logout()" class="btn-logout-nav" style="background: transparent; border: 1px solid var(--glass-border); color: white; padding: 6px 14px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; transition: 0.3s;">Logout</button>
-            </div>
-          ` : `
-            <a href="/login.html">Login</a>
-            <a href="/signup.html" class="btn-primary" style="padding: 0.6rem 1.4rem; border-radius: 30px;">Join Now</a>
-          `}
+              <button onclick="API.logout()" class="btn-logout-nav no-mobile">Logout</button>
+            ` : `
+              <a href="/login.html" style="color:white; text-decoration:none; font-weight:600;" class="no-mobile">Login</a>
+              <a href="/signup.html" class="btn-primary" style="padding: 0.7rem 1.6rem; border-radius: 30px; font-size: 0.9rem;">Join Now</a>
+            `}
+            
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-toggle" onclick="UI.toggleMobileMenu()" style="display:none; background:transparent; border:none; color:white; font-size:1.8rem; cursor:pointer;">☰</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Mobile Sidebar -->
+      <div id="mobileSidebar" class="mobile-sidebar" style="position:fixed; top:0; right:-100%; width:80%; height:100vh; background:rgba(8,8,8,0.98); backdrop-filter:blur(20px); z-index:10001; transition:0.4s; padding:2rem; display:flex; flex-direction:column; gap:2rem; border-left:1px solid rgba(255,255,255,0.05);">
+        <button onclick="UI.toggleMobileMenu()" style="align-self:flex-end; background:transparent; border:none; color:white; font-size:2.5rem;">&times;</button>
+        <div style="display:flex; flex-direction:column; gap:1.5rem; font-size:1.4rem;">
+            <a href="/" style="color:white; text-decoration:none;">Home</a>
+            ${user ? `<a href="/history.html" style="color:white; text-decoration:none;">Booking History</a>` : ''}
+            ${isAdmin ? `<a href="/admin.html" style="color:var(--primary); text-decoration:none;">Admin Management</a>` : ''}
+            ${user ? `<a href="javascript:API.logout()" style="color:var(--primary); text-decoration:none;">Logout</a>` : `<a href="/login.html" style="color:white; text-decoration:none;">Login</a>`}
         </div>
       </div>
     `;
   },
+
+  toggleMobileMenu: () => {
+    const sidebar = document.getElementById('mobileSidebar');
+    if (sidebar.style.right === '0px') {
+        sidebar.style.right = '-100%';
+    } else {
+        sidebar.style.right = '0px';
+    }
+  },
+
 
 
   setupOTPInput: (containerId) => {
