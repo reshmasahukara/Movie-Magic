@@ -102,12 +102,27 @@
 
       const movieData = JSON.parse(stored);
       checkoutData = { ...movieData, type: 'movie' };
+      console.log("Payment Init (Movie):", checkoutData);
+      
+      // FIX: Aggressively enable button first to prevent "not working" state
+      const payBtn = document.getElementById("pay-btn");
+      if (payBtn) {
+        payBtn.disabled = false;
+        payBtn.style.opacity = "1";
+        payBtn.style.cursor = "pointer";
+        payBtn.querySelector("span").textContent = `Pay ₹${checkoutData.amount || 0}`;
+      }
       
       // Render Movie Info
-      document.getElementById("txnTitle").innerText = checkoutData.movie_name;
-      document.getElementById("txnAmount").innerText = "₹" + checkoutData.amount;
-      document.getElementById("bookingRef").innerText = checkoutData.booking_id;
-      document.getElementById("pay-btn").querySelector("span").textContent = `Pay ₹${checkoutData.amount}`;
+      document.getElementById("txnTitle").innerText = checkoutData.movie_name || "Movie Booking";
+      document.getElementById("txnAmount").innerText = "₹" + (checkoutData.amount || 0);
+      document.getElementById("bookingRef").innerText = checkoutData.booking_id || "#0000";
+      
+      if (checkoutData.theater_name) {
+        document.getElementById("txnMeta").innerText = `${checkoutData.theater_name} • ${checkoutData.show_date || ''} • ${checkoutData.timmings || ''}`;
+      } else {
+        document.getElementById("txnMeta").innerText = "Ready for payment";
+      }
     }
 
     async function loadEventCheckout(eventId, qty) {
