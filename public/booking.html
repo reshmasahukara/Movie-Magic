@@ -250,10 +250,11 @@
   <script src="js/utils.js"></script>
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const movieId = urlParams.get('id'); // Fix: index.html sends id, not movieId
+    const movieId = urlParams.get('id'); 
+    let selectedCity = localStorage.getItem('selectedCity') || 'all'; // Default to 'all'
     let selectedDate = new Date().toISOString().split('T')[0];
     let activeFilter = 'all';
-    let currentMovie = null; // Global reference for goToSeats
+    let currentMovie = null;
 
     function getFallbackMovies() {
       return [
@@ -286,12 +287,6 @@
         return;
       }
       
-      const selectedCity = localStorage.getItem('selectedCity');
-      if (!selectedCity) {
-        window.location.href = "/";
-        return;
-      }
-
       renderDates();
       setupFilters();
       
