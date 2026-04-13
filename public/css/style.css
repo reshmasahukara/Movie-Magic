@@ -218,9 +218,9 @@ nav .links a:hover::after {
 .btn-book {
   background: linear-gradient(135deg, #ff1a1a 0%, #cc0000 100%);
   color: #fff !important;
-  font-weight: 700;
+  font-weight: 800;
   border-radius: 10px;
-  padding: 10px 20px;
+  padding: 12px 24px;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -231,7 +231,7 @@ nav .links a:hover::after {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 0.9rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   width: fit-content;
 }
 

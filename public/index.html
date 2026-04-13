@@ -217,8 +217,8 @@
             
             <div class="event-card-footer" style="padding-top: 10px;">
               <span class="event-price" style="font-size: 0.95rem;">₹${ev.price}</span>
-              <button class="btn-book" style="padding: 6px 12px; font-size: 0.75rem;" onclick="event.stopPropagation(); window.location.href='/event-booking.html?id=${ev.id}'">
-                Book
+              <button class="btn-book" style="padding: 10px 20px; font-size: 0.85rem; font-weight:800;" onclick="event.stopPropagation(); window.location.href='/event-booking.html?id=${ev.id}'">
+                BOOK NOW
               </button>
             </div>
           </div>
@@ -365,7 +365,7 @@
           <div class="movie-info" style="padding: 12px;">
             <h3 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; font-size: 1rem; color: #fff;">${movie.movie_name}</h3>
             <div class="meta" style="font-size: 0.75rem; margin: 4px 0; color: #999;">⭐ ${movie.movie_rating} • ${movie.language}</div>
-            <a href="/booking.html?id=${movie.movie_id}" class="btn-book" style="padding: 6px 15px; font-size: 0.75rem; width: 100%; margin-top: 8px;" onclick="event.stopPropagation()">Book</a>
+            <a href="/booking.html?id=${movie.movie_id}" class="btn-book" style="padding: 10px 20px; font-size: 0.85rem; width: 100%; margin-top: 10px; font-weight:800;" onclick="event.stopPropagation()">BOOK NOW</a>
           </div>
         </div>
       `;
