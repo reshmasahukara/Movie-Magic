@@ -118,7 +118,7 @@
 
     let selectedCategory = 'all';
     let expandedCategories = {}; // Tracks which categories are showing ALL
-    const CATEGORY_PRIORITY = ['Music', 'Sports', 'Comedy', 'Outdoor', 'Festival', 'Workshops'];
+    const CATEGORY_PRIORITY = ['Music', 'Sports', 'Comedy', 'Outdoor', 'Workshops'];
 
 
 
@@ -176,7 +176,7 @@
         // --- 3. Render Order ---
         const finalRenderOrder = [
           ...CATEGORY_PRIORITY.filter(c => allPresentCategories.includes(c)),
-          ...allPresentCategories.filter(c => !CATEGORY_PRIORITY.includes(c))
+          ...allPresentCategories.filter(c => !CATEGORY_PRIORITY.includes(c) && c !== 'Festival')
         ];
         
         container.innerHTML = finalRenderOrder.map(cat => {
@@ -184,7 +184,7 @@
           if (!items || items.length === 0) return ''; 
 
           const isExpanded = expandedCategories[cat] || selectedCategory === cat;
-          const displayItems = isExpanded ? items : items; // Always show all for slider
+          const displayItems = items.slice(0, 6); // Limit to 6 events per section on homepage
           const hasMore = items.length > 6;
 
           const cardsHtml = renderEventSliderHTML(displayItems);
