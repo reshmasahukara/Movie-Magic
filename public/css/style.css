@@ -192,50 +192,48 @@ nav .links a:hover {
   color: #fff;
 }
 
-/* Base style for the events display - Grid for Homepage, can be Row if needed */
+/* Base style for the events display - SIDE BY SIDE Grid */
 .events-grid {
   display: grid;
+  grid-template-columns: repeat(4, 250px); /* Desktop Default */
   gap: 24px;
   width: 100%;
-  justify-content: center;
+  justify-content: flex-start; /* Start from left as requested */
+  align-items: stretch;
 }
 
 /* 4 Cards Desktop */
 @media (min-width: 1200px) {
   .events-grid {
-    grid-template-columns: repeat(4, 260px);
+    grid-template-columns: repeat(4, 250px);
   }
 }
 
 /* 3 Cards Laptop */
 @media (min-width: 992px) and (max-width: 1199px) {
   .events-grid {
-    grid-template-columns: repeat(3, 260px);
+    grid-template-columns: repeat(3, 250px);
   }
 }
 
 /* 2 Cards Tablet */
-@media (min-width: 576px) and (max-width: 991px) {
+@media (min-width: 600px) and (max-width: 991px) {
   .events-grid {
-    grid-template-columns: repeat(2, 1fr);
-    max-width: 600px;
-    margin: 0 auto;
+    grid-template-columns: repeat(2, 250px);
   }
 }
 
 /* 1 Card Mobile */
-@media (max-width: 575px) {
+@media (max-width: 599px) {
   .events-grid {
     grid-template-columns: 1fr;
-    max-width: 350px;
-    margin: 0 auto;
+    max-width: 100%;
   }
 }
 
 .event-card {
-  width: 100%;
-  max-width: 260px;
-  height: 440px;
+  width: 250px;
+  min-height: 420px;
   background: #111;
   border-radius: 12px;
   overflow: hidden;
