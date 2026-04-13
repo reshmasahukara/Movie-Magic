@@ -24,10 +24,14 @@ export default async function handler(req, res) {
         sql += ' ORDER BY event_date ASC';
         const result = await query(sql, params);
         
-        // --- 100% Dynamic Rule ---
-        // We no longer return STATIC fallbacks if DB is empty.
-        // The admin controls the DB, so the DB is the source of truth.
-        return res.status(200).json({ success: true, events: result.rows });
+        // Normalize fields for frontend consistency
+        const events = result.rows.map(ev => ({
+          ...ev,
+          event_name: ev.event_name || ev.title || 'United Event', // Fallback for missing names
+          image_url: ev.image_url || ev.image || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=400'
+        }));
+        
+        return res.status(200).json({ success: true, events });
       }
 
       // 2. Fetch Single Event

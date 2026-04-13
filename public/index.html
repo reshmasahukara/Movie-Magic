@@ -70,11 +70,28 @@
       border-radius: 14px;
     }
 
-    .event-card-content { padding: 1.2rem; display: flex; flex-direction: column; flex: 1; }
-    .event-date { color: var(--primary); font-size: 0.75rem; font-weight: 800; margin-bottom: 5px; text-transform: uppercase; }
-    .event-name { font-weight: 800; font-size: 1.1rem; margin-bottom: 10px; line-height: 1.2; color: #eee; }
-    .event-meta { font-size: 0.8rem; color: #666; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-    .event-tag { display: inline-block; padding: 3px 8px; background: rgba(255,255,255,0.05); border-radius: 4px; font-size: 0.7rem; color: #999; width: fit-content; }
+    .event-card-content { 
+      padding: 1.5rem; 
+      display: flex; 
+      flex-direction: column; 
+      flex: 1; 
+      background: #111;
+    }
+    .event-date-badge { color: var(--primary); font-size: 0.75rem; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; display: block; }
+    .event-name { 
+      font-weight: 800; 
+      font-size: 1.125rem; /* 18px */
+      margin-bottom: 12px; 
+      line-height: 1.3; 
+      color: #FFFFFF; 
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 2.6rem; /* Ensures consistent alignment */
+    }
+    .event-meta { font-size: 0.85rem; color: #999; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .event-tag { display: inline-block; padding: 4px 10px; background: rgba(229, 9, 20, 0.1); border-radius: 4px; font-size: 0.7rem; color: var(--primary); width: fit-content; font-weight: 700; }
 
 
     .poster {
@@ -173,6 +190,7 @@
     let selectedCategory = 'all';
     const CATEGORY_PRIORITY = ['Music', 'Sports', 'Comedy', 'Outdoor', 'Festival', 'Workshops'];
 
+
     function normalizeCategory(cat) {
       if (!cat) return 'Other';
       const s = cat.toLowerCase().replace(/[\s-]/g, '');
@@ -182,8 +200,9 @@
       if (s.includes('outdoor')) return 'Outdoor';
       if (s.includes('festival')) return 'Festival';
       if (s.includes('workshop')) return 'Workshops';
-      return cat; 
+      return cat.charAt(0).toUpperCase() + cat.slice(1); 
     }
+
 
     async function updateEvents() {
       const container = document.getElementById('events-sections-container');
@@ -231,10 +250,17 @@
         });
 
         // --- 4. Render Sections ---
-        // Only render categories that actually have items
-        const renderableCategories = priority.filter(cat => groups[cat] && groups[cat].length > 0);
+        // Dynamically collect all categories present in the data
+        const allPresentCategories = [...new Set(filteredEvents.map(ev => normalizeCategory(ev.category)))];
         
-        container.innerHTML = renderableCategories.map(cat => {
+        // Final priority: CATEGORY_PRIORITY first, then any other categories found
+        const finalRenderOrder = [
+          ...CATEGORY_PRIORITY.filter(c => allPresentCategories.includes(c)),
+          ...allPresentCategories.filter(c => !CATEGORY_PRIORITY.includes(c))
+        ];
+        
+        container.innerHTML = finalRenderOrder.map(cat => {
+
           const listId = `list-${cat.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
           const items = groups[cat];
           const sliderHtml = renderEventSliderHTML(items);

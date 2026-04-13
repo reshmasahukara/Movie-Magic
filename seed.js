@@ -20,9 +20,48 @@ async function seed() {
     console.log('Starting Standalone Seed Process...');
 
     // 1. Clear existing data
-    await pool.query('TRUNCATE customer, movie, theater, shows, bookings, payments RESTART IDENTITY CASCADE');
+    await pool.query('TRUNCATE customer, movie, theater, shows, bookings, payments, events, event_bookings RESTART IDENTITY CASCADE');
     await pool.query('ALTER SEQUENCE shows_screen_id_seq RESTART WITH 1000');
     console.log('Tables truncated.');
+
+    // 1.1 Ensure Events Tables Exist (Redundancy check)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS events (
+        id SERIAL PRIMARY KEY,
+        event_name VARCHAR(255) NOT NULL,
+        category VARCHAR(100),
+        city VARCHAR(100),
+        venue VARCHAR(255),
+        event_date DATE,
+        event_time VARCHAR(50),
+        price INTEGER,
+        total_seats INTEGER DEFAULT 1000,
+        booked_seats JSONB DEFAULT '[]'::jsonb,
+        image_url TEXT,
+        description TEXT,
+        status VARCHAR(50) DEFAULT 'Active',
+        has_seat_map BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS event_bookings (
+        id SERIAL PRIMARY KEY,
+        event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
+        user_id INTEGER,
+        user_name VARCHAR(255),
+        email VARCHAR(255),
+        phone VARCHAR(20),
+        tickets_count INTEGER,
+        selected_seats JSONB DEFAULT '[]'::jsonb,
+        amount NUMERIC(10, 2),
+        payment_status VARCHAR(50) DEFAULT 'Paid',
+        booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('Events tables verified.');
+
 
     // 2. Seed Movies
     const movies = [
@@ -163,6 +202,33 @@ async function seed() {
       await pool.query(`INSERT INTO shows (movie_id, theater_id, timmings, show_date, screen_no, screen_dimensions, no_of_seats) VALUES ${showValues.join(',')}`, showParams);
     }
     console.log('Show schedules generated.');
+
+    // 4.3 Seed Professional Events
+    console.log('Seeding events...');
+    const events = [
+      ['Sunburn Home Festival', 'Music', 'Mumbai', 'Wankhede Stadium', '2026-05-15', '07:30 PM', 999, 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1200', 'Asias biggest music festival is back!'],
+      ['MI vs CSK - T20 Rush', 'Sports', 'Mumbai', 'Wankhede Stadium', '2026-05-18', '07:30 PM', 1499, 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&w=1600&q=80', 'The El Clasico of Cricket!'],
+      ['Zakir Khan Live', 'Comedy', 'Delhi', 'NCPA', '2026-05-20', '08:00 PM', 799, 'https://images.unsplash.com/photo-1527224857813-f8e1374528ca?auto=format&fit=crop&w=1200', 'Zakir Khan brings his new show to Delhi!'],
+      ['Wonderla Adventure Day', 'Outdoor', 'Bengaluru', 'Wonderla', '2026-05-23', '11:00 AM', 1499, 'https://images.unsplash.com/photo-1549497538-301228c965dd?auto=format&fit=crop&w=1600&q=80', 'Thrilling rides and endless fun!'],
+      ['Pottery Workshop', 'Workshops', 'Mumbai', 'The Art Studio', '2026-05-25', '10:00 AM', 1200, 'https://images.unsplash.com/photo-1565191999001-551c187427bb?auto=format&fit=crop&w=800', 'Learn the therapeutic art of pottery.'],
+      ['Lollapalooza India', 'Festival', 'Mumbai', 'Mahalaxmi Race Course', '2026-01-27', '12:00 PM', 8000, 'https://images.unsplash.com/photo-1459749411177-042180ce673c?auto=format&fit=crop&w=1600&q=80', 'Experience the global music phenomenon.'],
+      ['NH7 Weekender', 'Festival', 'Pune', 'Mahalakshmi Lawns', '2026-11-14', '03:00 PM', 3500, 'https://pbs.twimg.com/media/FipqR7FX0AIg_2b.jpg', 'The happiest music festival.'],
+      ['RCB vs KKR Clash', 'Sports', 'Bengaluru', 'Chinnaswamy Stadium', '2026-05-17', '07:00 PM', 1199, 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e', 'Watch RCB take on KKR!'],
+      ['India vs Australia T20', 'Sports', 'Mumbai', 'Wankhede Stadium', '2026-06-01', '07:00 PM', 2499, 'https://images.unsplash.com/photo-1574629810360-7efbbe195018', 'The ultimate T20 showdown.'],
+      ['Pro Kabaddi Finals', 'Sports', 'Hyderabad', 'Gachibowli Indoor Stadium', '2026-06-09', '07:00 PM', 899, 'https://images.unsplash.com/photo-1517649763962-0c623066013b', 'Wait for the kabaddi champion!'],
+      ['Goa Beach Camping', 'Outdoor', 'Goa', 'Anjuna Beach', '2026-05-21', '07:00 PM', 799, 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e', 'Camping under the stars at Anjuna.'],
+      ['River Rafting Adventure', 'Outdoor', 'Rishikesh', 'Rishikesh Rapids', '2026-05-27', '07:00 PM', 1299, 'https://images.unsplash.com/photo-1521334884684-d80222895322', 'Adrenaline pumping river rafting.'],
+      ['Night Trekking Munnar', 'Outdoor', 'Kerala', 'Munnar Hills', '2026-06-04', '07:00 PM', 999, 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee', 'Explore the hills of Munnar at night.'],
+      ['Desert Safari Ride', 'Outdoor', 'Rajasthan', 'Jaisalmer Dunes', '2026-06-11', '07:00 PM', 1599, 'https://images.unsplash.com/photo-1501785888041-af3ef285b470', 'Safari through the Golden Desert Jaisalmer.']
+    ];
+
+    for (const e of events) {
+      await pool.query(
+        'INSERT INTO events (event_name, category, city, venue, event_date, event_time, price, image_url, description, total_seats, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, \'Active\')',
+        [...e, 1000]
+      );
+    }
+    console.log('Events seeded.');
 
     // 5. Seed Admin
     await pool.query('INSERT INTO admin (user_name, password) VALUES ($1, $2) ON CONFLICT DO NOTHING', ['admin', '$2b$10$Ex7a3U/6v6k.6hMv3I5BieH2h9lF5Y.Uu/K8b6VjJvUuJ/v8v5q/m']);
