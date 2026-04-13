@@ -50,37 +50,48 @@ const UI = {
     const selectedCity = localStorage.getItem('selectedCity') || 'Select City';
     
     nav.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 1.5rem;">
-        <a href="/" class="logo"><i>🎬</i> MOVIE MAGIC</a>
-        <button id="navCityBtn" style="background: transparent; color: var(--text-muted); border: 1px solid #444; padding: 6px 12px; border-radius: 4px; cursor: pointer;" 
-          onclick="if(window.showCityModal) { showCityModal(); } else { window.location.href = '/?showModal=true'; }">
-          ${selectedCity} ▾
-        </button>
-      </div>
-      <div class="search-bar">
-        <input type="text" id="movie-search" placeholder="Search movies, genres..." onkeyup="handleSearch(this.value)">
-      </div>
-      <div class="links">
-        <a href="/">Home</a>
-        ${user ? `
-          <a href="/history.html">History</a>
-          ${isAdmin ? '<a href="/admin.html" style="color: var(--primary)">Admin Panel</a>' : ''}
-          <div style="display: flex; align-items: center; gap: 18px; margin-left: 10px;">
-            <div class="nav-avatar">
-              ${user.profile_pic ? 
-                `<img src="${user.profile_pic}" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                `<div class="nav-avatar-initials">${user.name ? user.name.charAt(0) : 'U'}</div>`
-              }
-            </div>
-            <button onclick="API.logout()" class="btn-logout-nav">Logout</button>
+      <div class="nav-container">
+        <!-- LEFT: Logo & City -->
+        <div style="display: flex; align-items: center; gap: 2rem; flex: 1;">
+          <a href="/" class="logo"><i>🎬</i> MOVIE MAGIC</a>
+          <button id="navCityBtn" style="background: transparent; color: var(--text-muted); border: 1px solid var(--glass-border); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: 600;" 
+            onclick="if(window.showCityModal) { showCityModal(); } else { window.location.href = '/?showModal=true'; }">
+            ${selectedCity} ▾
+          </button>
+        </div>
+
+        <!-- CENTER: Search -->
+        <div class="search-wrapper no-mobile" style="flex: 2; max-width: 500px; justify-content: center;">
+          <div style="position: relative; width: 100%; max-width: 420px;">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="movie-search" class="search-bar" placeholder="Search for Movies, Events, Sports..." onkeyup="handleSearch(this.value)">
           </div>
-        ` : `
-          <a href="/login.html">Login</a>
-          <a href="/signup.html" class="btn-primary" style="padding: 0.6rem 1.2rem; margin-left: 5px;">Join Now</a>
-        `}
+        </div>
+
+        <!-- RIGHT: Links -->
+        <div class="links" id="nav-links" style="flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 2rem;">
+          <a href="/">Home</a>
+          ${user ? `
+            <a href="/history.html">History</a>
+            ${isAdmin ? '<a href="/admin.html" style="color: var(--primary); font-weight: 700;">Admin Panel</a>' : ''}
+            <div style="display: flex; align-items: center; gap: 15px;">
+              <div class="nav-avatar" onclick="window.location.href='/dashboard.html'">
+                ${user.profile_pic ? 
+                  `<img src="${user.profile_pic}" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                  `<div class="nav-avatar-initials">${user.name ? user.name.charAt(0).toUpperCase() : 'U'}</div>`
+                }
+              </div>
+              <button onclick="API.logout()" class="btn-logout-nav" style="background: transparent; border: 1px solid var(--glass-border); color: white; padding: 6px 14px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; transition: 0.3s;">Logout</button>
+            </div>
+          ` : `
+            <a href="/login.html">Login</a>
+            <a href="/signup.html" class="btn-primary" style="padding: 0.6rem 1.4rem; border-radius: 30px;">Join Now</a>
+          `}
+        </div>
       </div>
     `;
   },
+
 
   setupOTPInput: (containerId) => {
     const container = document.getElementById(containerId);
