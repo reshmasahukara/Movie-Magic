@@ -142,6 +142,81 @@ export default async function handler(req, res) {
       }
     }
 
+    // 6. Handle Movie Booking (POST)
+    if (method === 'POST') {
+      const { 
+        screenid, user_id, seats, price, movie_id, 
+        theater_name, show_date, show_time 
+      } = body;
+
+      if (!screenid || !user_id || !seats || !seats.length) {
+        return res.status(400).json({ error: 'Missing booking details' });
+      }
+
+      try {
+        // Start Transaction
+        await query('BEGIN');
+
+        // 1. Insert into Bookings
+        const bookingRes = await query(`
+          INSERT INTO bookings (
+            screen_id, user_id, no_of_seats, selected_seats, 
+            price, payment_status, theater_name, movie_id, 
+            show_date, show_time
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          RETURNING id
+        `, [
+          screenid, user_id, seats.length, JSON.stringify(seats), 
+          price, 'Pending', theater_name, movie_id, 
+          show_date, show_time
+        ]);
+
+        const bookingId = bookingRes.rows[0].id;
+
+        // 2. Insert into Booked Seats (Locking mechanism)
+        for (const seat of seats) {
+          try {
+            await query(`
+              INSERT INTO booked_seats (booking_id, screen_id, seat_number)
+              VALUES ($1, $2, $3)
+            `, [bookingId, screenid, seat]);
+          } catch (e) {
+            if (e.code === '23505') { // Unique constraint violation
+               await query('ROLLBACK');
+               return res.status(409).json({ error: `Seat ${seat} is already booked.` });
+            }
+            throw e;
+          }
+        }
+
+        // 3. Update Shows table (Aggregate view)
+        const showRes = await query("SELECT selected_seats FROM shows WHERE screen_id = $1", [screenid]);
+        let existingSeats = [];
+        if (showRes.rows.length > 0) {
+          existingSeats = Array.isArray(showRes.rows[0].selected_seats) 
+            ? showRes.rows[0].selected_seats 
+            : JSON.parse(showRes.rows[0].selected_seats || '[]');
+        }
+
+        const updatedSeats = [...new Set([...existingSeats, ...seats])];
+        await query("UPDATE shows SET selected_seats = $1 WHERE screen_id = $2", [JSON.stringify(updatedSeats), screenid]);
+
+        // Commit Transaction
+        await query('COMMIT');
+
+        return res.status(201).json({ 
+          success: true, 
+          message: 'Booking created successfully', 
+          bookingId 
+        });
+
+      } catch (err) {
+        await query('ROLLBACK');
+        console.error('Booking Transaction Error:', err);
+        return res.status(500).json({ error: 'Booking failed: ' + err.message });
+      }
+    }
+
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error) {
     console.error('Movies API Error:', error);
