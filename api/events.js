@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       }
 
       // 2. Fetch Single Event
-      if (action === 'get' && q.id) {
+      if ((action === 'get' || action === 'details') && q.id) {
         const result = await query('SELECT * FROM events WHERE id = $1', [q.id]);
         if (result.rows.length === 0) return res.status(404).json({ error: 'Event not found' });
         return res.status(200).json({ success: true, event: result.rows[0] });

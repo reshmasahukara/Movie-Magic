@@ -371,7 +371,6 @@
         const res = await API.fetch(`/api/movies?action=shows&movieId=${movieId}&city=${selectedCity}`);
         
         if (res.shows && res.shows.length > 0) {
-          // GROUP logic: Organize flat show list into Theaters
           const map = {};
           res.shows.forEach(s => {
             if (!map[s.theater_id]) {
@@ -382,14 +381,33 @@
                 shows: []
               };
             }
+            
+            const sDate = s.show_date ? s.show_date.split('T')[0] : '';
+            const bookedCount = Array.isArray(s.selected_seats) ? s.selected_seats.length : 0;
+            const available = (s.no_of_seats || 100) - bookedCount;
+
             map[s.theater_id].shows.push({
               id: s.screen_id,
               time: s.timmings,
-              price: 150, // Default for now
-              format: "2D"
+              date: sDate,
+              price: 150,
+              format: s.screen_dimensions || "2D",
+              available: available
             });
           });
           theatresData = Object.values(map);
+
+          // Find nearest available date if current date is empty
+          const currentShowsCount = theatresData.reduce((acc, t) => acc + t.shows.filter(s => s.date === selectedDate).length, 0);
+          if (currentShowsCount === 0) {
+            const allDates = res.shows.map(s => s.show_date ? s.show_date.split('T')[0] : '').filter(d => !!d);
+            const sortedDates = [...new Set(allDates)].sort();
+            const nearestDate = sortedDates.find(d => d >= selectedDate) || sortedDates[0];
+            if (nearestDate && nearestDate !== selectedDate) {
+              selectedDate = nearestDate;
+              renderDates();
+            }
+          }
         } else {
           theatresData = []; // Trigger Task 4
         }
@@ -468,11 +486,16 @@
       // 2. Fix Filter Logic: Filter SHOWS chronologically and expiration
       const processedTheatres = theatresData.map(theater => {
         let filteredShows = theater.shows.filter(show => {
+          // 1. Filter by Selected Date
+          if (show.date !== selectedDate) return false;
+
+          // 2. Filter by Search Chips
           if (activeFilter === 'price-low' && show.price > 200) return false;
           if (activeFilter === 'price-high' && show.price <= 200) return false;
           if (activeFilter === '3d' && show.format !== '3D') return false;
           if (activeFilter === '2d' && show.format !== '2D') return false;
 
+          // 3. Chronological Expiration (Hide past shows for today)
           const tVal = parseTime(show.time);
           if (selectedDate === todayDate && tVal < currentFloat) {
             return false;
@@ -513,7 +536,12 @@
               ${t.filteredShows.map(s => `
                 <button class="show-time-btn" data-showid="${s.id}" data-movieid="${movieId}" data-theater="${t.name}" data-time="${s.time}">
                   ${s.time}
-                  <small style="display: block; font-size: 0.6rem; opacity: 0.6; margin-top: 3px;">${s.format || '2D'} • ₹${s.price}</small>
+                  <small style="display: block; font-size: 0.6rem; opacity: 0.6; margin-top: 3px;">
+                    ${s.format || '2D'} • ₹${s.price}
+                  </small>
+                  <span style="font-size: 0.55rem; color: ${s.available < 10 ? '#e50914' : '#28a745'}; font-weight: bold;">
+                    ${s.available} seats left
+                  </span>
                 </button>
               `).join('')}
             </div>
