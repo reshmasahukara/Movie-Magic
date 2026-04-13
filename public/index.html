@@ -25,7 +25,6 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 2rem;
-      padding: 0 1rem;
     }
     .section-header-bar h2 {
       font-size: 1.8rem;
@@ -44,6 +43,7 @@
       transition: gap 0.3s;
     }
     .see-all-link:hover { gap: 10px; }
+
 
 
 
@@ -79,35 +79,40 @@
   </div>
 
   <nav>
-    <div style="display: flex; align-items: center; gap: 1.5rem; flex: 1;">
-      <a href="/" class="logo"><i>🎬</i> MOVIE MAGIC</a>
-      <button id="navCityBtn" style="background: transparent; color: var(--text-muted); border: 1px solid #444; padding: 6px 12px; border-radius: 4px; cursor: pointer;" onclick="showCityModal()">Select City ▾</button>
-    </div>
+    <div class="nav-container">
+      <div style="display: flex; align-items: center; gap: 1.5rem; flex: 1;">
+        <a href="/" class="logo"><i>🎬</i> MOVIE MAGIC</a>
+        <button id="navCityBtn" style="background: transparent; color: var(--text-muted); border: 1px solid #444; padding: 6px 12px; border-radius: 4px; cursor: pointer;" onclick="showCityModal()">Select City ▾</button>
+      </div>
 
-    <!-- Search Bar (Requirement 9: Search/Filter) -->
-    <div style="flex: 2; max-width: 600px; position: relative; margin: 0 2rem;" class="no-mobile">
-      <input type="text" id="movie-search" placeholder="Search for Movies, Events, Plays and Sports" style="width: 100%; background: #222; border: 1px solid #333; padding: 0.8rem 1rem 0.8rem 3rem; border-radius: 8px; color: white; font-size: 0.9rem; transition: border-color 0.3s;">
-      <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); opacity: 0.4;">🔍</span>
-    </div>
+      <!-- Search Bar -->
+      <div style="flex: 2; max-width: 600px; position: relative;" class="no-mobile">
+        <input type="text" id="movie-search" placeholder="Search for Movies, Events, Plays and Sports" style="width: 100%; background: #222; border: 1px solid #333; padding: 0.8rem 1rem 0.8rem 3rem; border-radius: 8px; color: white; font-size: 0.9rem; transition: border-color 0.3s;">
+        <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); opacity: 0.4;">🔍</span>
+      </div>
 
-    <div class="links" id="nav-links" style="flex: 1; display: flex; justify-content: flex-end; gap: 2rem;">
-      <a href="/">Home</a>
-      <a href="/login.html">Login</a>
-      <a href="/signup.html">Signup</a>
+      <div class="links" id="nav-links" style="flex: 1; display: flex; justify-content: flex-end; gap: 2rem;">
+        <a href="/">Home</a>
+        <a href="/login.html">Login</a>
+        <a href="/signup.html">Signup</a>
+      </div>
     </div>
-  </nav>  <header class="container" style="text-align: center; padding: 2rem 1% 1rem;">
+  </nav>
+  <header class="container" style="text-align: center; padding: 2rem 0 1rem;">
     <h1 style="font-size: 3rem; margin-bottom: 0.5rem; font-weight: 900;">Cinema & <span style="color:var(--primary)">Entertainment</span> Live</h1>
     <p style="color:var(--text-muted); font-size: 1.1rem; letter-spacing: 1px;">Join thousands of fans at the best movies and live events.</p>
   </header>
+
 
   <main>
     <!-- 1. Movies Section -->
     <div id="recommended-movies-section" class="container" style="margin-top: 1rem;">
       <div class="carousel-section">
-        <div class="section-header-bar" style="padding: 0 1%;">
+        <div class="section-header-bar">
           <h2>Recommended Movies</h2>
           <a href="#" class="see-all-link">See All ❯</a>
         </div>
+
         <button class="scroll-btn left" onclick="scrollCarousel('movies-list', 'left')">❮</button>
         <div class="carousel-container" id="movies-list">
           <!-- Movies injected here -->
@@ -136,9 +141,10 @@
     </style>
 
     <!-- 3. Dynamic Events Container -->
-    <div id="events-sections-container">
+    <div id="events-sections-container" class="container">
        <div style="padding: 3rem; text-align: center; color: #444;">Fetching live entertainment...</div>
     </div>
+
   </main>
 
   <script src="js/posterMap.js"></script>
