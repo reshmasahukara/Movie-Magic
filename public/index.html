@@ -188,7 +188,9 @@
 
 
     let selectedCategory = 'all';
+    let expandedCategories = {}; // Tracks which categories are showing ALL
     const CATEGORY_PRIORITY = ['Music', 'Sports', 'Comedy', 'Outdoor', 'Festival', 'Workshops'];
+
 
 
     function normalizeCategory(cat) {
@@ -209,14 +211,15 @@
       if (!container) return;
 
       try {
-        const cityFilter = selectedCity || 'all';
-        const url = `/api/events?action=list&city=${cityFilter}&category=all`;
+        // --- 1. Fetch EVERYTHING (Ignore city filter for sections to ensure complete data) ---
+        // As per requirement: "Fetch ALL active events from Neon PostgreSQL database"
+        const url = `/api/events?action=list&city=all&category=all`;
         const { events } = await API.fetch(url);
         
-        const displayEvents = events || [];
+        let filteredEvents = events || [];
 
-        // --- 2. Filtering ---
-        let filteredEvents = displayEvents;
+        // Homepage specific: Filter by city only IF we want strict city view, 
+        // but user asked for "ALL records", so we primarily filter by CATEGORY in sections.
         if (selectedCategory !== 'all') {
           const normTarget = normalizeCategory(selectedCategory);
           filteredEvents = filteredEvents.filter(e => normalizeCategory(e.category) === normTarget);
@@ -225,59 +228,49 @@
         if (filteredEvents.length === 0) {
           container.innerHTML = `
             <div class="container" style="padding: 5rem 2rem; text-align: center; color: var(--text-muted); background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px dashed #333; margin-top:2rem;">
-              <p style="font-size: 1.2rem;">No events available in this category. 🎫</p>
-              <button onclick="filterEvents('all')" class="btn-primary" style="margin-top: 1.5rem">Browse All Categories</button>
+              <p style="font-size: 1.2rem;">No events found. 🎫</p>
             </div>
           `;
           return;
         }
 
-        // --- 3. Pre-populated Grouping ---
+        // --- 2. Grouping ---
         const groups = {};
+        const allPresentCategories = [...new Set(filteredEvents.map(ev => normalizeCategory(ev.category)))];
         
-        let priority = [...CATEGORY_PRIORITY];
-        // Bonus: If city is Kochi, put Outdoor first
-        if (selectedCity === 'Kochi') {
-          priority = ['Outdoor', ...priority.filter(c => c !== 'Outdoor')];
-        }
-
-        priority.forEach(cat => groups[cat] = []);
-        
+        allPresentCategories.forEach(cat => groups[cat] = []);
         filteredEvents.forEach(ev => {
           const norm = normalizeCategory(ev.category);
-          if (!groups[norm]) groups[norm] = [];
           groups[norm].push(ev);
         });
 
-        // --- 4. Render Sections ---
-        // Dynamically collect all categories present in the data
-        const allPresentCategories = [...new Set(filteredEvents.map(ev => normalizeCategory(ev.category)))];
-        
-        // Final priority: CATEGORY_PRIORITY first, then any other categories found
+        // --- 3. Render Order ---
         const finalRenderOrder = [
           ...CATEGORY_PRIORITY.filter(c => allPresentCategories.includes(c)),
           ...allPresentCategories.filter(c => !CATEGORY_PRIORITY.includes(c))
         ];
         
         container.innerHTML = finalRenderOrder.map(cat => {
-
-          const listId = `list-${cat.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
           const items = groups[cat];
-          const sliderHtml = renderEventSliderHTML(items);
+          if (!items || items.length === 0) return ''; // Hide empty
+
+          const isExpanded = expandedCategories[cat] || selectedCategory === cat;
+          const displayItems = isExpanded ? items : items.slice(0, 4);
+          const hasMore = items.length > 4;
+
+          const cardsHtml = renderEventSliderHTML(displayItems);
           
           return `
-            <div class="container event-section-wrapper animate-fade-in">
+            <div class="event-section-wrapper animate-fade-in">
               <div class="carousel-section">
                 <div class="section-header-bar">
                   <h2>${cat} Events</h2>
-                  <a href="#" class="see-all-link">See All ❯</a>
+                  ${hasMore ? `<a href="javascript:void(0)" class="see-all-link" onclick="toggleCategory('${cat}')">${isExpanded ? 'Show Less ❮' : 'See All ❯'}</a>` : ''}
                 </div>
                 
-                <button class="scroll-btn left" onclick="scrollCarousel('${listId}', 'left')">❮</button>
-                <div class="carousel-container" id="${listId}">
-                  ${sliderHtml}
+                <div class="events-grid">
+                  ${cardsHtml}
                 </div>
-                <button class="scroll-btn right" onclick="scrollCarousel('${listId}', 'right')">❯</button>
               </div>
             </div>
           `;
@@ -285,22 +278,15 @@
 
       } catch (err) {
         console.error('Render failure:', err);
-        const fb = getFallbackEvents();
-        const listId = 'list-fallback-error';
-        container.innerHTML = `
-          <div class="container" style="margin-top: 2rem;">
-            <div class="carousel-section">
-              <div class="section-header-bar"><h2>Recommended Events</h2></div>
-              <button class="scroll-btn left" onclick="scrollCarousel('${listId}', 'left')">❮</button>
-              <div class="carousel-container" id="${listId}">
-                ${renderEventSliderHTML(fb)}
-              </div>
-              <button class="scroll-btn right" onclick="scrollCarousel('${listId}', 'right')">❯</button>
-            </div>
-          </div>
-        `;
+        container.innerHTML = `<div style="padding: 3rem; text-align:center;">Failed to load events. Please refresh.</div>`;
       }
     }
+
+    window.toggleCategory = (cat) => {
+      expandedCategories[cat] = !expandedCategories[cat];
+      updateEvents();
+    };
+
 
     function renderEventSliderHTML(data) {
       return data.map(ev => {
@@ -452,6 +438,8 @@
     }
 
     initCity();
+    // Real-time updates: Refresh events every 30 seconds
+    setInterval(updateEvents, 30000);
   </script>
 </body>
 </html>

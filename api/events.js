@@ -9,8 +9,8 @@ export default async function handler(req, res) {
       // 1. List Events with Filters
       if (action === 'list') {
         const { city, category, date } = q;
-        let sql = 'SELECT * FROM events WHERE status != $1';
-        let params = ['Deleted'];
+        let sql = 'SELECT * FROM events WHERE status = $1';
+        let params = ['Active'];
         
         if (city && city !== 'all' && city !== 'Select City') {
           sql += ' AND (city = $' + (params.length + 1) + ' OR city = \'Online\')';
