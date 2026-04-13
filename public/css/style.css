@@ -296,18 +296,18 @@ nav .links a:hover::after {
   margin-bottom: 40px;
 }
 
-
 .carousel-section {
   position: relative;
   width: 100%;
 }
-
 
 .section-header-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 25px;
+  gap: 1rem; /* Space between title and button */
+  flex-wrap: wrap; /* Prevent overlap on very small screens */
 }
 
 .section-header-bar h2 {
@@ -318,8 +318,66 @@ nav .links a:hover::after {
   margin: 0;
 }
 
-.section-header-bar {
-  margin-bottom: 18px;
+/* Premium See All Button Style */
+.see-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 24px;
+  background: rgba(229, 9, 20, 0.05);
+  border: 1.5px solid var(--primary);
+  color: #fff !important;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 0 15px rgba(229, 9, 20, 0.1);
+  white-space: nowrap;
+  outline: none;
+}
+
+.see-all-btn:hover, .see-all-btn:focus {
+  background: var(--primary);
+  box-shadow: 0 0 25px rgba(229, 9, 20, 0.5);
+  transform: translateY(-2px);
+  color: #fff !important;
+}
+
+.see-all-btn .arrow {
+  display: inline-block;
+  transition: transform 0.3s ease;
+  font-size: 1.1rem;
+}
+
+.see-all-btn:hover .arrow, .see-all-btn:focus .arrow {
+  transform: translateX(6px);
+}
+
+.see-all-btn:active {
+  transform: translateY(0) scale(0.96);
+}
+
+@media (max-width: 768px) {
+  .section-header-bar {
+    margin-bottom: 18px;
+  }
+  
+  .section-header-bar h2 {
+    font-size: 20px !important;
+  }
+
+  .see-all-btn {
+    padding: 7px 16px;
+    font-size: 0.8rem;
+    gap: 6px;
+    border-width: 1.2px;
+  }
+  
+  .see-all-btn .arrow {
+    font-size: 0.9rem;
+  }
 }
 
 
