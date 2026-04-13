@@ -39,13 +39,21 @@ export default async function handler(req, res) {
     if (method === 'GET') {
       // 1. Fetch All Movies / Filtered
       if (action === 'list') {
-        const { status } = q;
-        let sql = 'SELECT * FROM movie';
+        const { status, language, genre, city } = q;
+        let sql = 'SELECT * FROM movie WHERE status != \'Deleted\'';
         let params = [];
 
         if (status && status !== 'all') {
-          sql += ' WHERE status = $1';
+          sql += ' AND status = $' + (params.length + 1);
           params.push(status);
+        }
+        if (language && language !== 'all') {
+          sql += ' AND language ILIKE $' + (params.length + 1);
+          params.push('%' + language + '%');
+        }
+        if (genre && genre !== 'all') {
+          sql += ' AND genre ILIKE $' + (params.length + 1);
+          params.push('%' + genre + '%');
         }
 
         sql += ' ORDER BY movie_id DESC';

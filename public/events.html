@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Events Listing | Movie Magic</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav id="navbar-container"></nav>
+
+  <main class="container">
+    <div class="listing-container">
+      <!-- Sidebar Filters -->
+      <aside class="filter-sidebar">
+        <h2 style="margin-bottom: 1.5rem; font-size: 1.2rem;">Filters</h2>
+        
+        <div class="filter-section">
+          <h3>Categories</h3>
+          <div class="filter-options">
+            <input type="checkbox" id="cat-music" class="filter-checkbox" value="Music" onchange="applyFilters()">
+            <label for="cat-music" class="filter-label">Music</label>
+            
+            <input type="checkbox" id="cat-comedy" class="filter-checkbox" value="Comedy" onchange="applyFilters()">
+            <label for="cat-comedy" class="filter-label">Comedy</label>
+            
+            <input type="checkbox" id="cat-sports" class="filter-checkbox" value="Sports" onchange="applyFilters()">
+            <label for="cat-sports" class="filter-label">Sports</label>
+            
+            <input type="checkbox" id="cat-outdoor" class="filter-checkbox" value="Outdoor" onchange="applyFilters()">
+            <label for="cat-outdoor" class="filter-label">Outdoor</label>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <h3>Price Range</h3>
+          <div class="filter-options">
+            <input type="checkbox" id="price-free" class="filter-checkbox" value="0" onchange="applyFilters()">
+            <label for="price-free" class="filter-label">Free</label>
+            
+            <input type="checkbox" id="price-low" class="filter-checkbox" value="500" onchange="applyFilters()">
+            <label for="price-low" class="filter-label">0 - 500</label>
+            
+            <input type="checkbox" id="price-mid" class="filter-checkbox" value="1000" onchange="applyFilters()">
+            <label for="price-mid" class="filter-label">501 - 1000</label>
+            
+            <input type="checkbox" id="price-high" class="filter-checkbox" value="5000" onchange="applyFilters()">
+            <label for="price-high" class="filter-label">Above 1000</label>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Content Area -->
+      <section class="listing-content">
+        <div class="listing-header">
+          <h1>Events in <span id="city-name" style="color:var(--primary)">All Cities</span></h1>
+          
+          <div class="chips-wrapper" id="category-chips">
+            <div class="filter-chip active" onclick="setChipFilter('all', this)">All Categories</div>
+            <div class="filter-chip" onclick="setChipFilter('Music', this)">Music</div>
+            <div class="filter-chip" onclick="setChipFilter('Comedy', this)">Comedy</div>
+            <div class="filter-chip" onclick="setChipFilter('Sports', this)">Sports</div>
+            <div class="filter-chip" onclick="setChipFilter('Workshops', this)">Workshops</div>
+          </div>
+        </div>
+
+        <div id="events-grid" class="listing-grid">
+           <!-- Dynamically Loaded Events -->
+           <div style="grid-column: 1/-1; padding: 5rem; text-align: center; color: #555;">Discovering live events...</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="js/utils.js"></script>
+  <script>
+    let activeChip = 'all';
+    const selectedCity = localStorage.getItem('selectedCity') || 'All Cities';
+
+    async function loadEventsListing() {
+      const grid = document.getElementById('events-grid');
+      const titleCity = document.getElementById('city-name');
+      if (titleCity) titleCity.textContent = selectedCity !== 'All Cities' ? selectedCity : 'Selected Cities';
+
+      // Collect Sidebar Filters
+      const catFilters = Array.from(document.querySelectorAll('.filter-sidebar .filter-checkbox:checked'))
+        .filter(cb => cb.id.startsWith('cat-'))
+        .map(cb => cb.value);
+      
+      const priceFilters = Array.from(document.querySelectorAll('.filter-sidebar .filter-checkbox:checked'))
+        .filter(cb => cb.id.startsWith('price-'))
+        .map(cb => cb.value);
+
+      try {
+        // Fetch All Active Events
+        let url = `/api/events?action=list&city=all&category=all`;
+        if (activeChip !== 'all') url = `/api/events?action=list&city=all&category=${activeChip}`;
+        
+        const { events } = await API.fetch(url);
+        
+        let filtered = events || [];
+
+        // Apply Sidebar Category Filters (if any)
+        if (catFilters.length > 0) {
+           filtered = filtered.filter(ev => catFilters.includes(ev.category));
+        }
+
+        // Apply Price Filters (simplified logic)
+        if (priceFilters.length > 0) {
+           filtered = filtered.filter(ev => {
+             const p = parseFloat(ev.price);
+             if (priceFilters.includes('0') && p === 0) return true;
+             if (priceFilters.includes('500') && p > 0 && p <= 500) return true;
+             if (priceFilters.includes('1000') && p > 500 && p <= 1000) return true;
+             if (priceFilters.includes('5000') && p > 1000) return true;
+             return false;
+           });
+        }
+
+        if (filtered.length === 0) {
+          grid.innerHTML = `<div style="grid-column: 1/-1; padding: 5rem; text-align: center; color: var(--text-muted);">No events found matching these criteria. 🎫</div>`;
+          return;
+        }
+
+        grid.innerHTML = filtered.map(ev => {
+          const date = new Date(ev.event_date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+          return `
+            <div class="premium-card" onclick="window.location.href='/event-booking.html?id=${ev.id}'">
+              <img src="${ev.image_url}" alt="${ev.event_name}" class="card-poster">
+              <div class="card-content">
+                <span style="color:var(--primary); font-size:0.75rem; font-weight:800; text-transform:uppercase;">${ev.category}</span>
+                <h3 style="margin-top:4px;">${ev.event_name}</h3>
+                <div class="meta">📅 ${date} • ${ev.event_time || ''}</div>
+                <div class="meta">📍 ${ev.venue}, ${ev.city}</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                  <span style="font-weight:700;">₹${ev.price}</span>
+                  <a href="/event-booking.html?id=${ev.id}" class="btn-book" style="padding: 6px 15px; font-size:0.8rem;" onclick="event.stopPropagation()">Book</a>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (err) {
+        console.error('Events Listing Error:', err);
+        grid.innerHTML = `<div style="grid-column: 1/-1; padding: 5rem; text-align: center; color: var(--primary);">Failed to load events. Please refresh.</div>`;
+      }
+    }
+
+    window.applyFilters = () => {
+      loadEventsListing();
+    };
+
+    window.setChipFilter = (cat, el) => {
+      activeChip = cat;
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      loadEventsListing();
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(loadEventsListing, 100);
+    });
+  </script>
+</body>
+</html>

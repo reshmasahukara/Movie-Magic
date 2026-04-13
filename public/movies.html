@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movies Listing | Movie Magic</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav id="navbar-container"></nav>
+
+  <main class="container">
+    <div class="listing-container">
+      <!-- Sidebar Filters -->
+      <aside class="filter-sidebar">
+        <h2 style="margin-bottom: 1.5rem; font-size: 1.2rem;">Filters</h2>
+        
+        <div class="filter-section">
+          <h3>Languages</h3>
+          <div class="filter-options">
+            <input type="checkbox" id="lang-hindi" class="filter-checkbox" value="Hindi" onchange="applyFilters()">
+            <label for="lang-hindi" class="filter-label">Hindi</label>
+            
+            <input type="checkbox" id="lang-english" class="filter-checkbox" value="English" onchange="applyFilters()">
+            <label for="lang-english" class="filter-label">English</label>
+            
+            <input type="checkbox" id="lang-telugu" class="filter-checkbox" value="Telugu" onchange="applyFilters()">
+            <label for="lang-telugu" class="filter-label">Telugu</label>
+            
+            <input type="checkbox" id="lang-tamil" class="filter-checkbox" value="Tamil" onchange="applyFilters()">
+            <label for="lang-tamil" class="filter-label">Tamil</label>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <h3>Genres</h3>
+          <div class="filter-options">
+            <input type="checkbox" id="gen-action" class="filter-checkbox" value="Action" onchange="applyFilters()">
+            <label for="gen-action" class="filter-label">Action</label>
+            
+            <input type="checkbox" id="gen-comedy" class="filter-checkbox" value="Comedy" onchange="applyFilters()">
+            <label for="gen-comedy" class="filter-label">Comedy</label>
+            
+            <input type="checkbox" id="gen-drama" class="filter-checkbox" value="Drama" onchange="applyFilters()">
+            <label for="gen-drama" class="filter-label">Drama</label>
+            
+            <input type="checkbox" id="gen-thriller" class="filter-checkbox" value="Thriller" onchange="applyFilters()">
+            <label for="gen-thriller" class="filter-label">Thriller</label>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Content Area -->
+      <section class="listing-content">
+        <div class="listing-header">
+          <h1 id="listing-title">Movies in <span id="city-name" style="color:var(--primary)">All Cities</span></h1>
+          
+          <div class="chips-wrapper" id="language-chips">
+            <div class="filter-chip active" onclick="setChipFilter('all', this)">All</div>
+            <div class="filter-chip" onclick="setChipFilter('Hindi', this)">Hindi</div>
+            <div class="filter-chip" onclick="setChipFilter('English', this)">English</div>
+            <div class="filter-chip" onclick="setChipFilter('Telugu', this)">Telugu</div>
+            <div class="filter-chip" onclick="setChipFilter('Tamil', this)">Tamil</div>
+          </div>
+        </div>
+
+        <div id="movies-grid" class="listing-grid">
+           <!-- Dynamically Loaded Movies -->
+           <div style="grid-column: 1/-1; padding: 5rem; text-align: center; color: #555;">Loading full movie catalog...</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="js/posterMap.js"></script>
+  <script src="js/utils.js"></script>
+  <script>
+    let activeChip = 'all';
+    const selectedCity = localStorage.getItem('selectedCity') || 'All Cities';
+
+    async function loadMoviesListing() {
+      const grid = document.getElementById('movies-grid');
+      const titleCity = document.getElementById('city-name');
+      if (titleCity) titleCity.textContent = selectedCity;
+
+      // Collect Sidebar Filters
+      const langFilters = Array.from(document.querySelectorAll('.filter-sidebar .filter-checkbox:checked'))
+        .filter(cb => cb.id.startsWith('lang-'))
+        .map(cb => cb.value);
+      
+      const genreFilters = Array.from(document.querySelectorAll('.filter-sidebar .filter-checkbox:checked'))
+        .filter(cb => cb.id.startsWith('gen-'))
+        .map(cb => cb.value);
+
+      try {
+        // Base URL
+        let url = `/api/movies?action=list`;
+        if (activeChip !== 'all') url += `&language=${activeChip}`;
+        
+        const { movies } = await API.fetch(url);
+        
+        // Frontend Filtering (for the sidebar multi-select)
+        let filtered = movies || [];
+        
+        if (langFilters.length > 0) {
+           filtered = filtered.filter(m => langFilters.some(lang => m.language && m.language.includes(lang)));
+        }
+        
+        if (genreFilters.length > 0) {
+           filtered = filtered.filter(m => genreFilters.some(gen => m.genre && m.genre.includes(gen)));
+        }
+
+        if (filtered.length === 0) {
+          grid.innerHTML = `<div style="grid-column: 1/-1; padding: 5rem; text-align: center; color: var(--text-muted);">No movies found matching these filters. 🎬</div>`;
+          return;
+        }
+
+        grid.innerHTML = filtered.map(movie => {
+          const posterUrl = MoviePoster.get(movie.movie_name);
+          return `
+            <div class="premium-card" onclick="window.location.href='/booking.html?id=${movie.movie_id}'">
+              <div class="rating-badge">⭐ ${movie.movie_rating || 'N/A'}</div>
+              <img src="${posterUrl}" alt="${movie.movie_name}" class="card-poster" onerror="this.onerror=null; this.src='/images/default-poster.jpg';">
+              <div class="card-content">
+                <h3>${movie.movie_name}</h3>
+                <div class="meta">${movie.language} • ${movie.genre}</div>
+                <a href="/booking.html?id=${movie.movie_id}" class="btn-book" onclick="event.stopPropagation()">Book Now</a>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (err) {
+        console.error('Listing Error:', err);
+        grid.innerHTML = `<div style="grid-column: 1/-1; padding: 5rem; text-align: center; color: var(--primary);">Failed to load movies. Please refresh.</div>`;
+      }
+    }
+
+    window.applyFilters = () => {
+      loadMoviesListing();
+    };
+
+    window.setChipFilter = (lang, el) => {
+      activeChip = lang;
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      loadMoviesListing();
+    };
+
+    // Initial Load
+    document.addEventListener('DOMContentLoaded', () => {
+      // Small delay to ensure utils.js initNavbar finishes if needed
+      setTimeout(loadMoviesListing, 100);
+    });
+  </script>
+</body>
+</html>
