@@ -164,7 +164,11 @@ movie-magic/
 
 ## 👨‍💻 Developed By
 
-Reshma Sahukara
+SAHUKARA RESHMA
+TALLA SATHWIK PAVAN
+SEELAM ESWAR VENKATA SURYA PRASH
+ALIVA DAS
+KAPU PURNA KESAVA
 
 
 ## ⭐ Support
