@@ -598,8 +598,19 @@
 
     function goToSeats(showId, theatreName, time, mId) {
       // Professional Datetime Sync (Safe for all browsers)
-      // Avoid new Date("YYYY-MM-DD HH:MM:SS") as it crashes in Safari
-      const safeTime = time.includes(':') && time.split(':').length === 2 ? time + ':00' : time;
+      // Convert "10:15 AM" to "10:15:00" for ISO compatibility
+      let safeTime = time.trim();
+      const match = safeTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+      if (match) {
+        let [_, hours, minutes, ampm] = match;
+        hours = parseInt(hours);
+        if (ampm.toUpperCase() === 'PM' && hours !== 12) hours += 12;
+        if (ampm.toUpperCase() === 'AM' && hours === 12) hours = 0;
+        safeTime = `${hours.toString().padStart(2, '0')}:${minutes}:00`;
+      } else if (safeTime.includes(':') && safeTime.split(':').length === 2) {
+        safeTime += ':00';
+      }
+      
       const datetime = `${selectedDate}T${safeTime}`;
 
       // Assign logical screen number

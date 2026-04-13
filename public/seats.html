@@ -289,8 +289,8 @@
                  screen_id: activeShowId,
                  movie_id: movieId,
                  theater_name: "Movie Magic Cinemas",
-                 timmings: datetime ? new Date(datetime).toLocaleTimeString() : "10:15 AM",
-                 show_date: datetime ? new Date(datetime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                 timmings: (datetime && !isNaN(new Date(datetime))) ? new Date(datetime).toLocaleTimeString() : "10:15 AM",
+                 show_date: (datetime && !isNaN(new Date(datetime))) ? new Date(datetime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
                  selected_seats: []
                }
              };
@@ -493,9 +493,9 @@
           movie_name: movieName,
           theater_name: theaterName,
           timmings: finalDisplayTime,
-          show_date: datetime ? new Date(datetime).toISOString().split('T')[0] : (new Date(currentShow ? currentShow.show_date : Date.now()).toISOString().split('T')[0]),
+          show_date: (datetime && !isNaN(new Date(datetime))) ? new Date(datetime).toISOString().split('T')[0] : (new Date(currentShow && currentShow.show_date ? currentShow.show_date : Date.now()).toISOString().split('T')[0]),
           seats: selectedSeats.map(s => s.id),
-          datetime: datetime
+          datetime: (datetime && !isNaN(new Date(datetime))) ? datetime : null
         };
 
         localStorage.setItem('paymentData', JSON.stringify(paymentDataObj));
