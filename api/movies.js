@@ -1,3 +1,5 @@
+import { query } from './lib/db.js';
+
 // Helper for Movie ID normalization (Task: Handle M001 vs 1)
 function normalizeMovieId(id) {
   if (!id) return id;
