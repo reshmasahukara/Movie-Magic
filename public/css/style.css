@@ -1,12 +1,12 @@
 :root {
-  --primary: #E50914;
-  --bg-dark: #080808;
-  --bg-card: #141414;
+  --primary: #ff1e1e;
+  --bg-dark: #050505;
+  --bg-card: #111111;
   --text-main: #FFFFFF;
-  --text-muted: #A3A3A3;
-  --nav-height: 78px;
-  --glass: rgba(255, 255, 255, 0.08);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --text-muted: #999999;
+  --nav-height: 80px;
+  --glass: rgba(0, 0, 0, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.08);
 }
 
 
@@ -28,13 +28,13 @@ body {
 /* Navbar */
 nav {
   height: var(--nav-height);
-  background: rgba(10, 10, 10, 0.82);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: var(--glass);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
   position: sticky;
   top: 0;
   z-index: 1000;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--glass-border);
   width: 100%;
   display: flex;
   align-items: center;
@@ -1163,4 +1163,263 @@ nav .links a:hover::after {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
+
+
+/* ================================================= */
+/* PRO LISTING PAGE REDESIGN (Premium UI)           */
+/* ================================================= */
+
+.listing-container {
+  display: flex;
+  gap: 40px;
+  margin-top: 2rem;
+  align-items: flex-start;
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 40px;
+}
+
+.filter-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 100px;
+  background: #111;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+}
+
+.filter-section {
+  padding: 20px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.filter-section:last-child { border-bottom: none; }
+
+.filter-section h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.filter-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filter-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 0.3s;
+}
+
+.filter-label:hover { color: #fff; }
+
+.filter-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.listing-content {
+  flex-grow: 1;
+}
+
+.listing-header {
+  margin-bottom: 2.5rem;
+}
+
+.listing-header h1 {
+  font-size: 34px;
+  font-weight: 900;
+  margin-bottom: 4px;
+  letter-spacing: -1px;
+}
+
+.listing-header .subheading {
+  color: var(--text-muted);
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+.chips-wrapper {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.filter-chip {
+  padding: 8px 18px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.filter-chip.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+/* HIGH DENSITY GRID */
+.listing-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 18px;
+}
+
+@media (max-width: 1599px) { .listing-grid { grid-template-columns: repeat(5, 1fr); } }
+@media (max-width: 1200px) { .listing-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 1024px) { 
+  .listing-container { flex-direction: column; padding: 0 20px; }
+  .filter-sidebar { width: 100%; position: static; margin-bottom: 20px; }
+  .listing-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 600px) { .listing-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
+
+/* PREMIUM CARD COMPONENT */
+.premium-card {
+  background: #111;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+  border: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.premium-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--primary);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(255, 30, 30, 0.15);
+}
+
+.card-poster-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2/3;
+  overflow: hidden;
+  background: #000;
+}
+
+.card-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.premium-card:hover .card-poster {
+  transform: scale(1.05);
+}
+
+.rating-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(5px);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgba(255,255,255,0.1);
+  z-index: 2;
+}
+
+.card-content {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.card-content h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-content .meta {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.premium-card .btn-book {
+  margin-top: auto;
+  width: 100%;
+  background: var(--primary);
+  color: white;
+  text-align: center;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 13px;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.btn-clear-all {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  cursor: pointer;
+  font-weight: 800;
+  border-radius: 8px;
+  margin: 20px;
+  width: calc(100% - 40px);
+  transition: all 0.3s;
+}
+
+.btn-clear-all:hover {
+  background: var(--primary);
+  color: white;
+}
+
+
+/* REFINED NAVBAR & GLOBAL FIXES */
+.nav-container { padding: 0 40px !important; }
+.nav-center { display: flex !important; gap: 20px !important; }
+.search-wrapper { flex-grow: 1; max-width: 500px; position: relative; }
+.search-icon { position: absolute; left: 16px; top: 12px; font-size: 1.1rem; opacity: 0.5; z-index: 5; }
+.search-bar { padding-left: 48px !important; }
+.nav-right { gap: 25px !important; }
+.links a { margin-left: 0 !important; color: #bbb !important; text-decoration: none; font-size: 0.95rem; font-weight: 500; transition: 0.3s; }
+.links a:hover { color: #fff !important; }
+
+/* Global layout alignment */
+.container { max-width: 1600px; margin: 0 auto; padding: 0 40px; }
+
+/* Card Image Fix */
+.card-poster-wrapper { border-radius: 12px 12px 0 0; }
+.premium-card h3 { line-height: 1.2; }
 
