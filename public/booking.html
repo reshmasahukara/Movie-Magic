@@ -162,24 +162,50 @@
       position: relative;
       z-index: 10;
     }
+
+    .timings-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 1rem;
+    }
+
     .show-time-btn { 
-      padding: 8px 18px; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 10px; 
       border: 1px solid #28a745; 
-      border-radius: 4px; 
+      border-radius: 8px; 
       background: transparent; 
       color: #28a745; 
-      font-weight: 500; 
+      font-weight: 600; 
       cursor: pointer; 
-      pointer-events: auto !important;
-      position: relative;
-      z-index: 999;
-      transition: 0.3s;
-      font-size: 0.8rem;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
       text-align: center;
+      min-height: 85px;
+      width: 100%;
     }
-    .show-time-btn:hover { background: #28a745; color: white; }
+    .show-time-btn:hover { 
+      background: rgba(40, 167, 69, 0.1); 
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+    }
     
     .label-tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; border: 1px solid #333; color: #666; margin-left: 10px; text-transform: uppercase; }
+
+    @media (max-width: 768px) {
+      .timings-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+      .show-time-btn {
+        min-height: 75px;
+        font-size: 0.8rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -538,15 +564,15 @@
               </div>
               <span class="label-tag">Non-cancellable</span>
             </div>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <div class="timings-grid">
               ${t.filteredShows.map(s => `
                 <button class="show-time-btn" data-showid="${s.id}" data-movieid="${movieId}" data-theater="${t.name}" data-time="${s.time}">
-                  ${s.time}
-                  <small style="display: block; font-size: 0.6rem; opacity: 0.6; margin-top: 3px;">
+                  <span style="font-size: 1rem; margin-bottom: 2px;">${s.time}</span>
+                  <small style="display: block; font-size: 0.65rem; opacity: 0.7; margin-bottom: 4px;">
                     ${s.format || '2D'} • ₹${s.price}
                   </small>
-                  <span style="font-size: 0.55rem; color: ${s.available < 10 ? '#e50914' : '#28a745'}; font-weight: bold;">
-                    ${s.available} seats left
+                  <span style="font-size: 0.6rem; color: ${s.available < 10 ? '#ff1e1e' : '#28a745'}; font-weight: bold; padding: 2px 6px; background: rgba(0,0,0,0.3); border-radius: 4px;">
+                    ${s.available} SEATS
                   </span>
                 </button>
               `).join('')}
