@@ -97,7 +97,7 @@ export default async function handler(req, res) {
         if (!mid) return res.status(400).json({ error: 'Movie ID required' });
 
         let sql = `
-          SELECT s.*, t.theater_name, t.city as location 
+          SELECT s.*, t.theater_name, TRIM(t.city) as location 
           FROM shows s
           JOIN theater t ON s.theater_id = t.theater_id
           WHERE (s.movie_id = $1 OR s.movie_id = $2)
@@ -109,7 +109,7 @@ export default async function handler(req, res) {
         let params = [mid, numericId];
 
         if (city && city !== 'all' && city !== 'Select City' && city !== 'null') {
-          sql += ' AND t.city = $3';
+          sql += ' AND TRIM(t.city) = $3';
           params.push(city);
         }
 
@@ -132,7 +132,8 @@ export default async function handler(req, res) {
              const displayHrs = h % 12 || 12;
              time = `${displayHrs}:${m} ${ampm}`;
           }
-          return { ...row, timmings: time };
+          // Ensure a fallback price exists (Since table doesn't have it yet)
+          return { ...row, timmings: time, price: row.price || 150 };
         });
 
         return res.status(200).json({ success: true, shows: processed });
