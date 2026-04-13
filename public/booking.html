@@ -377,7 +377,8 @@
               };
             }
             
-            const sDate = s.show_date ? s.show_date.split('T')[0] : '';
+            // s.show_date is now "YYYY-MM-DD" string from TO_CHAR
+            const sDate = s.show_date;
             const bookedCount = Array.isArray(s.selected_seats) ? s.selected_seats.length : 0;
             const available = (s.no_of_seats || 100) - bookedCount;
 
@@ -385,7 +386,7 @@
               id: s.screen_id,
               time: s.timmings,
               date: sDate,
-              price: 150,
+              price: s.price || 150,
               format: s.screen_dimensions || "2D",
               available: available
             });
@@ -406,10 +407,20 @@
         } else {
           theatresData = []; // Trigger Task 4
         }
-      } catch (e) {
-        console.error("Shows fetch failed:", e);
-        theatresData = [];
+      } catch (err) {
+        console.error("Booking API Critical Error:", err);
+        UI.showMessage("Failed to load live shows. Using cache...");
+        theatresData = []; 
       }
+
+      // --- DEBUG MODE LOGGING ---
+      console.log("=== MOVIE MAGIC DEBUG ===");
+      console.log("Movie ID:", movieId);
+      console.log("City:", selectedCity);
+      console.log("Date Bar Selected:", selectedDate);
+      console.log("Theatres Found (Count):", theatresData.length);
+      console.log("Total Shows in API Response:", res.shows ? res.shows.length : 0);
+      console.log("=========================");
 
       renderContent();
     }
@@ -510,7 +521,7 @@
         container.innerHTML = `
           <div style="text-align: center; padding: 4rem; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed #333;">
             <p style="color: #666; font-size: 1.1rem;">No shows available for the selected criteria. 🍿</p>
-            <button onclick="resetFilters()" class="btn-primary" style="margin-top: 1.5rem; background: transparent; border: 1px solid #444;">Clear Filters</button>
+            <button onclick="totalReset()" class="btn-primary" style="margin-top: 1.5rem; background: transparent; border: 1px solid #444;">Clear Filters</button>
           </div>
         `;
         return;
@@ -551,6 +562,11 @@
       document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
       document.querySelector('[data-filter="all"]').classList.add('active');
       renderContent();
+    }
+
+    function totalReset() {
+      localStorage.setItem('selectedCity', 'all');
+      window.location.reload();
     }
 
     // Event Delegation for show timing buttons
