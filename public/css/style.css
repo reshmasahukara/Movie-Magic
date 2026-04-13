@@ -4,10 +4,11 @@
   --bg-card: #141414;
   --text-main: #FFFFFF;
   --text-muted: #A3A3A3;
-  --nav-height: 72px;
+  --nav-height: 64px;
   --glass: rgba(255, 255, 255, 0.08);
   --glass-border: rgba(255, 255, 255, 0.1);
 }
+
 
 
 * {
@@ -193,11 +194,12 @@ nav .links a:hover {
 /* Layout & Containers */
 .container {
   width: 100%;
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 16px;
   box-sizing: border-box;
 }
+
 
 @media (max-width: 768px) {
   .container {
@@ -228,16 +230,17 @@ nav .links a:hover {
 
 .movie-card img {
   width: 100%;
-  height: 400px;
+  height: 300px;
   object-fit: cover;
 }
 
+
 /* --- Redesigned Professional Event Sections --- */
 .event-section-wrapper {
-  margin-top: 50px;
-  margin-bottom: 60px;
-  padding: 0 10px;
+  margin-top: 30px;
+  margin-bottom: 40px;
 }
+
 
 .carousel-section {
   position: relative;
@@ -253,43 +256,71 @@ nav .links a:hover {
 }
 
 .section-header-bar h2 {
-  font-size: 34px;
+  font-size: 28px;
   font-weight: 800;
-  letter-spacing: -1.5px;
+  letter-spacing: -1px;
   color: #fff;
   margin: 0;
 }
 
-
-/* Base style for the events display - 5 COLUMN Grid */
-.events-grid, .movie-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(220px, 1fr));
-  gap: 22px;
-  width: 100%;
+.section-header-bar {
+  margin-bottom: 18px;
 }
 
-/* Laptop 4 Cards */
-@media (max-width: 1399px) {
+
+
+/* Base style for the events display - 6 COLUMN Grid */
+.events-grid, .movie-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 18px;
+}
+
+/* Slider Overrides (when in carousel) */
+.carousel-container .events-grid, 
+.carousel-container .movie-grid {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  grid-template-columns: none !important;
+  gap: 18px;
+}
+
+.carousel-container .event-card, 
+.carousel-container .movie-card {
+  min-width: 200px !important;
+  max-width: 200px !important;
+  flex: 0 0 200px !important;
+}
+
+/* Laptop 5 Cards */
+@media (max-width: 1599px) {
+  .events-grid, .movie-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* Laptop Small 4 Cards */
+@media (max-width: 1200px) {
   .events-grid, .movie-grid {
     grid-template-columns: repeat(4, 1fr);
   }
 }
 
 /* Tablet 3 Cards */
-@media (max-width: 991px) {
+@media (max-width: 900px) {
   .events-grid, .movie-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
 /* Mobile Small 2 Cards */
-@media (max-width: 599px) {
+@media (max-width: 600px) {
   .events-grid, .movie-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
 }
+
 
 .event-card, .movie-card {
   background: var(--bg-card);
@@ -607,23 +638,35 @@ nav .links a:hover {
 
 .scroll-btn {
   position: absolute;
-  top: 55%;
+  top: 50%;
   transform: translateY(-50%);
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.8);
   color: white;
-  border: 1px solid var(--glass);
-  width: 40px; height: 40px;
+  border: 1px solid var(--glass-border);
+  width: 44px; height: 44px;
   border-radius: 50%;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   cursor: pointer;
-  z-index: 10;
-  backdrop-filter: blur(4px);
+  z-index: 100;
+  backdrop-filter: blur(8px);
   display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 }
 
-.scroll-btn:hover {  background: var(--primary); border-color: var(--primary); }
-.scroll-btn.left { left: 0.5%; }
-.scroll-btn.right { right: 0.5%; }
+.scroll-btn:hover { background: var(--primary); border-color: var(--primary); transform: translateY(-50%) scale(1.1); box-shadow: 0 0 20px rgba(229, 9, 20, 0.4); }
+.scroll-btn.left { left: -22px; }
+.scroll-btn.right { right: -22px; }
+
+/* Drag Indicator */
+.carousel-container {
+  cursor: grab;
+  user-select: none;
+}
+.carousel-container:active {
+  cursor: grabbing;
+}
+
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {

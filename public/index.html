@@ -158,12 +158,11 @@
         
         container.innerHTML = finalRenderOrder.map(cat => {
           const items = groups[cat];
-          if (!items || items.length === 0) return ''; // Hide empty
+          if (!items || items.length === 0) return ''; 
 
           const isExpanded = expandedCategories[cat] || selectedCategory === cat;
-          const displayItems = isExpanded ? items : items.slice(0, 5);
-          const hasMore = items.length > 5;
-
+          const displayItems = isExpanded ? items : items; // Always show all for slider
+          const hasMore = items.length > 6;
 
           const cardsHtml = renderEventSliderHTML(displayItems);
           
@@ -172,17 +171,22 @@
               <div class="carousel-section">
                 <div class="section-header-bar">
                   <h2>${cat} Events</h2>
-                  ${hasMore ? `<a href="javascript:void(0)" class="see-all-link" onclick="toggleCategory('${cat}')">${isExpanded ? 'Show Less' : 'See All'}</a>` : ''}
-
                 </div>
                 
-                <div class="events-grid">
-                  ${cardsHtml}
+                <button class="scroll-btn left" onclick="scrollCarousel('events-${cat}', 'left')">❮</button>
+                <div class="carousel-container" id="events-${cat}">
+                  <div class="events-grid">
+                    ${cardsHtml}
+                  </div>
                 </div>
+                <button class="scroll-btn right" onclick="scrollCarousel('events-${cat}', 'right')">❯</button>
               </div>
             </div>
           `;
         }).join('');
+        
+        initSliders();
+
 
       } catch (err) {
         console.error('Render failure:', err);
@@ -202,25 +206,25 @@
         const fallbackImg = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=400';
         return `
         <div class="event-card" onclick="window.location.href='/event-booking.html?id=${ev.id}'">
-          <div class="image-box">
+          <div class="image-box" style="height: 140px;">
             <img src="${ev.image_url}" alt="${ev.event_name}" onerror="this.onerror=null; this.src='${fallbackImg}';">
           </div>
-          <div class="event-card-content">
-            <span class="event-date-badge">${date}</span>
-            <span class="event-name">${ev.event_name}</span>
-            <div class="event-meta">📍 ${ev.venue}</div>
-            <div class="event-meta">🏢 ${ev.city}</div>
+          <div class="event-card-content" style="padding: 1rem;">
+            <span class="event-date-badge" style="font-size: 0.65rem;">${date}</span>
+            <span class="event-name" style="font-size: 1rem; min-height: 2.6rem; margin-bottom: 8px;">${ev.event_name}</span>
+            <div class="event-meta" style="font-size: 0.8rem;">📍 ${ev.venue}</div>
             
-            <div class="event-card-footer">
-              <span class="event-price">₹${ev.price}</span>
-              <button class="btn-book" onclick="event.stopPropagation(); window.location.href='/event-booking.html?id=${ev.id}'">
-                ${ev.status === 'Sold Out' ? 'Sold Out' : 'Book Now'}
+            <div class="event-card-footer" style="padding-top: 10px;">
+              <span class="event-price" style="font-size: 0.95rem;">₹${ev.price}</span>
+              <button class="btn-book" style="padding: 6px 12px; font-size: 0.75rem;" onclick="event.stopPropagation(); window.location.href='/event-booking.html?id=${ev.id}'">
+                Book
               </button>
             </div>
           </div>
         </div>
       `}).join('');
     }
+
 
     window.filterEvents = async (category) => {
       selectedCategory = category;
@@ -291,23 +295,69 @@
     function scrollCarousel(id, direction) {
       const container = document.getElementById(id);
       if (!container) return;
-      container.scrollBy({ left: direction === 'left' ? -400 : 400, behavior: 'smooth' });
+      const scrollAmount = direction === 'left' ? -1200 : 1200;
+      container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
+
+    function initSliders() {
+      const sliders = document.querySelectorAll('.carousel-container');
+      sliders.forEach(slider => {
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        slider.addEventListener('mousedown', (e) => {
+          isDown = true;
+          slider.classList.add('active');
+          startX = e.pageX - slider.offsetLeft;
+          scrollLeft = slider.scrollLeft;
+        });
+        slider.addEventListener('mouseleave', () => {
+          isDown = false;
+          slider.classList.remove('active');
+        });
+        slider.addEventListener('mouseup', () => {
+          isDown = false;
+          slider.classList.remove('active');
+        });
+        slider.addEventListener('mousemove', (e) => {
+          if(!isDown) return;
+          e.preventDefault();
+          const x = e.pageX - slider.offsetLeft;
+          const walk = (x - startX) * 2; 
+          slider.scrollLeft = scrollLeft - walk;
+        });
+
+        // Auto-hide arrows
+        const updateArrows = () => {
+          const parent = slider.parentElement;
+          const leftBtn = parent.querySelector('.scroll-btn.left');
+          const rightBtn = parent.querySelector('.scroll-btn.right');
+          if(leftBtn) leftBtn.style.display = slider.scrollLeft <= 0 ? 'none' : 'flex';
+          if(rightBtn) rightBtn.style.display = slider.scrollLeft + slider.offsetWidth >= slider.scrollWidth - 10 ? 'none' : 'flex';
+        };
+        
+        slider.addEventListener('scroll', updateArrows);
+        window.addEventListener('resize', updateArrows);
+        updateArrows();
+      });
+    }
+
 
     function generateMovieCard(movie) {
       const posterUrl = MoviePoster.get(movie.movie_name);
       return `
         <div class="movie-card" onclick="window.location.href='/booking.html?id=${movie.movie_id}'">
-          <img src="${posterUrl}" alt="${movie.movie_name}" class="poster" onerror="this.onerror=null; this.src=(this.alt.toLowerCase().includes('baahubali') || this.alt.toLowerCase().includes('bahubali')) ? '/images/movies/baahubali-beginning.jpg' : '/images/default-poster.jpg';">
-          <div class="movie-info">
-            <h3 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; font-size: 1.1rem;">${movie.movie_name}</h3>
-            <div class="meta" style="font-size: 0.8rem; margin: 5px 0; color: #ccc;">⭐ ${movie.movie_rating} • ${movie.language}</div>
-            <div class="meta" style="font-size: 0.75rem; color: #aaa; margin-bottom: 1.2rem;">${movie.genre}</div>
-            <a href="/booking.html?id=${movie.movie_id}" class="btn-book" onclick="event.stopPropagation()">Book Now</a>
+          <img src="${posterUrl}" alt="${movie.movie_name}" class="poster" onerror="this.onerror=null; this.src='/images/default-poster.jpg';">
+          <div class="movie-info" style="padding: 12px;">
+            <h3 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; font-size: 1rem; color: #fff;">${movie.movie_name}</h3>
+            <div class="meta" style="font-size: 0.75rem; margin: 4px 0; color: #999;">⭐ ${movie.movie_rating} • ${movie.language}</div>
+            <a href="/booking.html?id=${movie.movie_id}" class="btn-book" style="padding: 6px 15px; font-size: 0.75rem; width: 100%; margin-top: 8px;" onclick="event.stopPropagation()">Book</a>
           </div>
         </div>
       `;
     }
+
 
 
 
@@ -341,10 +391,11 @@
       // Filter Avatar 2
       moviesData = moviesData.filter(m => m.movie_name !== "Avatar: The Way of Water" && m.movie_name !== "Avatar:Way of Water");
       
-      // Homepage: show only 5 movies initially as per requirement
-      list.innerHTML = moviesData.slice(0, 5).map(m => generateMovieCard(m)).join('');
+      list.innerHTML = `<div class="movie-grid">${moviesData.map(m => generateMovieCard(m)).join('')}</div>`;
       setupSearch();
+      initSliders();
     }
+
 
 
     initCity();
