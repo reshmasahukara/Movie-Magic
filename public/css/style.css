@@ -1423,3 +1423,44 @@ nav .links a:hover::after {
 .card-poster-wrapper { border-radius: 12px 12px 0 0; }
 .premium-card h3 { line-height: 1.2; }
 
+
+/* DESKTOP UI FIXES (min-width: 1024px) */
+html, body {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  position: relative;
+}
+
+@media (min-width: 1024px) {
+  /* Hide Mobile Sidebar & Toggle on Desktop */
+  #mobileSidebar, 
+  .mobile-sidebar,
+  .mobile-toggle {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  /* Prevent any container overflow */
+  .container, 
+  .nav-container, 
+  .listing-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Special case for center-aligned listing catalogs */
+  .listing-container {
+    max-width: 1600px !important;
+    margin: 2rem auto !important;
+    overflow: visible !important; /* Allow hover effects to show */
+  }
+
+  /* Ensure carousels don't cause page-level scroll */
+  .carousel-section {
+    max-width: 100vw !important;
+    overflow: hidden !important;
+  }
+}
+
