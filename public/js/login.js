@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {
                 UI.showMessage(err.message);
                 submitBtn.disabled = false;
-                submitBtn.innerText = 'Sign In';
+                submitBtn.innerText = 'LOGIN';
             }
         };
     }

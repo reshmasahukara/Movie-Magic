@@ -103,10 +103,78 @@
       </div>
     </div>
 
-    <!-- Modals and other tabs handled via JS -->
-    <div id="tab-users" class="tab-content">...</div>
-    <div id="tab-movies" class="tab-content">...</div>
-    <div id="tab-events" class="tab-content">...</div>
+    <!-- 2. CUSTOMERS TAB -->
+    <div id="tab-users" class="tab-content">
+       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+          <h2 style="font-size: 2.2rem; font-weight: 800;">Customer Management</h2>
+       </div>
+       <div class="table-container">
+          <table id="users-table">
+             <thead>
+                <tr>
+                   <th>ID</th>
+                   <th>Full Name</th>
+                   <th>Email Address</th>
+                   <th>City</th>
+                   <th>Contact</th>
+                   <th>Verified</th>
+                   <th>Status</th>
+                   <th>Action</th>
+                </tr>
+             </thead>
+             <tbody></tbody>
+          </table>
+       </div>
+    </div>
+
+    <!-- 3. MOVIES TAB -->
+    <div id="tab-movies" class="tab-content">
+       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+          <h2 style="font-size: 2.2rem; font-weight: 800;">Movie Catalog</h2>
+          <button class="btn-primary" onclick="alert('Add Movie Feature Coming Soon')">ADD MOVIE</button>
+       </div>
+       <div class="table-container">
+          <table id="movies-table">
+             <thead>
+                <tr>
+                   <th>Poster</th>
+                   <th>Movie Name</th>
+                   <th>Genre</th>
+                   <th>Language</th>
+                   <th>Release Date</th>
+                   <th>Status</th>
+                   <th>Action</th>
+                </tr>
+             </thead>
+             <tbody></tbody>
+          </table>
+       </div>
+    </div>
+
+    <!-- 4. EVENTS TAB -->
+    <div id="tab-events" class="tab-content">
+       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+          <h2 style="font-size: 2.2rem; font-weight: 800;">Event Operations</h2>
+          <button class="btn-primary">ADD EVENT</button>
+       </div>
+       <div class="table-container">
+          <table id="events-table">
+             <thead>
+                <tr>
+                   <th>Imagery</th>
+                   <th>Event Name</th>
+                   <th>Category</th>
+                   <th>Venue / City</th>
+                   <th>Date</th>
+                   <th>Price</th>
+                   <th>Availability</th>
+                   <th>Action</th>
+                </tr>
+             </thead>
+             <tbody></tbody>
+          </table>
+       </div>
+    </div>
   </main>
 
   <!-- Detail Modal -->
@@ -215,9 +283,123 @@
        document.getElementById('tx-modal').style.display = 'flex';
     }
 
+    async function switchTab(tabId) {
+       // 1. Logic to hide all sections
+       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+       document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+       
+       // 2. Logic to highlight sidebar
+       document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+       
+       // 3. Show target section
+       const target = document.getElementById(`tab-${tabId}`);
+       if(target) {
+          target.classList.add('active');
+          target.style.display = 'block';
+       }
+
+       // 4. Highlight the button
+       const btns = document.querySelectorAll('.nav-item');
+       btns.forEach(btn => {
+          if(btn.innerText.toLowerCase().includes(tabId.replace('users', 'customer'))) {
+             btn.classList.add('active');
+          }
+       });
+
+       // 5. Load Data
+       if (tabId === 'dash') loadDashboard();
+       if (tabId === 'users') loadUsers();
+       if (tabId === 'movies') loadMovies();
+       if (tabId === 'events') loadEvents();
+    }
+
+    async function loadUsers() {
+       try {
+          const res = await API.fetch('/api/admin-users');
+          if (res.success) {
+             const rows = res.list.map(u => `
+                <tr>
+                   <td>#${u.user_id}</td>
+                   <td style="color: white; font-weight: 700;">${u.name}</td>
+                   <td>${u.email}</td>
+                   <td>${u.city}</td>
+                   <td>${u.contact_no}</td>
+                   <td><span style="color: #28a745;">✓</span></td>
+                   <td><span class="badge" style="background: ${u.is_blocked ? '#dc3545' : '#28a745'}">${u.is_blocked ? 'Blocked' : 'Active'}</span></td>
+                   <td>
+                      <button class="view-btn" style="background: ${u.is_blocked ? '#28a745' : '#dc3545'}" onclick="toggleUser(${u.user_id}, ${u.is_blocked})">
+                         ${u.is_blocked ? 'UNBLOCK' : 'BLOCK'}
+                      </button>
+                   </td>
+                </tr>
+             `).join('');
+             document.querySelector('#users-table tbody').innerHTML = rows;
+          }
+       } catch (err) { console.error(err); }
+    }
+
+    async function loadMovies() {
+       try {
+          const res = await API.fetch('/api/admin-movies');
+          if (res.success) {
+             const rows = res.list.map(m => `
+                <tr>
+                   <td><img src="${m.poster_url}" style="width: 40px; height: 55px; object-fit: cover; border-radius: 4px; border: 1px solid #333;"></td>
+                   <td style="color: white; font-weight: 700;">${m.movie_name}</td>
+                   <td>${m.genre}</td>
+                   <td>${m.language}</td>
+                   <td>${new Date(m.release_date).toLocaleDateString()}</td>
+                   <td><span class="badge" style="background: rgba(255,255,255,0.05);">${m.show_status}</span></td>
+                   <td style="display: flex; gap: 5px;">
+                      <button class="view-btn">EDIT</button>
+                      <button class="view-btn" style="background: #dc3545;" onclick="deleteContent('movie', ${m.movie_id})">DEL</button>
+                   </td>
+                </tr>
+             `).join('');
+             document.querySelector('#movies-table tbody').innerHTML = rows;
+          }
+       } catch (err) { console.error(err); }
+    }
+
+    async function loadEvents() {
+       try {
+          const res = await API.fetch('/api/admin-events');
+          if (res.success) {
+             const rows = res.list.map(e => `
+                <tr>
+                   <td><img src="${e.image_url}" style="width: 50px; height: 35px; object-fit: cover; border-radius: 6px;"></td>
+                   <td style="color: white; font-weight: 700;">${e.event_name}</td>
+                   <td>${e.category}</td>
+                   <td>${e.venue}, ${e.city}</td>
+                   <td style="font-size: 0.8rem;">${new Date(e.event_date).toLocaleDateString()}</td>
+                   <td style="color: var(--accent); font-weight: 800;">₹${e.price}</td>
+                   <td>${e.status}</td>
+                   <td style="display: flex; gap: 5px;">
+                      <button class="view-btn">EDIT</button>
+                      <button class="view-btn" style="background: #dc3545;" onclick="deleteContent('event', ${e.id})">DEL</button>
+                   </td>
+                </tr>
+             `).join('');
+             document.querySelector('#events-table tbody').innerHTML = rows;
+          }
+       } catch (err) { console.error(err); }
+    }
+
+    async function toggleUser(id, curr) {
+       if (!confirm('Modify customer access?')) return;
+       const res = await API.fetch('/api/admin-users', { method: 'POST', body: JSON.stringify({ action: 'toggleBlock', userId: id, block: !curr }) });
+       if (res.success) { UI.showMessage('Update Complete'); loadUsers(); }
+    }
+
+    async function deleteContent(type, id) {
+       if (!confirm('Permanently remove this item?')) return;
+       const endpoint = type === 'movie' ? '/api/admin-movies' : '/api/admin-events';
+       const res = await API.fetch(endpoint, { method: 'POST', body: JSON.stringify({ action: 'delete', data: { id } }) });
+       if (res.success) { UI.showMessage('Deletetion Successful'); switchTab(type + 's'); }
+    }
+
     function closeModal() { document.getElementById('tx-modal').style.display = 'none'; }
     function logout() { localStorage.removeItem('adminUser'); window.location.href = '/admin-login.html'; }
-    function switchTab(t) { /* Mock for now, same as previous implementation */ alert('Switching to ' + t); }
 
     window.onload = loadDashboard;
   </script>
